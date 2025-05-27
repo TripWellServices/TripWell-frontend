@@ -1,6 +1,7 @@
 import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import axios from "axios";
 import { initializeApp } from "firebase/app";
+import { useNavigate } from "react-router-dom";
 
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
@@ -13,6 +14,8 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 export default function SignUp() {
+  const navigate = useNavigate();  // Use navigate hook for routing
+
   const handleGoogleSignUp = async () => {
     try {
       const result = await signInWithPopup(auth, provider);
@@ -26,7 +29,9 @@ export default function SignUp() {
       });
 
       console.log("User signed in:", response.data.user);
-      // TODO: route to /profile or /trip-setup screen
+      // Navigate to the next page after successful sign up (e.g., Profile or Trip Setup)
+      navigate("/trip-setup");  // You can change this to /profile or any other page
+
     } catch (error) {
       console.error("Signup failed:", error);
     }
