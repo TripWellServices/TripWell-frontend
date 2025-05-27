@@ -7,6 +7,6 @@ export default defineConfig({
     host: '0.0.0.0',
   },
   build: {
-    outDir: 'dist' // 🧠 Tell Vercel where to look after build
-  }
+    outDir: 'dist', // Make sure the build goes to dist
+  },
 });
