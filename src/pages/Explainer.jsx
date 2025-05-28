@@ -1,7 +1,47 @@
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { initializeApp } from "firebase/app";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
+
+const firebaseConfig = {
+  apiKey: "",
+  authDomain: "gofast-a5f94.firebaseapp.com",
+  projectId: "gofast-a5f94",
+  storageBucket: "gofast-a5f94.firebasestorage.app",
+  messagingSenderId: "500941094498",
+  appId: "1:500941094498:web:eee09da6918f9e53889b3b",
+  measurementId: "G-L0NGHRBSDE"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
 
 export default function Explainer() {
   const navigate = useNavigate();
+
+  const handleGoogleSignUp = async () => {
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const token = await result.user.getIdToken();
+
+      const response = await axios.post(
+        "https://gofastbackend.onrender.com/auth/firebase-login",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("User signed in:", response.data.user);
+      navigate("/hub");
+    } catch (err) {
+      console.error("Google Sign-In failed:", err);
+      alert("Could not sign in. Try again.");
+    }
+  };
 
   return (
     <div className="p-10 text-center">
@@ -10,16 +50,13 @@ export default function Explainer() {
         We help you plan your trips and execute them with calm, clarity, and confidence.
       </p>
       <button
-        className="bg-blue-600 text-white px-6 py-2 rounded mr-4"
-        onClick={() => navigate("/signup")}
+        onClick={handleGoogleSignUp}
+        className="bg-blue-600 text-white px-6 py-2 rounded"
       >
-        Sign Up with Google
+        Sign In with Google
       </button>
       <p className="text-sm text-gray-600 mt-4">
-        Already have an account?{" "}
-        <a className="underline text-blue-500" href="/signin">
-          Sign In
-        </a>
+        Already have an account? You're in the right place.
       </p>
     </div>
   );
