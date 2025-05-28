@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 // Pages
 import Home from "./pages/Home";
 import Explainer from "./pages/Explainer";
-import SignUp from "./pages/SignUp";
 import LoginPage from "./pages/LoginPage";
 import TripWellHub from "./pages/TripWellHub";
 import GeneralHub from "./pages/GeneralHub";
@@ -27,7 +26,6 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/explainer" element={<Explainer />} />
-        <Route path="/signup" element={<SignUp />} />
         <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/hub" />} />
 
         <Route path="/hub" element={user ? <GeneralHub /> : <Navigate to="/login" />} />
