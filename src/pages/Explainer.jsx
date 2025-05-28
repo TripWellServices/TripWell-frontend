@@ -3,17 +3,16 @@ import { initializeApp } from "firebase/app";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+// ✅ Firebase config (this key is public-safe)
 const firebaseConfig = {
-  apiKey: ""AIzaSyCjpoH763y2GH4VDc181IUBaZHqE_ryZ1c,
+  apiKey: "AIzaSyCjpoH763y2GH4VDc181IUBaZHqE_ryZ1c",
   authDomain: "gofast-a5f94.firebaseapp.com",
   projectId: "gofast-a5f94",
-  storageBucket: "gofast-a5f94.firebasestorage.app",
+  storageBucket: "gofast-a5f94.appspot.com",
   messagingSenderId: "500941094498",
   appId: "1:500941094498:web:eee09da6918f9e53889b3b",
   measurementId: "G-L0NGHRBSDE"
-};
-
-
+    };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
@@ -27,7 +26,7 @@ export default function Explainer() {
       const token = await result.user.getIdToken();
 
       const response = await axios.post(
-        "https://gofastbackend.onrender.com/auth/firebase-login",
+        "https://gofastbackend.onrender.com/api/auth/firebase-login",
         {},
         {
           headers: {
@@ -36,10 +35,10 @@ export default function Explainer() {
         }
       );
 
-      console.log("User signed in:", response.data.user);
+      console.log("✅ User signed in:", response.data.user);
       navigate("/hub");
     } catch (err) {
-      console.error("Google Sign-In failed:", err);
+      console.error("❌ Google Sign-In failed:", err);
       alert("Could not sign in. Try again.");
     }
   };
