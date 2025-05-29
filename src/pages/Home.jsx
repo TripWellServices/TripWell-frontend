@@ -7,7 +7,7 @@ export default function Home() {
   useEffect(() => {
     const timer = setTimeout(() => {
       navigate("/explainer");
-    }, 1500); // short delay to flash brand before redirect
+    }, 1500); // ~1.5s flash, tweak as needed
 
     return () => clearTimeout(timer);
   }, [navigate]);
@@ -15,7 +15,9 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center justify-center h-screen text-center">
       <h1 className="text-5xl font-bold mb-4">TripWell</h1>
-      <p className="text-lg text-gray-600">Your smart co-pilot for travel planning and execution.</p>
+      <p className="text-lg text-gray-600">
+        Your smart co-pilot for travel planning and execution.
+      </p>
     </div>
   );
 }
