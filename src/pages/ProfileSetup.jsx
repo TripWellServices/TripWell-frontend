@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { getAuth } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 export default function ProfileSetup() {
   const [name, setName] = useState("");
@@ -14,6 +14,18 @@ export default function ProfileSetup() {
   const [tripVibe, setTripVibe] = useState([]);
 
   const navigate = useNavigate();
+
+  // 🔐 Fetch name/email from Firebase user
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setName(user.displayName || "");
+        setEmail(user.email || "");
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   const toggleCheckbox = (value, setFn, current) => {
     if (current.includes(value)) {
@@ -34,14 +46,18 @@ export default function ProfileSetup() {
         location: `${city}, ${state}`,
         familySituation,
         travelStyle,
-        tripVibe
+        tripVibe,
       };
 
-      await axios.post("https://gofastbackend.onrender.com/tripwell/profile/setup", payload, {
-        headers: {
-          Authorization: `Bearer ${token}`
+      await axios.post(
+        "https://gofastbackend.onrender.com/api/users/tripwell/profilesetup",
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
+      );
 
       console.log("✅ Profile saved!");
       navigate("/hub");
@@ -90,13 +106,15 @@ export default function ProfileSetup() {
           "Teens",
           "Travel solo",
           "Extended family",
-          "Friends trips"
+          "Friends trips",
         ].map((opt) => (
           <label key={opt} className="block">
             <input
               type="checkbox"
               checked={familySituation.includes(opt)}
-              onChange={() => toggleCheckbox(opt, setFamilySituation, familySituation)}
+              onChange={() =>
+                toggleCheckbox(opt, setFamilySituation, familySituation)
+              }
             />
             <span className="ml-2">{opt}</span>
           </label>
@@ -113,13 +131,15 @@ export default function ProfileSetup() {
           "Guided tours",
           "DIY travel",
           "Pack light",
-          "Overprepare"
+          "Overprepare",
         ].map((opt) => (
           <label key={opt} className="block">
             <input
               type="checkbox"
               checked={travelStyle.includes(opt)}
-              onChange={() => toggleCheckbox(opt, setTravelStyle, travelStyle)}
+              onChange={() =>
+                toggleCheckbox(opt, setTravelStyle, travelStyle)
+              }
             />
             <span className="ml-2">{opt}</span>
           </label>
@@ -137,13 +157,15 @@ export default function ProfileSetup() {
           "Nature",
           "Adventure",
           "Nightlife",
-          "Fitness / Staying active"
+          "Fitness / Staying active",
         ].map((opt) => (
           <label key={opt} className="block">
             <input
               type="checkbox"
               checked={tripVibe.includes(opt)}
-              onChange={() => toggleCheckbox(opt, setTripVibe, tripVibe)}
+              onChange={() =>
+                toggleCheckbox(opt, setTripVibe, tripVibe)
+              }
             />
             <span className="ml-2">{opt}</span>
           </label>
