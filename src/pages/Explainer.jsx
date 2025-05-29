@@ -3,7 +3,7 @@ import { initializeApp } from "firebase/app";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-// ✅ Firebase config (TripWell is using GoFast project for now)
+// ✅ Firebase config (this key is public-safe)
 const firebaseConfig = {
   apiKey: "AIzaSyCjpoH763y2GH4VDc181IUBaZHqE_ryZ1c",
   authDomain: "gofast-a5f94.firebaseapp.com",
@@ -11,7 +11,7 @@ const firebaseConfig = {
   storageBucket: "gofast-a5f94.appspot.com",
   messagingSenderId: "500941094498",
   appId: "1:500941094498:web:eee09da6918f9e53889b3b",
-  measurementId: "G-L0NGHRBSDE",
+  measurementId: "G-L0NGHRBSDE"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -37,6 +37,11 @@ export default function Explainer() {
       );
 
       console.log("✅ User signed in:", response.data.user);
+
+      // Store user info if needed
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+
+      // Redirect to profile setup
       navigate("/profile-setup");
     } catch (err) {
       console.error("❌ Google Sign-In failed:", err);
