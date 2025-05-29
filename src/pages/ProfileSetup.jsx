@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { getAuth } from "firebase/auth";
@@ -14,16 +14,6 @@ export default function ProfileSetup() {
   const [tripVibe, setTripVibe] = useState([]);
 
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const auth = getAuth();
-    const user = auth.currentUser;
-
-    if (user) {
-      setName(user.displayName || "");
-      setEmail(user.email || "");
-    }
-  }, []);
 
   const toggleCheckbox = (value, setFn, current) => {
     if (current.includes(value)) {
@@ -47,7 +37,7 @@ export default function ProfileSetup() {
         tripVibe
       };
 
-      await axios.post("/api/users/profile/setup", payload, {
+      await axios.post("https://gofastbackend.onrender.com/tripwell/profile/setup", payload, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -71,10 +61,10 @@ export default function ProfileSetup() {
         onChange={(e) => setName(e.target.value)}
       />
       <input
-        className="w-full border p-2 mb-3 rounded bg-gray-100"
+        className="w-full border p-2 mb-3 rounded"
         placeholder="Email"
         value={email}
-        readOnly
+        onChange={(e) => setEmail(e.target.value)}
       />
       <div className="flex space-x-2 mb-3">
         <input
