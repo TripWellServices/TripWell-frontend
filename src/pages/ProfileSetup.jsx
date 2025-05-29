@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { getAuth } from "firebase/auth"; // Firebase token for secure backend call
+import { getAuth } from "firebase/auth";
 
 export default function ProfileSetup() {
   const [name, setName] = useState("");
@@ -10,7 +11,9 @@ export default function ProfileSetup() {
 
   const [familySituation, setFamilySituation] = useState([]);
   const [travelStyle, setTravelStyle] = useState([]);
-  const [tripVibe, setTripVibe] = useState([]); // ✅ renamed
+  const [tripVibe, setTripVibe] = useState([]);
+
+  const navigate = useNavigate();
 
   const toggleCheckbox = (value, setFn, current) => {
     if (current.includes(value)) {
@@ -40,10 +43,10 @@ export default function ProfileSetup() {
         }
       });
 
-      console.log("Profile saved!");
-      // TODO: navigate to TripSetup or TripWellHub
+      console.log("✅ Profile saved!");
+      navigate("/hub");
     } catch (err) {
-      console.error("Profile setup failed", err);
+      console.error("❌ Profile setup failed", err);
     }
   };
 
@@ -93,9 +96,7 @@ export default function ProfileSetup() {
             <input
               type="checkbox"
               checked={familySituation.includes(opt)}
-              onChange={() =>
-                toggleCheckbox(opt, setFamilySituation, familySituation)
-              }
+              onChange={() => toggleCheckbox(opt, setFamilySituation, familySituation)}
             />
             <span className="ml-2">{opt}</span>
           </label>
@@ -118,9 +119,7 @@ export default function ProfileSetup() {
             <input
               type="checkbox"
               checked={travelStyle.includes(opt)}
-              onChange={() =>
-                toggleCheckbox(opt, setTravelStyle, travelStyle)
-              }
+              onChange={() => toggleCheckbox(opt, setTravelStyle, travelStyle)}
             />
             <span className="ml-2">{opt}</span>
           </label>
