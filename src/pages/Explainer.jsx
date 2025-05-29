@@ -41,7 +41,7 @@ export default function Explainer() {
       // Store user info if needed
       localStorage.setItem("user", JSON.stringify(response.data.user));
 
-      // ✅ FIXED: Correct routing after login
+      // ✅ Hard redirect to profile setup (always)
       navigate("/profile");
     } catch (err) {
       console.error("❌ Google Sign-In failed:", err);
