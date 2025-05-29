@@ -3,7 +3,7 @@ import { initializeApp } from "firebase/app";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-// ✅ Firebase config (this key is public-safe)
+// ✅ Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCjpoH763y2GH4VDc181IUBaZHqE_ryZ1c",
   authDomain: "gofast-a5f94.firebaseapp.com",
@@ -41,8 +41,8 @@ export default function Explainer() {
       // Store user info if needed
       localStorage.setItem("user", JSON.stringify(response.data.user));
 
-      // Redirect to profile setup
-      navigate("/profile-setup");
+      // ✅ FIXED: Correct routing after login
+      navigate("/profile");
     } catch (err) {
       console.error("❌ Google Sign-In failed:", err);
       alert("Could not sign in. Try again.");
@@ -55,14 +55,16 @@ export default function Explainer() {
       <p className="mb-6">
         We help you plan your trips and execute them with calm, clarity, and confidence.
       </p>
+
       <button
         onClick={handleGoogleSignUp}
         className="bg-blue-600 text-white px-6 py-2 rounded"
       >
         Sign In with Google
       </button>
+
       <p className="text-sm text-gray-600 mt-4">
-        Already have an account? You're in the right place.
+        Already have an account? You’re in the right place.
       </p>
     </div>
   );
