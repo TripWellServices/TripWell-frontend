@@ -50,7 +50,15 @@ export default function TripSetup() {
         destinations: isMultiCity ? tripData.destinations : undefined,
       };
 
-      const res = await axios.post('/api/trips', payload);
+      const res = await axios.post(
+        'https://gofastbackend.onrender.com/api/trips',
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // optional if backend uses verifyFirebaseToken
+          },
+        }
+      );
       navigate(`/trip/${res.data.tripId}`);
     } catch (err) {
       alert(err.response?.data?.error || 'Trip creation failed.');
