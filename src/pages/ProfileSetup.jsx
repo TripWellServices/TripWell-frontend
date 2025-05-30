@@ -50,12 +50,14 @@ export default function ProfileSetup() {
       };
 
       await axios.post(
-        "https://gofastbackend.onrender.com/api/users/tripwell/profilesetup",
+        "https://gofastbackend.onrender.com/api/users/profile/setup",
         payload,
         {
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
+          withCredentials: true,
         }
       );
 
