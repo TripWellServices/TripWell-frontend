@@ -14,24 +14,52 @@ import TripPlannerAI from "./pages/TripPlannerAI";
 
 export default function App() {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const auth = getAuth();
-    return onAuthStateChanged(auth, (u) => setUser(u));
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      if (u) {
+        localStorage.setItem("firebaseId", u.uid);
+      } else {
+        localStorage.removeItem("firebaseId");
+        localStorage.removeItem("activeTripId");
+      }
+      setLoading(false);
+    });
+    return () => unsub();
   }, []);
+
+  if (loading) return <div className="p-8 text-center">Loading...</div>;
 
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public Routes */}
         <Route path="/" element={<Home />} />
-        <Route path="/explainer" element={<Explainer />} />
+        <Route
+          path="/explainer"
+          element={
+            user ? (
+              localStorage.getItem("activeTripId") ? (
+                <Navigate to={`/trip/${localStorage.getItem("activeTripId")}`} />
+              ) : (
+                <Navigate to="/hub" />
+              )
+            ) : (
+              <Explainer />
+            )
+          }
+        />
 
-        <Route path="/hub" element={user ? <GeneralHub /> : <Navigate to="/" />} />
-        <Route path="/trip-setup" element={user ? <TripSetup /> : <Navigate to="/" />} />
-        <Route path="/join-trip" element={user ? <TripJoin /> : <Navigate to="/" />} />
-        <Route path="/trip/:tripId" element={user ? <TripWellHub /> : <Navigate to="/" />} />
-        <Route path="/profile" element={user ? <ProfileSetup /> : <Navigate to="/" />} />
-        <Route path="/trip-planner-ai" element={user ? <TripPlannerAI /> : <Navigate to="/" />} />
+        {/* Auth-Protected Routes */}
+        <Route path="/hub" element={user ? <GeneralHub /> : <Navigate to="/explainer" />} />
+        <Route path="/trip-setup" element={user ? <TripSetup /> : <Navigate to="/explainer" />} />
+        <Route path="/join-trip" element={user ? <TripJoin /> : <Navigate to="/explainer" />} />
+        <Route path="/trip/:tripId" element={user ? <TripWellHub /> : <Navigate to="/explainer" />} />
+        <Route path="/profile" element={user ? <ProfileSetup /> : <Navigate to="/explainer" />} />
+        <Route path="/trip-planner-ai" element={user ? <TripPlannerAI /> : <Navigate to="/explainer" />} />
       </Routes>
     </BrowserRouter>
   );

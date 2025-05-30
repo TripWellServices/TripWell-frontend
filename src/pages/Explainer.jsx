@@ -1,7 +1,14 @@
-import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  getAuth,
+  signInWithPopup,
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  initializeAuth,
+} from "firebase/auth";
 import { initializeApp } from "firebase/app";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 
 // ✅ Firebase config
 const firebaseConfig = {
@@ -14,6 +21,7 @@ const firebaseConfig = {
   measurementId: "G-L0NGHRBSDE"
 };
 
+// ✅ Firebase init
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
@@ -21,11 +29,24 @@ const provider = new GoogleAuthProvider();
 export default function Explainer() {
   const navigate = useNavigate();
 
+  // ✅ Redirect if already logged in
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log("✅ User already signed in, redirecting...");
+        const tripId = localStorage.getItem("activeTripId");
+        navigate(tripId ? `/trip/${tripId}` : "/hub");
+      }
+    });
+    return () => unsub();
+  }, [navigate]);
+
   const handleGoogleSignUp = async () => {
     try {
       const result = await signInWithPopup(auth, provider);
       const token = await result.user.getIdToken();
 
+      // ✅ Backend login call
       const response = await axios.post(
         "https://gofastbackend.onrender.com/api/auth/firebase-login",
         {},
@@ -38,10 +59,11 @@ export default function Explainer() {
 
       console.log("✅ User signed in:", response.data.user);
 
-      // Store user info if needed
+      // 🧠 Save backend user if needed
       localStorage.setItem("user", JSON.stringify(response.data.user));
+      localStorage.setItem("firebaseId", result.user.uid);
 
-      // ✅ Hard redirect to profile setup (always)
+      // ✅ Always start at profile
       navigate("/profile");
     } catch (err) {
       console.error("❌ Google Sign-In failed:", err);
@@ -50,15 +72,15 @@ export default function Explainer() {
   };
 
   return (
-    <div className="p-10 text-center">
+    <div className="min-h-screen flex flex-col justify-center items-center text-center px-6">
       <h2 className="text-3xl font-semibold mb-4">Welcome to TripWell</h2>
-      <p className="mb-6">
+      <p className="mb-6 max-w-md">
         We help you plan your trips and execute them with calm, clarity, and confidence.
       </p>
 
       <button
         onClick={handleGoogleSignUp}
-        className="bg-blue-600 text-white px-6 py-2 rounded"
+        className="bg-blue-600 text-white px-6 py-3 rounded text-lg"
       >
         Sign In with Google
       </button>

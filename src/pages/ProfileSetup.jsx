@@ -8,24 +8,45 @@ export default function ProfileSetup() {
   const [email, setEmail] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
-
   const [familySituation, setFamilySituation] = useState([]);
   const [travelStyle, setTravelStyle] = useState([]);
   const [tripVibe, setTripVibe] = useState([]);
 
+  const [loading, setLoading] = useState(true);
+  const [firebaseId, setFirebaseId] = useState(null);
+
   const navigate = useNavigate();
 
-  // 🔐 Fetch name/email from Firebase user
+  // 🔐 Auth hook
   useEffect(() => {
     const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsub = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setName(user.displayName || "");
         setEmail(user.email || "");
+        setFirebaseId(user.uid);
+        localStorage.setItem("firebaseId", user.uid); // 🧠 Persist it
+
+        // 🔍 Check if user already exists in Mongo
+        try {
+          const res = await axios.get(`https://gofastbackend.onrender.com/api/users/${user.uid}`);
+          if (res.data) {
+            console.log("✅ Existing user found:", res.data);
+            navigate("/hub");
+          }
+        } catch (err) {
+          console.log("➡️ New user, proceeding to setup form");
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        console.log("❌ No user found");
+        setLoading(false);
       }
     });
-    return () => unsubscribe();
-  }, []);
+
+    return () => unsub();
+  }, [navigate]);
 
   const toggleCheckbox = (value, setFn, current) => {
     if (current.includes(value)) {
@@ -36,17 +57,24 @@ export default function ProfileSetup() {
   };
 
   const handleSubmit = async () => {
+    if (!firebaseId) return;
+
     try {
       const auth = getAuth();
       const token = await auth.currentUser.getIdToken();
 
       const payload = {
+        firebaseId,
+        userId: firebaseId,
         name,
         email,
         location: `${city}, ${state}`,
-        familySituation,
-        travelStyle,
-        tripVibe,
+        profile: {
+          familySituation,
+          travelStyle,
+          tripVibe,
+          userStatus: "registered",
+        },
       };
 
       await axios.post(
@@ -67,6 +95,8 @@ export default function ProfileSetup() {
       console.error("❌ Profile setup failed", err);
     }
   };
+
+  if (loading) return <div>Loading...</div>;
 
   return (
     <div className="max-w-3xl mx-auto p-6">
