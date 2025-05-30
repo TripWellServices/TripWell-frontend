@@ -1,214 +1,49 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-export default function TripSetup() {
-  const navigate = useNavigate();
-  const [isMultiCity, setIsMultiCity] = useState(false);
-  const [tripData, setTripData] = useState({
-    tripName: '',
-    joinCode: '',
-    startDate: '',
-    endDate: '',
-    destination: '',
-    destinations: [],
-    purpose: '',
-    userId: 'user-123', // placeholder, needs actual userId from auth
-  });
+export default function TripList({ userId }) {
+  const [trips, setTrips] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setTripData({ ...tripData, [name]: value });
-  };
+  useEffect(() => {
+    const fetchTrips = async () => {
+      try {
+        const res = await axios.get(
+          `https://gofastbackend.onrender.com/api/trips/by-user/${userId}`
+        );
+        setTrips(res.data);
+      } catch (err) {
+        console.error("Failed to fetch trips:", err);
+        setError("Could not load trips.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleDestinationChange = (index, field, value) => {
-    const updated = [...tripData.destinations];
-    updated[index][field] = value;
-    setTripData({ ...tripData, destinations: updated });
-  };
+    if (userId) fetchTrips();
+  }, [userId]);
 
-  const addCity = () => {
-    setTripData({
-      ...tripData,
-      destinations: [...tripData.destinations, { city: '', startDate: '', endDate: '' }],
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      const payload = {
-        tripName: tripData.tripName,
-        joinCode: tripData.joinCode,
-        userId: tripData.userId,
-        purpose: tripData.purpose,
-        startDate: tripData.startDate,
-        endDate: tripData.endDate,
-        isMultiCity,
-        destination: isMultiCity ? undefined : tripData.destination,
-        destinations: isMultiCity ? tripData.destinations : undefined,
-      };
-
-      const res = await axios.post(
-        'https://gofastbackend.onrender.com/api/trips',
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`, // optional if backend uses verifyFirebaseToken
-          },
-        }
-      );
-      navigate(`/trip/${res.data.tripId}`);
-    } catch (err) {
-      alert(err.response?.data?.error || 'Trip creation failed.');
-    }
-  };
+  if (loading) return <p>Loading trips...</p>;
+  if (error) return <p className="text-red-500">{error}</p>;
+  if (trips.length === 0) return <p>No trips found.</p>;
 
   return (
-    <div className="p-4 max-w-md mx-auto space-y-6">
-      <h1 className="text-2xl font-bold">Plan Your Trip</h1>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Trip Name */}
-        <div>
-          <label className="block mb-1 font-medium">Trip Name</label>
-          <input
-            type="text"
-            name="tripName"
-            value={tripData.tripName}
-            onChange={handleChange}
-            className="w-full border rounded p-2"
-            placeholder="e.g., Paris 2025"
-            required
-          />
-        </div>
-
-        {/* Join Code */}
-        <div>
-          <label className="block mb-1 font-medium">Join Code</label>
-          <input
-            type="text"
-            name="joinCode"
-            value={tripData.joinCode}
-            onChange={handleChange}
-            className="w-full border rounded p-2"
-            placeholder="e.g., paris2025"
-            required
-          />
-        </div>
-
-        {/* Purpose of Trip */}
-        <div>
-          <label className="block mb-1 font-medium">Purpose of Trip</label>
-          <input
-            type="text"
-            name="purpose"
-            value={tripData.purpose}
-            onChange={handleChange}
-            className="w-full border rounded p-2"
-            placeholder="e.g., Vacation, Business, Family"
-            required
-          />
-        </div>
-
-        {/* Multi-city Toggle */}
-        <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            checked={isMultiCity}
-            onChange={() => setIsMultiCity(!isMultiCity)}
-          />
-          <label className="text-sm">Multi-city trip?</label>
-        </div>
-
-        {!isMultiCity ? (
-          <div>
-            <label className="block mb-1 font-medium">Destination City</label>
-            <input
-              type="text"
-              name="destination"
-              value={tripData.destination}
-              onChange={handleChange}
-              className="w-full border rounded p-2"
-              placeholder="e.g., Paris"
-              required
-            />
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {tripData.destinations.map((dest, index) => (
-              <div key={index} className="border p-3 rounded bg-gray-50">
-                <label className="block mb-1 font-medium">City #{index + 1}</label>
-                <input
-                  type="text"
-                  value={dest.city}
-                  onChange={(e) => handleDestinationChange(index, 'city', e.target.value)}
-                  className="w-full border rounded p-2 mb-2"
-                  placeholder="e.g., Rome"
-                  required
-                />
-                <div className="flex space-x-2">
-                  <input
-                    type="date"
-                    value={dest.startDate}
-                    onChange={(e) => handleDestinationChange(index, 'startDate', e.target.value)}
-                    className="flex-1 border rounded p-2"
-                    required
-                  />
-                  <input
-                    type="date"
-                    value={dest.endDate}
-                    onChange={(e) => handleDestinationChange(index, 'endDate', e.target.value)}
-                    className="flex-1 border rounded p-2"
-                    required
-                  />
-                </div>
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={addCity}
-              className="text-sm text-blue-600 hover:underline"
-            >
-              + Add Another City
-            </button>
-          </div>
-        )}
-
-        {/* Start/End Dates */}
-        <div className="flex space-x-2">
-          <div className="flex-1">
-            <label className="block mb-1 font-medium">Start Date</label>
-            <input
-              type="date"
-              name="startDate"
-              value={tripData.startDate}
-              onChange={handleChange}
-              className="w-full border rounded p-2"
-              required
-            />
-          </div>
-          <div className="flex-1">
-            <label className="block mb-1 font-medium">End Date</label>
-            <input
-              type="date"
-              name="endDate"
-              value={tripData.endDate}
-              onChange={handleChange}
-              className="w-full border rounded p-2"
-              required
-            />
-          </div>
-        </div>
-
-        <button
-          type="submit"
-          className="bg-blue-600 text-white w-full py-2 rounded hover:bg-blue-700"
+    <div className="p-4 space-y-4">
+      <h2 className="text-xl font-bold">My Trips</h2>
+      {trips.map((trip) => (
+        <div
+          key={trip.tripId}
+          className="border p-4 rounded shadow bg-white"
         >
-          Let’s Go
-        </button>
-      </form>
+          <h3 className="text-lg font-semibold">{trip.tripName}</h3>
+          <p className="text-sm text-gray-600">{trip.purpose}</p>
+          <p className="text-sm">
+            {trip.startDate} → {trip.endDate}
+          </p>
+          <p className="text-sm italic">Destination: {trip.destinations?.[0]?.city}</p>
+        </div>
+      ))}
     </div>
   );
 }
