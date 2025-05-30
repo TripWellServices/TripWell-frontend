@@ -5,25 +5,38 @@ import axios from "axios";
 
 export default function TripSetup() {
   const [tripName, setTripName] = useState("");
+  const [joinCode, setJoinCode] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [destination, setDestination] = useState("");
   const [purpose, setPurpose] = useState("");
+  const [error, setError] = useState("");
 
   const navigate = useNavigate();
 
+  // Validate join code format: 4-10 alphanumeric chars
+  const isJoinCodeValid = (code) => /^[a-zA-Z0-9]{4,10}$/.test(code);
+
   const handleCreateTrip = async () => {
+    setError("");
+
+    if (!isJoinCodeValid(joinCode)) {
+      setError("Join code must be 4-10 alphanumeric characters.");
+      return;
+    }
+
     try {
       const auth = getAuth();
       const token = await auth.currentUser.getIdToken();
       const firebaseId = auth.currentUser.uid;
 
       const payload = {
+        joinCode,
         tripName,
         purpose,
         startDate,
         endDate,
-        createdBy: firebaseId,
+        userId: firebaseId,
         destinations: [{ city: destination }],
       };
 
@@ -43,7 +56,11 @@ export default function TripSetup() {
       navigate(`/trip/${tripId}`);
     } catch (err) {
       console.error("❌ Failed to create trip:", err);
-      alert("Something went wrong. Please try again.");
+      if (err.response?.data?.error) {
+        setError(err.response.data.error);
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
     }
   };
 
@@ -56,6 +73,18 @@ export default function TripSetup() {
         placeholder="Trip Name"
         value={tripName}
         onChange={(e) => setTripName(e.target.value)}
+      />
+
+      {/* Explainer Text */}
+      <p className="mb-4 text-gray-700">
+        This is your opportunity to create a memorable join code — a simple, unique key your friends will use to join your trip. Make it easy to remember and share it with your crew after creation!
+      </p>
+
+      <input
+        className="w-full border p-2 mb-3 rounded"
+        placeholder="Join Code (4-10 alphanumeric chars)"
+        value={joinCode}
+        onChange={(e) => setJoinCode(e.target.value)}
       />
 
       <input
@@ -86,6 +115,8 @@ export default function TripSetup() {
         value={purpose}
         onChange={(e) => setPurpose(e.target.value)}
       />
+
+      {error && <p className="text-red-600 mb-4">{error}</p>}
 
       <button
         onClick={handleCreateTrip}
