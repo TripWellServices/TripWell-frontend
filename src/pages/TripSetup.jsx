@@ -19,6 +19,11 @@ export default function TripSetup() {
   const handleCreateTrip = async () => {
     setError("");
 
+    if (!tripName || !startDate || !endDate || !destination || !purpose) {
+      setError("Please fill in all required fields.");
+      return;
+    }
+
     if (!isJoinCodeValid(joinCode)) {
       setError("Join code must be 4-10 alphanumeric characters.");
       return;
@@ -61,6 +66,7 @@ export default function TripSetup() {
     <div className="max-w-xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-4">Plan Your Trip</h2>
 
+      {/* Trip Info */}
       <input
         className="input"
         placeholder="Trip Name"
@@ -98,7 +104,9 @@ export default function TripSetup() {
         onChange={(e) => setPurpose(e.target.value)}
       />
 
-      <div className="mt-4 border-t pt-4">
+      {/* Join Code Section */}
+      <div className="mt-8 border-t pt-6">
+        <h3 className="text-lg font-semibold mb-1">Invite Others</h3>
         <label className="block font-medium mb-1">Join Code</label>
         <input
           className="input"
@@ -106,12 +114,12 @@ export default function TripSetup() {
           value={joinCode}
           onChange={(e) => setJoinCode(e.target.value)}
         />
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-sm text-gray-500 mt-1">
           This is how others will join your trip. Make it short and simple.
         </p>
       </div>
 
-      {error && <p className="text-red-500 mt-2">{error}</p>}
+      {error && <p className="text-red-500 mt-3">{error}</p>}
 
       <button className="btn-primary mt-6 w-full" onClick={handleCreateTrip}>
         Create Trip
