@@ -55,7 +55,7 @@ export default function TripSetup() {
 
       const createdTrip = res.data;
       localStorage.setItem("activeTripId", createdTrip.tripId);
-      navigate(`/trip/${createdTrip.tripId}`);
+      navigate(`/trip-created/${createdTrip.tripId}`);
     } catch (err) {
       console.error("❌ Trip creation failed:", err);
       setError("Failed to create trip. Please try again.");

@@ -12,6 +12,7 @@ import TripSetup from "./pages/TripSetup";
 import TripJoin from "./pages/TripJoin";
 import ProfileSetup from "./pages/ProfileSetup";
 import TripPlannerAI from "./pages/TripPlannerAI";
+import TripCreated from "./pages/TripCreated"; // ✅ new
 
 // 🔒 Axios Interceptor: auto-attach Firebase token to all requests
 axios.interceptors.request.use(
@@ -72,6 +73,7 @@ export default function App() {
         <Route path="/trip-setup" element={user ? <TripSetup /> : <Navigate to="/explainer" />} />
         <Route path="/join-trip" element={user ? <TripJoin /> : <Navigate to="/explainer" />} />
         <Route path="/trip/:tripId" element={user ? <TripWellHub /> : <Navigate to="/explainer" />} />
+        <Route path="/trip-created/:tripId" element={user ? <TripCreated /> : <Navigate to="/explainer" />} /> {/* ✅ added */}
         <Route path="/profile" element={user ? <ProfileSetup /> : <Navigate to="/explainer" />} />
         <Route path="/trip-planner-ai" element={user ? <TripPlannerAI /> : <Navigate to="/explainer" />} />
       </Routes>
