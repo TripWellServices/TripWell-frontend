@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useState, useEffect } from "react";
+import axios from "axios";
 
 // Pages
 import Home from "./pages/Home";
@@ -11,6 +12,19 @@ import TripSetup from "./pages/TripSetup";
 import TripJoin from "./pages/TripJoin";
 import ProfileSetup from "./pages/ProfileSetup";
 import TripPlannerAI from "./pages/TripPlannerAI";
+
+// 🔒 Axios Interceptor: auto-attach Firebase token to all requests
+axios.interceptors.request.use(
+  async (config) => {
+    const user = getAuth().currentUser;
+    if (user) {
+      const token = await user.getIdToken();
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 export default function App() {
   const [user, setUser] = useState(null);
