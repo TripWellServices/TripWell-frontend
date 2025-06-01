@@ -11,10 +11,28 @@ export default function TripSetup() {
   const [purpose, setPurpose] = useState("");
   const [joinCode, setJoinCode] = useState("");
   const [error, setError] = useState("");
+  const [checkingCode, setCheckingCode] = useState(false);
 
   const navigate = useNavigate();
 
-  const isJoinCodeValid = (code) => /^[a-zA-Z0-9]{4,10}$/.test(code);
+  const isJoinCodeValid = (code) => /^[a-zA-Z0-9]{4,12}$/.test(code);
+
+  const checkJoinCode = async () => {
+    if (!isJoinCodeValid(joinCode)) return;
+    try {
+      setCheckingCode(true);
+      const res = await axios.get(`/api/trips/check-code?joinCode=${joinCode}`);
+      if (!res.data.available) {
+        setError("Join code already in use. Try another.");
+      } else {
+        setError(""); // clear if good
+      }
+    } catch (err) {
+      setError("Error checking join code.");
+    } finally {
+      setCheckingCode(false);
+    }
+  };
 
   const handleCreateTrip = async () => {
     setError("");
@@ -25,11 +43,17 @@ export default function TripSetup() {
     }
 
     if (!isJoinCodeValid(joinCode)) {
-      setError("Join code must be 4-10 alphanumeric characters.");
+      setError("Join code must be 4–12 alphanumeric characters.");
       return;
     }
 
     try {
+      const res = await axios.get(`/api/trips/check-code?joinCode=${joinCode}`);
+      if (!res.data.available) {
+        setError("Join code already in use. Please choose another.");
+        return;
+      }
+
       const auth = getAuth();
       const token = await auth.currentUser.getIdToken();
 
@@ -39,26 +63,22 @@ export default function TripSetup() {
         startDate,
         endDate,
         destination,
-        joinCode
+        joinCode,
       };
 
-      const res = await axios.post(
-        "https://gofastbackend.onrender.com/api/trips/create",
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const tripRes = await axios.post("/api/trips/create", payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
-      const createdTrip = res.data;
+      const createdTrip = tripRes.data;
       localStorage.setItem("activeTripId", createdTrip.tripId);
       navigate(`/trip-created/${createdTrip.tripId}`);
     } catch (err) {
       console.error("❌ Trip creation failed:", err);
-      setError("Failed to create trip. Please try again.");
+      setError(err.response?.data?.error || "Trip creation failed.");
     }
   };
 
@@ -66,7 +86,6 @@ export default function TripSetup() {
     <div className="max-w-xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-4">Plan Your Trip</h2>
 
-      {/* Trip Info */}
       <input
         className="input"
         placeholder="Trip Name"
@@ -77,7 +96,6 @@ export default function TripSetup() {
       <input
         className="input mt-2"
         type="date"
-        placeholder="Start Date"
         value={startDate}
         onChange={(e) => setStartDate(e.target.value)}
       />
@@ -85,7 +103,6 @@ export default function TripSetup() {
       <input
         className="input mt-2"
         type="date"
-        placeholder="End Date"
         value={endDate}
         onChange={(e) => setEndDate(e.target.value)}
       />
@@ -104,16 +121,17 @@ export default function TripSetup() {
         onChange={(e) => setPurpose(e.target.value)}
       />
 
-      {/* Join Code Section */}
       <div className="mt-8 border-t pt-6">
         <h3 className="text-lg font-semibold mb-1">Invite Others</h3>
         <label className="block font-medium mb-1">Join Code</label>
         <input
           className="input"
-          placeholder="Create a 4–10 char code"
+          placeholder="Create a 4–12 char code"
           value={joinCode}
           onChange={(e) => setJoinCode(e.target.value)}
+          onBlur={checkJoinCode}
         />
+        {checkingCode && <p className="text-sm text-gray-500">Checking code...</p>}
         <p className="text-sm text-gray-500 mt-1">
           This is how others will join your trip. Make it short and simple.
         </p>
