@@ -1,21 +1,9 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-// Pages
-import Home from "./pages/Home";
-import Explainer from "./pages/Explainer";
-import GeneralHub from "./pages/GeneralHub";
-import TripWellHub from "./pages/TripWellHub";
-import TripSetup from "./pages/TripSetup";
-import TripJoin from "./pages/TripJoin";
-import ProfileSetup from "./pages/ProfileSetup";
-import TripPlannerAI from "./pages/TripPlannerAI";
-import TripCreated from "./pages/TripCreated";
-import Login from "./pages/Login";
-
-// 🔒 Attach Firebase token to every Axios request
+// Firebase token injector for Axios
 axios.interceptors.request.use(
   async (config) => {
     const user = getAuth().currentUser;
@@ -28,37 +16,44 @@ axios.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-export default function App() {
-  const [user, setUser] = useState(null);
+// ✅ Pages
+import AppInitGate from "./pages/AppInitGate";
+import Home from "./pages/Home";
+import Explainer from "./pages/Explainer";
+import Login from "./pages/Login";
+import ProfileSetup from "./pages/ProfileSetup";
+import GeneralHub from "./pages/GeneralHub";
+import TripWellHub from "./pages/TripWellHub";
+import TripSetup from "./pages/TripSetup";
+import TripJoin from "./pages/TripJoin";
+import TripPlannerAI from "./pages/TripPlannerAI";
 
+export default function App() {
+  const [firebaseReady, setFirebaseReady] = useState(false);
+
+  // This ensures Firebase is fully initialized
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(getAuth(), (currentUser) => {
-      setUser(currentUser);
+    const unsubscribe = onAuthStateChanged(getAuth(), () => {
+      setFirebaseReady(true);
     });
     return () => unsubscribe();
   }, []);
 
+  if (!firebaseReady) return <div>Loading...</div>;
+
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public Routes */}
-        <Route
-          path="/explainer"
-          element={
-            localStorage.getItem("uid") ? <Navigate to="/login" /> : <Explainer />
-          }
-        />
+        <Route path="/" element={<AppInitGate />} />
+        <Route path="/home" element={<Home />} />
+        <Route path="/explainer" element={<Explainer />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/" element={<Home />} />
-
-        {/* Auth-Protected Routes */}
-        <Route path="/hub" element={user ? <GeneralHub /> : <Navigate to="/explainer" />} />
-        <Route path="/trip-setup" element={user ? <TripSetup /> : <Navigate to="/explainer" />} />
-        <Route path="/join-trip" element={user ? <TripJoin /> : <Navigate to="/explainer" />} />
-        <Route path="/tripwellhub" element={user ? <TripWellHub /> : <Navigate to="/explainer" />} />
-        <Route path="/trip-created/:tripId" element={user ? <TripCreated /> : <Navigate to="/explainer" />} />
-        <Route path="/profile" element={user ? <ProfileSetup /> : <Navigate to="/explainer" />} />
-        <Route path="/trip-planner-ai" element={user ? <TripPlannerAI /> : <Navigate to="/explainer" />} />
+        <Route path="/profile" element={<ProfileSetup />} />
+        <Route path="/hub" element={<GeneralHub />} />
+        <Route path="/tripwellhub" element={<TripWellHub />} />
+        <Route path="/tripsetup" element={<TripSetup />} />
+        <Route path="/tripjoin" element={<TripJoin />} />
+        <Route path="/tripplannerai" element={<TripPlannerAI />} />
       </Routes>
     </BrowserRouter>
   );

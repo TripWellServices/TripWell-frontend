@@ -1,47 +1,29 @@
-import { useEffect, useState } from "react";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
-import axios from "axios";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
-export default function UserStateGate() {
-  const [loading, setLoading] = useState(true);
+export default function AppInitGate() {
   const navigate = useNavigate();
 
   useEffect(() => {
     const auth = getAuth();
-
-    onAuthStateChanged(auth, async (user) => {
+    const unsub = onAuthStateChanged(auth, (user) => {
       if (!user) {
-        navigate("/login");
-        return;
-      }
-
-      try {
-        const token = await user.getIdToken();
-
-        const res = await axios.get("/api/users/me", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        const tripId = res.data.user.tripId;
-
-        if (tripId) {
-          navigate(`/trip/${tripId}`);
+        // 👋 Not logged in
+        navigate("/explainer");
+      } else {
+        // ✅ Logged in, now check backend user state
+        const userData = JSON.parse(localStorage.getItem("user"));
+        if (userData?.tripId) {
+          navigate("/tripwellhub");
         } else {
           navigate("/hub");
         }
-      } catch (err) {
-        console.error("Failed to load user state:", err);
-        navigate("/hub"); // fallback
-      } finally {
-        setLoading(false);
       }
     });
-  }, []);
 
-  if (loading) {
-    return <div className="p-6">Loading your travel state...</div>;
-  }
+    return () => unsub();
+  }, [navigate]);
 
-  return null; // nothing renders here — it just redirects
+  return null;
 }
