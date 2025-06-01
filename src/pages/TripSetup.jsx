@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function TripSetup({ user }) {
@@ -8,9 +8,38 @@ export default function TripSetup({ user }) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [joinCode, setJoinCode] = useState('');
+  const [joinCodeAvailable, setJoinCodeAvailable] = useState(null); // null, true, false
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      if (joinCode.trim() === '') {
+        setJoinCodeAvailable(null);
+        return;
+      }
+
+      fetch('/api/trips/check-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ joinCode }),
+      })
+        .then((res) => {
+          if (res.status === 409) {
+            setJoinCodeAvailable(false);
+          } else {
+            setJoinCodeAvailable(true);
+          }
+        })
+        .catch((err) => {
+          console.error('Join code check failed', err);
+          setJoinCodeAvailable(null);
+        });
+    }, 600); // debounce
+
+    return () => clearTimeout(delay);
+  }, [joinCode]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -20,6 +49,7 @@ export default function TripSetup({ user }) {
     if (!startDate) newErrors.startDate = 'Start date is required';
     if (!endDate) newErrors.endDate = 'End date is required';
     if (!joinCode) newErrors.joinCode = 'Join code is required';
+    if (joinCodeAvailable === false) newErrors.joinCode = 'Join code already in use';
     return newErrors;
   };
 
@@ -45,15 +75,8 @@ export default function TripSetup({ user }) {
         }),
       });
 
-      if (response.status === 409) {
-        setErrors({ joinCode: 'Join code already in use. Choose something else.' });
-        setLoading(false);
-        return;
-      }
-
       if (!response.ok) throw new Error('Failed to create trip');
 
-      const data = await response.json();
       navigate('/tripwell-hub');
     } catch (err) {
       console.error(err);
@@ -77,7 +100,7 @@ export default function TripSetup({ user }) {
         <InputField label="Start Date" type="date" value={startDate} onChange={setStartDate} error={errors.startDate} />
         <InputField label="End Date" type="date" value={endDate} onChange={setEndDate} error={errors.endDate} />
 
-        <div style={{ height: '2rem' }} /> {/* Spacer */}
+        <div style={{ height: '2rem' }} />
 
         <div style={{ marginBottom: '0.5rem', fontWeight: '600' }}>Join Code</div>
         <InputField
@@ -87,13 +110,23 @@ export default function TripSetup({ user }) {
           error={errors.joinCode}
           placeholder="e.g. Paris2025"
         />
-        <p style={{ fontSize: '0.875rem', color: '#555', marginTop: '-1rem', marginBottom: '1.5rem' }}>
+        {joinCode && joinCodeAvailable === false && (
+          <p style={{ color: 'red', fontSize: '0.875rem' }}>
+            This join code is already taken.
+          </p>
+        )}
+        {joinCode && joinCodeAvailable === true && (
+          <p style={{ color: 'green', fontSize: '0.875rem' }}>
+            ✅ Join code is available
+          </p>
+        )}
+        <p style={{ fontSize: '0.875rem', color: '#555', marginTop: '0.5rem', marginBottom: '1.5rem' }}>
           Come up with something memorable so you can share with friends and family to join your trip.
         </p>
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || joinCodeAvailable === false}
           style={{
             width: '100%',
             padding: '0.75rem',
