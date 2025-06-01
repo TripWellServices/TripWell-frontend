@@ -25,7 +25,7 @@ export default function TripSetup() {
       if (!res.data.available) {
         setError("Join code already in use. Try another.");
       } else {
-        setError(""); // clear if good
+        setError("");
       }
     } catch (err) {
       setError("Error checking join code.");
@@ -125,21 +125,34 @@ export default function TripSetup() {
         <h3 className="text-lg font-semibold mb-1">Invite Others</h3>
         <label className="block font-medium mb-1">Join Code</label>
         <input
-          className="input"
+          className={`input ${error.includes("Join code") ? "border-red-500" : ""}`}
           placeholder="Create a 4–12 char code"
           value={joinCode}
           onChange={(e) => setJoinCode(e.target.value)}
           onBlur={checkJoinCode}
         />
-        {checkingCode && <p className="text-sm text-gray-500">Checking code...</p>}
+        {checkingCode && (
+          <p className="text-sm text-gray-500 mt-1">Checking code...</p>
+        )}
+        {error.includes("Join code") && (
+          <p className="text-sm text-red-600 mt-1 font-medium">
+            {error}
+          </p>
+        )}
         <p className="text-sm text-gray-500 mt-1">
           This is how others will join your trip. Make it short and simple.
         </p>
       </div>
 
-      {error && <p className="text-red-500 mt-3">{error}</p>}
+      {error && !error.includes("Join code") && (
+        <p className="text-red-500 mt-3">{error}</p>
+      )}
 
-      <button className="btn-primary mt-6 w-full" onClick={handleCreateTrip}>
+      <button
+        className={`btn-primary mt-6 w-full ${error ? "opacity-50 cursor-not-allowed" : ""}`}
+        onClick={handleCreateTrip}
+        disabled={!!error}
+      >
         Create Trip
       </button>
     </div>
