@@ -1,160 +1,130 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { getAuth } from "firebase/auth";
-import axios from "axios";
+// src/components/TripSetup.jsx
 
-export default function TripSetup() {
-  const [tripName, setTripName] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [destination, setDestination] = useState("");
-  const [purpose, setPurpose] = useState("");
-  const [joinCode, setJoinCode] = useState("");
-  const [error, setError] = useState("");
-  const [checkingCode, setCheckingCode] = useState(false);
+import React, { useState } from 'react';
 
-  const navigate = useNavigate();
+const TripSetup = () => {
+  const [tripName, setTripName] = useState('');
+  const [joinCode, setJoinCode] = useState('');
+  const [purpose, setPurpose] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [errors, setErrors] = useState({});
 
-  const isJoinCodeValid = (code) => /^[a-zA-Z0-9]{4,12}$/.test(code);
-
-  const checkJoinCode = async () => {
-    if (!isJoinCodeValid(joinCode)) return;
-    try {
-      setCheckingCode(true);
-      const res = await axios.get(`/api/trips/check-code?joinCode=${joinCode}`);
-      if (!res.data.available) {
-        setError("Join code already in use. Try another.");
-      } else {
-        setError("");
-      }
-    } catch (err) {
-      setError("Error checking join code.");
-    } finally {
-      setCheckingCode(false);
-    }
+  const validateForm = () => {
+    const newErrors = {};
+    if (!tripName.trim()) newErrors.tripName = 'Trip name is required.';
+    if (!joinCode.trim()) newErrors.joinCode = 'Join code is required.';
+    if (!purpose.trim()) newErrors.purpose = 'Purpose is required.';
+    if (!startDate) newErrors.startDate = 'Start date is required.';
+    if (!endDate) newErrors.endDate = 'End date is required.';
+    return newErrors;
   };
 
-  const handleCreateTrip = async () => {
-    setError("");
-
-    if (!tripName || !startDate || !endDate || !destination || !purpose) {
-      setError("Please fill in all required fields.");
-      return;
-    }
-
-    if (!isJoinCodeValid(joinCode)) {
-      setError("Join code must be 4–12 alphanumeric characters.");
-      return;
-    }
-
-    try {
-      const res = await axios.get(`/api/trips/check-code?joinCode=${joinCode}`);
-      if (!res.data.available) {
-        setError("Join code already in use. Please choose another.");
-        return;
-      }
-
-      const auth = getAuth();
-      const token = await auth.currentUser.getIdToken();
-
-      const payload = {
-        tripName,
-        purpose,
-        startDate,
-        endDate,
-        destination,
-        joinCode,
-      };
-
-      const tripRes = await axios.post("/api/trips/create", payload, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      const createdTrip = tripRes.data;
-      localStorage.setItem("activeTripId", createdTrip.tripId);
-      navigate(`/trip-created/${createdTrip.tripId}`);
-    } catch (err) {
-      console.error("❌ Trip creation failed:", err);
-      setError(err.response?.data?.error || "Trip creation failed.");
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const formErrors = validateForm();
+    setErrors(formErrors);
+    if (Object.keys(formErrors).length === 0) {
+      // Submit form data
+      console.log('Form submitted:', { tripName, joinCode, purpose, startDate, endDate });
+      // Reset form
+      setTripName('');
+      setJoinCode('');
+      setPurpose('');
+      setStartDate('');
+      setEndDate('');
     }
   };
 
   return (
-    <div className="max-w-xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-4">Plan Your Trip</h2>
+    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded shadow">
+      <h2 className="text-2xl font-bold mb-6 text-center">Set Up Your Trip</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Trip Name */}
+        <div>
+          <label className="block text-gray-700">Trip Name</label>
+          <input
+            type="text"
+            value={tripName}
+            onChange={(e) => setTripName(e.target.value)}
+            className={`w-full px-3 py-2 border ${
+              errors.tripName ? 'border-red-500' : 'border-gray-300'
+            } rounded`}
+          />
+          {errors.tripName && <p className="text-red-500 text-sm mt-1">{errors.tripName}</p>}
+        </div>
 
-      <input
-        className="input"
-        placeholder="Trip Name"
-        value={tripName}
-        onChange={(e) => setTripName(e.target.value)}
-      />
+        {/* Join Code */}
+        <div>
+          <label className="block text-gray-700">Join Code</label>
+          <input
+            type="text"
+            value={joinCode}
+            onChange={(e) => setJoinCode(e.target.value)}
+            className={`w-full px-3 py-2 border ${
+              errors.joinCode ? 'border-red-500' : 'border-gray-300'
+            } rounded`}
+          />
+          {errors.joinCode && <p className="text-red-500 text-sm mt-1">{errors.joinCode}</p>}
+        </div>
 
-      <input
-        className="input mt-2"
-        type="date"
-        value={startDate}
-        onChange={(e) => setStartDate(e.target.value)}
-      />
+        {/* Purpose */}
+        <div>
+          <label className="block text-gray-700">Purpose</label>
+          <input
+            type="text"
+            value={purpose}
+            onChange={(e) => setPurpose(e.target.value)}
+            className={`w-full px-3 py-2 border ${
+              errors.purpose ? 'border-red-500' : 'border-gray-300'
+            } rounded`}
+          />
+          {errors.purpose && <p className="text-red-500 text-sm mt-1">{errors.purpose}</p>}
+        </div>
 
-      <input
-        className="input mt-2"
-        type="date"
-        value={endDate}
-        onChange={(e) => setEndDate(e.target.value)}
-      />
+        {/* Start Date */}
+        <div>
+          <label className="block text-gray-700">Start Date</label>
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className={`w-full px-3 py-2 border ${
+              errors.startDate ? 'border-red-500' : 'border-gray-300'
+            } rounded`}
+          />
+          {errors.startDate && <p className="text-red-500 text-sm mt-1">{errors.startDate}</p>}
+        </div>
 
-      <input
-        className="input mt-2"
-        placeholder="Destination (City)"
-        value={destination}
-        onChange={(e) => setDestination(e.target.value)}
-      />
+        {/* End Date */}
+        <div>
+          <label className="block text-gray-700">End Date</label>
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className={`w-full px-3 py-2 border ${
+              errors.endDate ? 'border-red-500' : 'border-gray-300'
+            } rounded`}
+          />
+          {errors.endDate && <p className="text-red-500 text-sm mt-1">{errors.endDate}</p>}
+        </div>
 
-      <input
-        className="input mt-2"
-        placeholder="Purpose (e.g., family, solo, work)"
-        value={purpose}
-        onChange={(e) => setPurpose(e.target.value)}
-      />
-
-      <div className="mt-8 border-t pt-6">
-        <h3 className="text-lg font-semibold mb-1">Invite Others</h3>
-        <label className="block font-medium mb-1">Join Code</label>
-        <input
-          className={`input ${error.includes("Join code") ? "border-red-500" : ""}`}
-          placeholder="Create a 4–12 char code"
-          value={joinCode}
-          onChange={(e) => setJoinCode(e.target.value)}
-          onBlur={checkJoinCode}
-        />
-        {checkingCode && (
-          <p className="text-sm text-gray-500 mt-1">Checking code...</p>
-        )}
-        {error.includes("Join code") && (
-          <p className="text-sm text-red-600 mt-1 font-medium">
-            {error}
-          </p>
-        )}
-        <p className="text-sm text-gray-500 mt-1">
-          This is how others will join your trip. Make it short and simple.
-        </p>
-      </div>
-
-      {error && !error.includes("Join code") && (
-        <p className="text-red-500 mt-3">{error}</p>
-      )}
-
-      <button
-        className={`btn-primary mt-6 w-full ${error ? "opacity-50 cursor-not-allowed" : ""}`}
-        onClick={handleCreateTrip}
-        disabled={!!error}
-      >
-        Create Trip
-      </button>
+        {/* Submit Button */}
+        <div>
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 disabled:opacity-50"
+            disabled={
+              !tripName || !joinCode || !purpose || !startDate || !endDate || Object.keys(errors).length > 0
+            }
+          >
+            Continue
+          </button>
+        </div>
+      </form>
     </div>
   );
-}
+};
+
+export default TripSetup;
