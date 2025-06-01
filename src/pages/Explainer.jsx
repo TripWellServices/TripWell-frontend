@@ -5,7 +5,6 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   onAuthStateChanged,
-  initializeAuth,
 } from "firebase/auth";
 import { initializeApp } from "firebase/app";
 import axios from "axios";
@@ -33,9 +32,8 @@ export default function Explainer() {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
       if (user) {
-        console.log("✅ User already signed in, redirecting...");
-        const tripId = localStorage.getItem("activeTripId");
-        navigate(tripId ? `/trip/${tripId}` : "/hub");
+        const tripId = localStorage.getItem("uid");
+        navigate(tripId ? "/login" : "/hub");
       }
     });
     return () => unsub();
@@ -46,7 +44,6 @@ export default function Explainer() {
       const result = await signInWithPopup(auth, provider);
       const token = await result.user.getIdToken();
 
-      // ✅ Backend login call
       const response = await axios.post(
         "https://gofastbackend.onrender.com/api/auth/firebase-login",
         {},
@@ -57,13 +54,9 @@ export default function Explainer() {
         }
       );
 
-      console.log("✅ User signed in:", response.data.user);
-
-      // 🧠 Save backend user if needed
       localStorage.setItem("user", JSON.stringify(response.data.user));
-      localStorage.setItem("firebaseId", result.user.uid);
+      localStorage.setItem("uid", result.user.uid);
 
-      // ✅ Always start at profile
       navigate("/profile");
     } catch (err) {
       console.error("❌ Google Sign-In failed:", err);
@@ -82,12 +75,17 @@ export default function Explainer() {
         onClick={handleGoogleSignUp}
         className="bg-blue-600 text-white px-6 py-3 rounded text-lg"
       >
-        Sign In with Google
+        Sign Up with Google
       </button>
 
-      <p className="text-sm text-gray-600 mt-4">
-        Already have an account? You’re in the right place.
-      </p>
+      <p className="text-sm text-gray-600 mt-6">Already have an account?</p>
+
+      <button
+        onClick={() => navigate("/login")}
+        className="mt-2 underline text-blue-700 text-sm"
+      >
+        Go to Login
+      </button>
     </div>
   );
 }

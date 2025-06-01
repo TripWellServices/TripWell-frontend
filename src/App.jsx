@@ -12,9 +12,10 @@ import TripSetup from "./pages/TripSetup";
 import TripJoin from "./pages/TripJoin";
 import ProfileSetup from "./pages/ProfileSetup";
 import TripPlannerAI from "./pages/TripPlannerAI";
-import TripCreated from "./pages/TripCreated"; // ✅ new
+import TripCreated from "./pages/TripCreated";
+import Login from "./pages/Login";
 
-// 🔒 Axios Interceptor: auto-attach Firebase token to all requests
+// 🔒 Attach Firebase token to every Axios request
 axios.interceptors.request.use(
   async (config) => {
     const user = getAuth().currentUser;
@@ -29,51 +30,33 @@ axios.interceptors.request.use(
 
 export default function App() {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const auth = getAuth();
-    const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u);
-      if (u) {
-        localStorage.setItem("firebaseId", u.uid);
-      } else {
-        localStorage.removeItem("firebaseId");
-        localStorage.removeItem("activeTripId");
-      }
-      setLoading(false);
+    const unsubscribe = onAuthStateChanged(getAuth(), (currentUser) => {
+      setUser(currentUser);
     });
-    return () => unsub();
+    return () => unsubscribe();
   }, []);
-
-  if (loading) return <div className="p-8 text-center">Loading...</div>;
 
   return (
     <BrowserRouter>
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={<Home />} />
         <Route
           path="/explainer"
           element={
-            user ? (
-              localStorage.getItem("activeTripId") ? (
-                <Navigate to={`/trip/${localStorage.getItem("activeTripId")}`} />
-              ) : (
-                <Navigate to="/hub" />
-              )
-            ) : (
-              <Explainer />
-            )
+            localStorage.getItem("uid") ? <Navigate to="/login" /> : <Explainer />
           }
         />
+        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<Home />} />
 
         {/* Auth-Protected Routes */}
         <Route path="/hub" element={user ? <GeneralHub /> : <Navigate to="/explainer" />} />
         <Route path="/trip-setup" element={user ? <TripSetup /> : <Navigate to="/explainer" />} />
         <Route path="/join-trip" element={user ? <TripJoin /> : <Navigate to="/explainer" />} />
-        <Route path="/trip/:tripId" element={user ? <TripWellHub /> : <Navigate to="/explainer" />} />
-        <Route path="/trip-created/:tripId" element={user ? <TripCreated /> : <Navigate to="/explainer" />} /> {/* ✅ added */}
+        <Route path="/tripwellhub" element={user ? <TripWellHub /> : <Navigate to="/explainer" />} />
+        <Route path="/trip-created/:tripId" element={user ? <TripCreated /> : <Navigate to="/explainer" />} />
         <Route path="/profile" element={user ? <ProfileSetup /> : <Navigate to="/explainer" />} />
         <Route path="/trip-planner-ai" element={user ? <TripPlannerAI /> : <Navigate to="/explainer" />} />
       </Routes>
