@@ -23,89 +23,62 @@ export default function TripSetup() {
     const formErrors = validateForm();
     setErrors(formErrors);
     if (Object.keys(formErrors).length === 0) {
-      alert('Trip Created');
+      alert('Trip Created!');
+      // TODO: Hook backend trip creation here
     }
   };
 
   return (
-    <div className="max-w-xl mx-auto px-6 py-10">
-      <h1 className="text-3xl font-bold text-center mb-2">Set Up Your Trip</h1>
-      <p className="text-center text-gray-600 mb-8">
-        Create your trip profile, invite others with a join code, and set your adventure in motion.
+    <div style={{ maxWidth: 500, margin: '0 auto', padding: '2rem' }}>
+      <h1 style={{ fontSize: '24px', fontWeight: 'bold', textAlign: 'center' }}>Set Up Your Trip</h1>
+      <p style={{ textAlign: 'center', color: '#555', marginBottom: '2rem' }}>
+        Enter your trip details and claim a join code.
       </p>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Trip Name */}
-        <div>
-          <label className="block font-medium text-gray-700">Trip Name</label>
-          <input
-            className="w-full border border-gray-300 rounded px-3 py-2 mt-1"
-            value={tripName}
-            onChange={(e) => setTripName(e.target.value)}
-            placeholder="e.g. Summer in Paris"
-          />
-          {errors.tripName && <p className="text-sm text-red-600 mt-1">{errors.tripName}</p>}
-        </div>
+      <form onSubmit={handleSubmit}>
+        <InputField label="Trip Name" value={tripName} onChange={setTripName} error={errors.tripName} />
+        <InputField label="Join Code" value={joinCode} onChange={setJoinCode} error={errors.joinCode} />
+        <InputField label="Purpose" value={purpose} onChange={setPurpose} error={errors.purpose} />
+        <InputField label="Start Date" type="date" value={startDate} onChange={setStartDate} error={errors.startDate} />
+        <InputField label="End Date" type="date" value={endDate} onChange={setEndDate} error={errors.endDate} />
 
-        {/* Join Code */}
-        <div>
-          <label className="block font-medium text-gray-700">Join Code</label>
-          <input
-            className="w-full border border-gray-300 rounded px-3 py-2 mt-1"
-            value={joinCode}
-            onChange={(e) => setJoinCode(e.target.value)}
-            placeholder="e.g. Paris2025"
-          />
-          {errors.joinCode && <p className="text-sm text-red-600 mt-1">{errors.joinCode}</p>}
-        </div>
-
-        {/* Purpose */}
-        <div>
-          <label className="block font-medium text-gray-700">Purpose</label>
-          <input
-            className="w-full border border-gray-300 rounded px-3 py-2 mt-1"
-            value={purpose}
-            onChange={(e) => setPurpose(e.target.value)}
-            placeholder="e.g. Family, Solo, Work"
-          />
-          {errors.purpose && <p className="text-sm text-red-600 mt-1">{errors.purpose}</p>}
-        </div>
-
-        {/* Start Date */}
-        <div>
-          <label className="block font-medium text-gray-700">Start Date</label>
-          <input
-            type="date"
-            className="w-full border border-gray-300 rounded px-3 py-2 mt-1"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
-          {errors.startDate && <p className="text-sm text-red-600 mt-1">{errors.startDate}</p>}
-        </div>
-
-        {/* End Date */}
-        <div>
-          <label className="block font-medium text-gray-700">End Date</label>
-          <input
-            type="date"
-            className="w-full border border-gray-300 rounded px-3 py-2 mt-1"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
-          {errors.endDate && <p className="text-sm text-red-600 mt-1">{errors.endDate}</p>}
-        </div>
-
-        {/* Submit */}
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-3 rounded font-semibold hover:bg-blue-700 transition disabled:opacity-50"
-          disabled={
-            !tripName || !joinCode || !purpose || !startDate || !endDate
-          }
+          style={{
+            width: '100%',
+            padding: '0.75rem',
+            backgroundColor: '#007bff',
+            color: 'white',
+            fontWeight: 'bold',
+            border: 'none',
+            borderRadius: '4px',
+            marginTop: '1.5rem',
+            cursor: 'pointer'
+          }}
         >
           Continue
         </button>
       </form>
+    </div>
+  );
+}
+
+function InputField({ label, value, onChange, type = 'text', error }) {
+  return (
+    <div style={{ marginBottom: '1.25rem' }}>
+      <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: '600' }}>{label}</label>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        style={{
+          width: '100%',
+          padding: '0.5rem',
+          border: '1px solid #ccc',
+          borderRadius: '4px'
+        }}
+      />
+      {error && <p style={{ color: 'red', fontSize: '0.875rem', marginTop: '0.25rem' }}>{error}</p>}
     </div>
   );
 }
