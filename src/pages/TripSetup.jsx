@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const BACKEND_URL = 'https://gofastbackend.onrender.com';
+
 export default function TripSetup({ user }) {
   const [tripName, setTripName] = useState('');
   const [purpose, setPurpose] = useState('');
@@ -20,7 +22,7 @@ export default function TripSetup({ user }) {
         return;
       }
 
-      fetch('/api/trips/check-code', {
+      fetch(`${BACKEND_URL}/api/trips/check-code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ joinCode }),
@@ -28,8 +30,10 @@ export default function TripSetup({ user }) {
         .then((res) => {
           if (res.status === 409) {
             setJoinCodeAvailable(false);
-          } else {
+          } else if (res.status === 200) {
             setJoinCodeAvailable(true);
+          } else {
+            setJoinCodeAvailable(null);
           }
         })
         .catch((err) => {
@@ -61,7 +65,7 @@ export default function TripSetup({ user }) {
 
     setLoading(true);
     try {
-      const response = await fetch('/api/trips/create', {
+      const response = await fetch(`${BACKEND_URL}/api/trips/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
