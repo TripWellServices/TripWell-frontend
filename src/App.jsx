@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import AppInitGate from "./AppInitGate"; // 👈 your login/state/mongo checker
+import AppInitGate from "./pages/AppInitGate"; // ✅ FIXED PATH
 
 // PAGES
 import Home from "./pages/Home";
@@ -15,7 +15,7 @@ import TripPlannerAI from "./pages/TripPlannerAI";
 export default function App() {
   return (
     <BrowserRouter>
-      <AppInitGate> {/* ✅ This wraps all routes now */}
+      <AppInitGate>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/explainer" element={<Explainer />} />
