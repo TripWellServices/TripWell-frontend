@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 
 const BACKEND_URL = 'https://gofastbackend.onrender.com';
 
-export default function TripSetup({ user }) {
+export default function TripSetup() {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
   const [tripName, setTripName] = useState('');
   const [purpose, setPurpose] = useState('');
   const [city, setCity] = useState('');
@@ -14,10 +15,6 @@ export default function TripSetup({ user }) {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
-  if (!user || !user._id) {
-    return <p style={{ textAlign: 'center', color: 'red' }}>Error: User not loaded. Please log in again.</p>;
-  }
 
   useEffect(() => {
     const delay = setTimeout(() => {
@@ -65,10 +62,9 @@ export default function TripSetup({ user }) {
 
     if (
       Object.keys(formErrors).length > 0 ||
-      joinCodeAvailable === false ||
-      joinCodeAvailable === null
+      joinCodeAvailable !== true
     ) {
-      console.warn('Blocked: join code not valid or form errors present');
+      console.warn('Blocked: form invalid or join code unavailable');
       return;
     }
 
