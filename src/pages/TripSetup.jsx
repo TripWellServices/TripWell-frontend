@@ -15,12 +15,10 @@ export default function TripSetup({ user }) {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // 🔒 Handle undefined user
   if (!user || !user._id) {
     return <p style={{ textAlign: 'center', color: 'red' }}>Error: User not loaded. Please log in again.</p>;
   }
 
-  // 🧠 Check join code availability
   useEffect(() => {
     const delay = setTimeout(() => {
       if (joinCode.trim() === '') {
@@ -65,9 +63,12 @@ export default function TripSetup({ user }) {
     const formErrors = validateForm();
     setErrors(formErrors);
 
-    // 🛑 Double-block: validation OR join code explicitly unavailable
-    if (Object.keys(formErrors).length > 0 || joinCodeAvailable === false) {
-      console.warn('Submit blocked due to form errors or join code conflict.');
+    if (
+      Object.keys(formErrors).length > 0 ||
+      joinCodeAvailable === false ||
+      joinCodeAvailable === null
+    ) {
+      console.warn('Blocked: join code not valid or form errors present');
       return;
     }
 
@@ -135,9 +136,13 @@ export default function TripSetup({ user }) {
           Come up with something memorable so you can share with friends and family to join your trip.
         </p>
 
+        <p style={{ fontSize: '0.75rem', color: '#999', marginBottom: '1rem' }}>
+          joinCodeAvailable = {String(joinCodeAvailable)}
+        </p>
+
         <button
           type="submit"
-          disabled={loading || joinCodeAvailable === false}
+          disabled={loading || joinCodeAvailable !== true}
           style={{
             width: '100%',
             padding: '0.75rem',
@@ -147,8 +152,8 @@ export default function TripSetup({ user }) {
             border: 'none',
             borderRadius: '4px',
             marginTop: '1rem',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            opacity: loading ? 0.7 : 1,
+            cursor: loading || joinCodeAvailable !== true ? 'not-allowed' : 'pointer',
+            opacity: loading || joinCodeAvailable !== true ? 0.5 : 1,
           }}
         >
           {loading ? 'Creating Trip...' : 'Continue'}
