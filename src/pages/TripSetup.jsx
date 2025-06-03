@@ -10,11 +10,17 @@ export default function TripSetup({ user }) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [joinCode, setJoinCode] = useState('');
-  const [joinCodeAvailable, setJoinCodeAvailable] = useState(null); // null, true, false
+  const [joinCodeAvailable, setJoinCodeAvailable] = useState(null);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  // 🔒 Handle undefined user
+  if (!user || !user._id) {
+    return <p style={{ textAlign: 'center', color: 'red' }}>Error: User not loaded. Please log in again.</p>;
+  }
+
+  // 🧠 Check join code availability
   useEffect(() => {
     const delay = setTimeout(() => {
       if (joinCode.trim() === '') {
@@ -28,19 +34,15 @@ export default function TripSetup({ user }) {
         body: JSON.stringify({ joinCode }),
       })
         .then((res) => {
-          if (res.status === 409) {
-            setJoinCodeAvailable(false);
-          } else if (res.status === 200) {
-            setJoinCodeAvailable(true);
-          } else {
-            setJoinCodeAvailable(null);
-          }
+          if (res.status === 409) setJoinCodeAvailable(false);
+          else if (res.status === 200) setJoinCodeAvailable(true);
+          else setJoinCodeAvailable(null);
         })
         .catch((err) => {
-          console.error('Join code check failed', err);
+          console.error('Join code check failed:', err);
           setJoinCodeAvailable(null);
         });
-    }, 600); // debounce
+    }, 600);
 
     return () => clearTimeout(delay);
   }, [joinCode]);
@@ -59,9 +61,15 @@ export default function TripSetup({ user }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     const formErrors = validateForm();
     setErrors(formErrors);
-    if (Object.keys(formErrors).length > 0) return;
+
+    // 🛑 Double-block: validation OR join code explicitly unavailable
+    if (Object.keys(formErrors).length > 0 || joinCodeAvailable === false) {
+      console.warn('Submit blocked due to form errors or join code conflict.');
+      return;
+    }
 
     setLoading(true);
     try {
@@ -80,7 +88,6 @@ export default function TripSetup({ user }) {
       });
 
       if (!response.ok) throw new Error('Failed to create trip');
-
       navigate('/tripwell-hub');
     } catch (err) {
       console.error(err);
