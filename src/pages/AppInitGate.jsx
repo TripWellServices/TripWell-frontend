@@ -11,22 +11,25 @@ export default function AppInitGate() {
     const auth = getAuth();
 
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log("🧠 Firebase user state:", firebaseUser);
+
       if (!firebaseUser) {
+        console.warn("🚫 No Firebase user — redirecting to /explainer");
         navigate("/explainer");
         return;
       }
 
       try {
         const token = await firebaseUser.getIdToken();
+        console.log("🔐 Firebase token acquired");
 
-        // Step 1: Check if user exists in Mongo
         const res = await fetch(`${BACKEND_URL}/api/users/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         let user;
         if (res.status === 404) {
-          // Step 2: If not, create user with init
+          console.log("🆕 Mongo user not found, creating new user");
           const createRes = await fetch(`${BACKEND_URL}/api/users/init`, {
             method: "POST",
             headers: {
@@ -43,19 +46,20 @@ export default function AppInitGate() {
         } else {
           const json = await res.json();
           user = json.user || json;
+          console.log("✅ Mongo user found:", user);
         }
 
-        // Step 3: Save user to localStorage
         localStorage.setItem("user", JSON.stringify(user));
 
-        // Step 4: Route based on trip state
         if (user.tripId) {
+          console.log("🎯 Trip ID found — routing to /tripwellhub");
           navigate("/tripwellhub");
         } else {
+          console.log("🛫 No trip ID — routing to /hub");
           navigate("/hub");
         }
       } catch (err) {
-        console.error("🔥 AppInitGate error:", err);
+        console.error("🔥 Error in AppInitGate:", err);
         navigate("/explainer");
       }
     });
@@ -63,5 +67,5 @@ export default function AppInitGate() {
     return () => unsub();
   }, [navigate]);
 
-  return null; // Nothing visual, just logic
+  return null;
 }

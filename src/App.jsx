@@ -1,23 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { useState, useEffect } from "react";
-import axios from "axios";
+import AppInitGate from "./AppInitGate"; // 👈 your login/state/mongo checker
 
-// Firebase token injector for Axios
-axios.interceptors.request.use(
-  async (config) => {
-    const user = getAuth().currentUser;
-    if (user) {
-      const token = await user.getIdToken();
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// ✅ Pages
-import AppInitGate from "./pages/AppInitGate";
+// PAGES
 import Home from "./pages/Home";
 import Explainer from "./pages/Explainer";
 import Login from "./pages/Login";
@@ -29,32 +13,21 @@ import TripJoin from "./pages/TripJoin";
 import TripPlannerAI from "./pages/TripPlannerAI";
 
 export default function App() {
-  const [firebaseReady, setFirebaseReady] = useState(false);
-
-  // This ensures Firebase is fully initialized
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(getAuth(), () => {
-      setFirebaseReady(true);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  if (!firebaseReady) return <div>Loading...</div>;
-
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<AppInitGate />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/explainer" element={<Explainer />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/profile" element={<ProfileSetup />} />
-        <Route path="/hub" element={<GeneralHub />} />
-        <Route path="/tripwellhub" element={<TripWellHub />} />
-        <Route path="/tripsetup" element={<TripSetup />} />
-        <Route path="/tripjoin" element={<TripJoin />} />
-        <Route path="/tripplannerai" element={<TripPlannerAI />} />
-      </Routes>
+      <AppInitGate> {/* ✅ This wraps all routes now */}
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/explainer" element={<Explainer />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/profile" element={<ProfileSetup />} />
+          <Route path="/hub" element={<GeneralHub />} />
+          <Route path="/tripwellhub" element={<TripWellHub />} />
+          <Route path="/tripsetup" element={<TripSetup />} />
+          <Route path="/tripjoin" element={<TripJoin />} />
+          <Route path="/tripplannerai" element={<TripPlannerAI />} />
+        </Routes>
+      </AppInitGate>
     </BrowserRouter>
   );
 }
