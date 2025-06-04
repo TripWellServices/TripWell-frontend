@@ -18,7 +18,7 @@ export default function Home() {
       } else {
         navigate("/hub");
       }
-    }, 2000); // ⏱️ Delay redirect 2s for visual hold
+    }, 2000); // 2-second hold for calm UX
 
     return () => clearTimeout(timer);
   }, [authReady, firebaseUser, mongoUser, navigate]);
@@ -28,7 +28,7 @@ export default function Home() {
       <img
         src={logo}
         alt="TripWell Logo"
-        className="w-32 h-32 mb-4"
+        className="w-24 h-24 md:w-32 md:h-32 mb-4 object-contain"
       />
       <h1 className="text-2xl font-bold text-gray-800 mb-4">Welcome to TripWell</h1>
       <p className="text-gray-600 mb-6 max-w-md">
