@@ -1,13 +1,23 @@
-import React, { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { getAuth } from "firebase/auth";
-
-import { useState } from "react";
 import axios from "axios";
 
 export default function TripWellHub({ tripId, tripData = {}, userData = {} }) {
   const [userText, setUserText] = useState("");
   const [gptReply, setGptReply] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      setUser({
+        firstName: currentUser.displayName?.split(" ")[0] || "Traveler",
+        email: currentUser.email,
+      });
+    }
+  }, []);
 
   const handleSend = async () => {
     if (!userText.trim()) return;
@@ -17,7 +27,7 @@ export default function TripWellHub({ tripId, tripData = {}, userData = {} }) {
       const endpoint = tripId ? `/trip/${tripId}/chat` : `/plan/ai`;
       const payload = tripId
         ? { userInput: userText, tripData, userData }
-        : { userInput: userText, userData };
+        : { userInput: userText, userData: user };
 
       const res = await axios.post(endpoint, payload);
       setGptReply(res.data.reply);
@@ -87,58 +97,6 @@ export default function TripWellHub({ tripId, tripData = {}, userData = {} }) {
         <div className="mt-6 bg-gray-50 border-l-4 border-blue-500 p-4 rounded shadow">
           <h3 className="text-lg font-semibold mb-2">TripWell AI Says:</h3>
           <p className="text-gray-800 whitespace-pre-line">{gptReply}</p>
-        </div>
-      )}
-    </div>
-  );
-}
-
-  const firstName = user.name.split(" ")[0];
-
-  return (
-    <div className="max-w-3xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-2">Hi {firstName},</h2>
-      <p className="text-gray-700 mb-6">
-        Welcome to your TripWell hub. Let’s plan something epic.
-      </p>
-
-      {/* TAB NAVIGATION */}
-      <div className="flex space-x-4 border-b mb-6">
-        {["Trip", "AI"].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`py-2 px-4 border-b-2 ${
-              activeTab === tab
-                ? "border-blue-600 text-blue-600 font-semibold"
-                : "border-transparent text-gray-500"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
-      {/* TAB CONTENT */}
-      {activeTab === "Trip" && (
-        <div>
-          <h3 className="text-xl font-semibold mb-2">Your Trip</h3>
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec
-            ullamcorper, nisl eget vehicula feugiat, nunc arcu aliquet quam, a
-            commodo velit justo id neque.
-          </p>
-        </div>
-      )}
-
-      {activeTab === "AI" && (
-        <div>
-          <h3 className="text-xl font-semibold mb-2">AI Planner</h3>
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer ut
-            blandit sapien. Morbi sit amet orci luctus, sollicitudin mi nec,
-            luctus lacus.
-          </p>
         </div>
       )}
     </div>
