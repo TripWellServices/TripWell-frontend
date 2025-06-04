@@ -1,112 +1,47 @@
-import { useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import TripPlannerAI from "./TripPlannerAI";
+import { getAuth } from "firebase/auth";
 
 export default function TripWellHub() {
-  const location = useLocation();
-  const passedUser = location.state?.userData;
-
-  // ✅ MVP fallback — if refreshed or routed without props
-  const [userData, setUserData] = useState(
-    passedUser ||
-    JSON.parse(localStorage.getItem("userData")) || null
-  );
-
-  const [tripData, setTripData] = useState(null);
-  const [activeSection, setActiveSection] = useState("trip");
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    if (passedUser) {
-      localStorage.setItem("userData", JSON.stringify(passedUser));
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+
+    if (currentUser) {
+      setUser({
+        name: currentUser.displayName || "Traveler",
+        email: currentUser.email,
+      });
     }
-  }, [passedUser]);
+  }, []);
 
-  useEffect(() => {
-    const fetchTrip = async () => {
-      if (!userData?.tripId) return;
-
-      try {
-        const tripRes = await fetch(`https://gofastbackend.onrender.com/api/trips/${userData.tripId}`);
-        const trip = await tripRes.json();
-        setTripData(trip);
-      } catch (err) {
-        console.error("🔥 Failed to load trip", err);
-      }
-    };
-
-    fetchTrip();
-  }, [userData]);
-
-  if (!userData) {
-    return <div className="p-6 text-center text-red-500">No user loaded. Please return to Home.</div>;
+  if (!user) {
+    return (
+      <div className="p-6 text-center text-red-500">
+        No user found. Please return to Home.
+      </div>
+    );
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-4">
-      <h2 className="text-2xl font-bold">
-        Hi {userData.preferredName || userData.name},
-      </h2>
+    <div className="max-w-3xl mx-auto p-6 space-y-6">
+      <h2 className="text-2xl font-bold">Hi {user.name},</h2>
       <p className="text-gray-700">
-        Please see your trip outlook and get your bags packed for a great adventure.
+        Your TripWell hub is ready. Let’s plan something epic.
       </p>
 
-      <div className="flex space-x-4 mt-4">
-        <button
-          className={`px-4 py-2 rounded ${
-            activeSection === "trip" ? "bg-blue-600 text-white" : "bg-gray-200"
-          }`}
-          onClick={() => setActiveSection("trip")}
-        >
+      <div className="flex flex-col gap-4 mt-6">
+        <button className="bg-blue-600 text-white py-2 px-4 rounded">
           View Trip
         </button>
-        <button
-          className={`px-4 py-2 rounded ${
-            activeSection === "ai" ? "bg-blue-600 text-white" : "bg-gray-200"
-          }`}
-          onClick={() => setActiveSection("ai")}
-        >
+        <button className="bg-green-600 text-white py-2 px-4 rounded">
           Open AI Planner
         </button>
-        <button
-          className={`px-4 py-2 rounded ${
-            activeSection === "profile" ? "bg-blue-600 text-white" : "bg-gray-200"
-          }`}
-          onClick={() => setActiveSection("profile")}
-        >
+        <button className="bg-purple-600 text-white py-2 px-4 rounded">
           Edit Profile
         </button>
       </div>
-
-      {activeSection === "trip" && tripData && (
-        <div>
-          <h3 className="text-xl font-semibold mb-2">Your Trip</h3>
-          <p><strong>Trip Name:</strong> {tripData.tripName}</p>
-          <p><strong>Purpose:</strong> {tripData.purpose}</p>
-          <p>
-            <strong>Dates:</strong>{" "}
-            {new Date(tripData.startDate).toLocaleDateString()} to{" "}
-            {new Date(tripData.endDate).toLocaleDateString()}
-          </p>
-          <p>
-            <strong>Destination:</strong>{" "}
-            {tripData.destinations?.[0] || "Not yet added"}
-          </p>
-        </div>
-      )}
-
-      {activeSection === "ai" && (
-        <div className="pt-4">
-          <TripPlannerAI />
-        </div>
-      )}
-
-      {activeSection === "profile" && (
-        <div>
-          <h3 className="text-xl font-semibold mb-2">Your Profile</h3>
-          <p><strong>Name:</strong> {userData.name}</p>
-          <p><strong>Email:</strong> {userData.email}</p>
-        </div>
-      )}
     </div>
   );
 }
