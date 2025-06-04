@@ -5,16 +5,19 @@ export default function TripPlannerAI({ tripId, userData = {} }) {
   const [userText, setUserText] = useState("");
   const [gptReply, setGptReply] = useState(null);
   const [tripData, setTripData] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [sending, setSending] = useState(false);
 
-  // 🔄 Fetch trip details on load
+  // Load trip data on mount
   useEffect(() => {
     const fetchTrip = async () => {
       try {
         const res = await axios.get(`/api/tripbase/${tripId}`);
         setTripData(res.data);
       } catch (err) {
-        console.error("Failed to load trip data", err);
+        console.error("🔥 Failed to load trip data:", err);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -23,7 +26,7 @@ export default function TripPlannerAI({ tripId, userData = {} }) {
 
   const handleSend = async () => {
     if (!userText.trim()) return;
-    setLoading(true);
+    setSending(true);
     try {
       const res = await axios.post(`/trip/${tripId}/chat`, {
         userInput: userText,
@@ -32,15 +35,34 @@ export default function TripPlannerAI({ tripId, userData = {} }) {
       });
       setGptReply(res.data.reply);
     } catch (err) {
-      console.error("Failed to get GPT response", err);
+      console.error("🔥 GPT chat failed:", err);
     }
-    setLoading(false);
+    setSending(false);
   };
 
   const userName = userData?.name?.split(" ")[0] || "Traveler";
-  const city = tripData?.city || "your destination";
-  const dateRange = tripData?.dateRange || "";
+  const city = tripData?.city;
+  const dateRange = tripData?.dateRange;
 
+  // === Render: Loading State ===
+  if (isLoading) {
+    return (
+      <div className="p-6 text-center text-gray-500 italic">
+        Loading your trip info...
+      </div>
+    );
+  }
+
+  // === Render: Error State ===
+  if (!tripData) {
+    return (
+      <div className="p-6 text-center text-red-500">
+        Trip not found or failed to load.
+      </div>
+    );
+  }
+
+  // === Render: AI Planner ===
   return (
     <div className="max-w-3xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-4">🧠 TripWell Assistant</h2>
@@ -74,10 +96,10 @@ export default function TripPlannerAI({ tripId, userData = {} }) {
 
       <button
         onClick={handleSend}
-        disabled={loading}
+        disabled={sending}
         className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
       >
-        {loading ? "Thinking..." : "Send to TripWell AI"}
+        {sending ? "Thinking..." : "Send to TripWell AI"}
       </button>
 
       {gptReply && (
