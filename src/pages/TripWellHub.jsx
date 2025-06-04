@@ -1,42 +1,43 @@
+import { useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import TripPlannerAI from "./TripPlannerAI";
 
 export default function TripWellHub() {
-  const [userData, setUserData] = useState(null);
+  const location = useLocation();
+  const userData = location.state?.userData;
   const [tripData, setTripData] = useState(null);
-  const [activeSection, setActiveSection] = useState("trip"); // trip | ai | profile
+  const [activeSection, setActiveSection] = useState("trip");
 
   useEffect(() => {
-    const fetchUserAndTrip = async () => {
-      try {
-        const userRes = await fetch("https://gofastbackend.onrender.com/api/users/me", {
-          credentials: "include",
-        });
-        const user = await userRes.json();
-        setUserData(user);
+    const fetchTrip = async () => {
+      if (!userData?.tripId) return;
 
-        if (user.tripId) {
-          const tripRes = await fetch(`https://gofastbackend.onrender.com/api/trips/${user.tripId}`);
-          const trip = await tripRes.json();
-          setTripData(trip);
-        }
+      try {
+        const tripRes = await fetch(`https://gofastbackend.onrender.com/api/trips/${userData.tripId}`);
+        const trip = await tripRes.json();
+        setTripData(trip);
       } catch (err) {
-        console.error("🔥 Error loading user/trip:", err);
+        console.error("🔥 Failed to load trip", err);
       }
     };
 
-    fetchUserAndTrip();
-  }, []);
+    fetchTrip();
+  }, [userData]);
 
-  if (!userData || !tripData) {
-    return <div className="p-6 text-center text-gray-500">Loading TripWell...</div>;
+  if (!userData) {
+    return <div className="p-6 text-center text-red-500">No user loaded</div>;
   }
 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-4">
-      <h2 className="text-2xl font-bold">Welcome, {userData.preferredName || userData.name}</h2>
+      <h2 className="text-2xl font-bold">
+        Hi {userData.preferredName || userData.name},
+      </h2>
+      <p className="text-gray-700">
+        Please see your trip outlook and get your bags packed for a great adventure.
+      </p>
 
-      <div className="flex space-x-4">
+      <div className="flex space-x-4 mt-4">
         <button
           className={`px-4 py-2 rounded ${
             activeSection === "trip" ? "bg-blue-600 text-white" : "bg-gray-200"
@@ -63,7 +64,7 @@ export default function TripWellHub() {
         </button>
       </div>
 
-      {activeSection === "trip" && (
+      {activeSection === "trip" && tripData && (
         <div>
           <h3 className="text-xl font-semibold mb-2">Your Trip</h3>
           <p><strong>Trip Name:</strong> {tripData.tripName}</p>
