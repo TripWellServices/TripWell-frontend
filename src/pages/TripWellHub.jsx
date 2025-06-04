@@ -4,15 +4,7 @@ import TripPlannerAI from "./TripPlannerAI";
 export default function TripWellHub() {
   const [userData, setUserData] = useState(null);
   const [tripData, setTripData] = useState(null);
-  const [activeTab, setActiveTab] = useState("tripDetails");
-
-  const tabs = [
-    { id: "tripDetails", label: "Trip Details" },
-    { id: "participants", label: "Who's in Your Trip" },
-    { id: "addDetails", label: "Add Details" },
-    { id: "seePlan", label: "See Your Plan" },
-    { id: "profile", label: "Edit Profile" },
-  ];
+  const [activeSection, setActiveSection] = useState("trip"); // trip | ai | profile
 
   useEffect(() => {
     const fetchUserAndTrip = async () => {
@@ -29,7 +21,7 @@ export default function TripWellHub() {
           setTripData(trip);
         }
       } catch (err) {
-        console.error("Error loading user or trip:", err);
+        console.error("🔥 Error loading user/trip:", err);
       }
     };
 
@@ -41,65 +33,66 @@ export default function TripWellHub() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-4">Welcome to TripWell, {userData.preferredName || userData.name}!</h2>
+    <div className="max-w-3xl mx-auto p-6 space-y-4">
+      <h2 className="text-2xl font-bold">Welcome, {userData.preferredName || userData.name}</h2>
 
-      <div className="flex space-x-4 border-b mb-6">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`pb-2 border-b-2 ${
-              activeTab === tab.id ? "border-blue-600" : "border-transparent"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      <div className="flex space-x-4">
+        <button
+          className={`px-4 py-2 rounded ${
+            activeSection === "trip" ? "bg-blue-600 text-white" : "bg-gray-200"
+          }`}
+          onClick={() => setActiveSection("trip")}
+        >
+          View Trip
+        </button>
+        <button
+          className={`px-4 py-2 rounded ${
+            activeSection === "ai" ? "bg-blue-600 text-white" : "bg-gray-200"
+          }`}
+          onClick={() => setActiveSection("ai")}
+        >
+          Open AI Planner
+        </button>
+        <button
+          className={`px-4 py-2 rounded ${
+            activeSection === "profile" ? "bg-blue-600 text-white" : "bg-gray-200"
+          }`}
+          onClick={() => setActiveSection("profile")}
+        >
+          Edit Profile
+        </button>
       </div>
 
-      <div className="tab-content">
-        {activeTab === "tripDetails" && (
-          <div>
-            <h3 className="text-xl font-semibold">Trip Details</h3>
-            <p>Trip Name: {tripData.tripName}</p>
-            <p>Purpose: {tripData.purpose}</p>
-            <p>
-              Travel Dates: {new Date(tripData.startDate).toLocaleDateString()} to{" "}
-              {new Date(tripData.endDate).toLocaleDateString()}
-            </p>
-          </div>
-        )}
+      {activeSection === "trip" && (
+        <div>
+          <h3 className="text-xl font-semibold mb-2">Your Trip</h3>
+          <p><strong>Trip Name:</strong> {tripData.tripName}</p>
+          <p><strong>Purpose:</strong> {tripData.purpose}</p>
+          <p>
+            <strong>Dates:</strong>{" "}
+            {new Date(tripData.startDate).toLocaleDateString()} to{" "}
+            {new Date(tripData.endDate).toLocaleDateString()}
+          </p>
+          <p>
+            <strong>Destination:</strong>{" "}
+            {tripData.destinations?.[0] || "Not yet added"}
+          </p>
+        </div>
+      )}
 
-        {activeTab === "participants" && (
-          <div>
-            <h3 className="text-xl font-semibold">Who's in Your Trip</h3>
-            <p>(Feature coming soon...)</p>
-          </div>
-        )}
+      {activeSection === "ai" && (
+        <div className="pt-4">
+          <TripPlannerAI />
+        </div>
+      )}
 
-        {activeTab === "addDetails" && (
-          <div>
-            <h3 className="text-xl font-semibold">Add Details</h3>
-            <p>Add your hotel, planned activities, etc.</p>
-          </div>
-        )}
-
-        {activeTab === "seePlan" && (
-          <div>
-            <TripPlannerAI />
-          </div>
-        )}
-
-        {activeTab === "profile" && (
-          <div>
-            <h3 className="text-xl font-semibold">Edit Profile</h3>
-            <p>Name: {userData.name}</p>
-            <p>Email: {userData.email}</p>
-            {/* Add edit form if needed */}
-          </div>
-        )}
-      </div>
+      {activeSection === "profile" && (
+        <div>
+          <h3 className="text-xl font-semibold mb-2">Your Profile</h3>
+          <p><strong>Name:</strong> {userData.name}</p>
+          <p><strong>Email:</strong> {userData.email}</p>
+        </div>
+      )}
     </div>
   );
 }
