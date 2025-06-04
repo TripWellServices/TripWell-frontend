@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import TripPlannerAI from "./TripPlannerAI";
 
-export default function TripWellHub({ tripData, userData }) {
+export default function TripWellHub() {
+  const [userData, setUserData] = useState(null);
+  const [tripData, setTripData] = useState(null);
   const [activeTab, setActiveTab] = useState("tripDetails");
 
   const tabs = [
@@ -12,9 +14,35 @@ export default function TripWellHub({ tripData, userData }) {
     { id: "profile", label: "Edit Profile" },
   ];
 
+  useEffect(() => {
+    const fetchUserAndTrip = async () => {
+      try {
+        const userRes = await fetch("https://gofastbackend.onrender.com/api/users/me", {
+          credentials: "include",
+        });
+        const user = await userRes.json();
+        setUserData(user);
+
+        if (user.tripId) {
+          const tripRes = await fetch(`https://gofastbackend.onrender.com/api/trips/${user.tripId}`);
+          const trip = await tripRes.json();
+          setTripData(trip);
+        }
+      } catch (err) {
+        console.error("Error loading user or trip:", err);
+      }
+    };
+
+    fetchUserAndTrip();
+  }, []);
+
+  if (!userData || !tripData) {
+    return <div className="p-6 text-center text-gray-500">Loading TripWell...</div>;
+  }
+
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-4">Welcome to TripWell!</h2>
+      <h2 className="text-2xl font-bold mb-4">Welcome to TripWell, {userData.preferredName || userData.name}!</h2>
 
       <div className="flex space-x-4 border-b mb-6">
         {tabs.map((tab) => (
@@ -34,45 +62,41 @@ export default function TripWellHub({ tripData, userData }) {
         {activeTab === "tripDetails" && (
           <div>
             <h3 className="text-xl font-semibold">Trip Details</h3>
-            <p>Destination: {tripData.destination}</p>
-            <p>Travel Dates: {tripData.dates.join(" to ")}</p>
-            {/* Add other basic details here */}
+            <p>Trip Name: {tripData.tripName}</p>
+            <p>Purpose: {tripData.purpose}</p>
+            <p>
+              Travel Dates: {new Date(tripData.startDate).toLocaleDateString()} to{" "}
+              {new Date(tripData.endDate).toLocaleDateString()}
+            </p>
           </div>
         )}
 
         {activeTab === "participants" && (
           <div>
             <h3 className="text-xl font-semibold">Who's in Your Trip</h3>
-            {/* Display list of participants */}
-            <ul>
-              {tripData.participants.map((person) => (
-                <li key={person.id}>{person.name}</li>
-              ))}
-            </ul>
+            <p>(Feature coming soon...)</p>
           </div>
         )}
 
         {activeTab === "addDetails" && (
           <div>
             <h3 className="text-xl font-semibold">Add Details</h3>
-            {/* Form or input sections for lodging, activities */}
             <p>Add your hotel, planned activities, etc.</p>
           </div>
         )}
 
         {activeTab === "seePlan" && (
           <div>
-            <h3 className="text-xl font-semibold">See Your Plan</h3>
-            {/* Visual representation of the trip plan */}
-            <p>Here’s your trip plan for the next few days...</p>
+            <TripPlannerAI />
           </div>
         )}
 
         {activeTab === "profile" && (
           <div>
             <h3 className="text-xl font-semibold">Edit Profile</h3>
-            {/* Profile details, preferences */}
-            <p>Update your personal preferences or contact info here.</p>
+            <p>Name: {userData.name}</p>
+            <p>Email: {userData.email}</p>
+            {/* Add edit form if needed */}
           </div>
         )}
       </div>
