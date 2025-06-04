@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { getAuth } from "firebase/auth";
 
 export default function TripWellHub() {
@@ -49,14 +49,6 @@ export default function TripWellHub() {
             {tab}
           </button>
         ))}
-
-        {/* Edit Profile → routed */}
-        <button
-          onClick={() => (window.location.href = "/profile")}
-          className="py-2 px-4 border-b-2 border-transparent text-gray-500 hover:text-blue-600 hover:border-blue-600"
-        >
-          Edit Profile
-        </button>
       </div>
 
       {/* TAB CONTENT */}
