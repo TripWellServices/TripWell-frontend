@@ -12,7 +12,7 @@ export default function TripPlannerAI({ tripId, userData = {} }) {
   useEffect(() => {
     const fetchTrip = async () => {
       try {
-        const res = await axios.get(`/api/tripbase/${tripId}`);
+        const res = await axios.get(`/api/trips/tripbase/${tripId}`);
         setTripData(res.data);
       } catch (err) {
         console.error("🔥 Failed to load trip data:", err);
