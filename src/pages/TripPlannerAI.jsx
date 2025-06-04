@@ -1,7 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 
-export default function TripPlannerAI({ tripId, tripData, userData }) {
+export default function TripPlannerAI({ tripId, tripData = {}, userData = {} }) {
   const [userText, setUserText] = useState("");
   const [gptReply, setGptReply] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -9,22 +9,33 @@ export default function TripPlannerAI({ tripId, tripData, userData }) {
   const handleSend = async () => {
     if (!userText.trim()) return;
     setLoading(true);
+
     try {
-      const res = await axios.post(`/trip/${tripId}/chat`, {
-        userInput: userText,
-        tripData,
-        userData
-      });
+      const endpoint = tripId ? `/trip/${tripId}/chat` : `/plan/ai`;
+      const payload = tripId
+        ? { userInput: userText, tripData, userData }
+        : { userInput: userText, userData };
+
+      const res = await axios.post(endpoint, payload);
       setGptReply(res.data.reply);
     } catch (err) {
       console.error("Failed to get GPT response", err);
     }
+
     setLoading(false);
   };
 
-  const formatDates = (dates) => {
-    if (!dates || dates.length < 2) return "";
-    return `${dates[0]} to ${dates[1]}`;
+  const getPrimaryCity = () => {
+    return tripData?.destinations?.[0]?.city || "your destination";
+  };
+
+  const getDateRange = () => {
+    const start = tripData?.destinations?.[0]?.startDate;
+    const end = tripData?.destinations?.[0]?.endDate;
+    if (start && end) {
+      return `${start.slice(0, 10)} to ${end.slice(0, 10)}`;
+    }
+    return "your dates";
   };
 
   return (
@@ -34,8 +45,8 @@ export default function TripPlannerAI({ tripId, tripData, userData }) {
       <div className="text-gray-700 mb-6">
         <p>
           We already know you're heading to{" "}
-          <strong>{tripData.destination}</strong> from{" "}
-          <strong>{formatDates(tripData.dates)}</strong>.
+          <strong>{getPrimaryCity()}</strong> from{" "}
+          <strong>{getDateRange()}</strong>.
         </p>
         <p className="mt-3">
           Just drop a few breadcrumbs — things that might already be booked, or things you're hoping to do:
@@ -46,31 +57,4 @@ export default function TripPlannerAI({ tripId, tripData, userData }) {
           <li>The vibe you’re trying to soak in?</li>
         </ul>
         <p className="italic text-gray-600">
-          Example: “We get in early on the 5th, staying at a place called Rom de La Pen. I just want a peaceful trip — maybe a good walk, some espresso spots, and something fun for my kid.”
-        </p>
-      </div>
-
-      <textarea
-        className="w-full h-40 border rounded p-4 mb-4"
-        placeholder="Drop your trip notes, ideas, or thoughts here..."
-        value={userText}
-        onChange={(e) => setUserText(e.target.value)}
-      />
-
-      <button
-        onClick={handleSend}
-        disabled={loading}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-      >
-        {loading ? "Thinking..." : "Send to TripWell AI"}
-      </button>
-
-      {gptReply && (
-        <div className="mt-6 bg-gray-50 border-l-4 border-blue-500 p-4 rounded shadow">
-          <h3 className="text-lg font-semibold mb-2">TripWell AI Says:</h3>
-          <p className="text-gray-800 whitespace-pre-line">{gptReply}</p>
-        </div>
-      )}
-    </div>
-  );
-}
+          Example: “We get in early on the 5th, staying at a p
