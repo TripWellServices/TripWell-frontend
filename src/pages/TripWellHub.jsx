@@ -4,9 +4,22 @@ import TripPlannerAI from "./TripPlannerAI";
 
 export default function TripWellHub() {
   const location = useLocation();
-  const userData = location.state?.userData;
+  const passedUser = location.state?.userData;
+
+  // ✅ MVP fallback — if refreshed or routed without props
+  const [userData, setUserData] = useState(
+    passedUser ||
+    JSON.parse(localStorage.getItem("userData")) || null
+  );
+
   const [tripData, setTripData] = useState(null);
   const [activeSection, setActiveSection] = useState("trip");
+
+  useEffect(() => {
+    if (passedUser) {
+      localStorage.setItem("userData", JSON.stringify(passedUser));
+    }
+  }, [passedUser]);
 
   useEffect(() => {
     const fetchTrip = async () => {
@@ -25,7 +38,7 @@ export default function TripWellHub() {
   }, [userData]);
 
   if (!userData) {
-    return <div className="p-6 text-center text-red-500">No user loaded</div>;
+    return <div className="p-6 text-center text-red-500">No user loaded. Please return to Home.</div>;
   }
 
   return (
