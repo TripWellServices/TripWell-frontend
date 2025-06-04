@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuthUser from "../hooks/useAuthUser";
-import logo from "../assets/tripwell-logo.png"; // ✅ use correct import
+import logo from "../assets/tripwell-logo.png";
 
 export default function Home() {
   const { authReady, firebaseUser, mongoUser } = useAuthUser();
@@ -10,13 +10,17 @@ export default function Home() {
   useEffect(() => {
     if (!authReady) return;
 
-    if (!firebaseUser) {
-      navigate("/explainer");
-    } else if (mongoUser?.tripId) {
-      navigate("/tripwellhub");
-    } else {
-      navigate("/hub");
-    }
+    const timer = setTimeout(() => {
+      if (!firebaseUser) {
+        navigate("/explainer");
+      } else if (mongoUser?.tripId) {
+        navigate("/tripwellhub");
+      } else {
+        navigate("/hub");
+      }
+    }, 2000); // ⏱️ Delay redirect 2s for visual hold
+
+    return () => clearTimeout(timer);
   }, [authReady, firebaseUser, mongoUser, navigate]);
 
   return (
@@ -30,7 +34,9 @@ export default function Home() {
       <p className="text-gray-600 mb-6 max-w-md">
         Your co-pilot for calm, clear travel planning.
       </p>
-      <p className="text-sm text-gray-400">Checking your trip...</p>
+      <p className="text-sm text-gray-400">
+        Checking your trip...
+      </p>
     </div>
   );
 }
