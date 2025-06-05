@@ -7,20 +7,22 @@ export default function TripPlannerAI({ tripId, userData = {} }) {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
 
-  const baseUrl = "https://gofastbackend.onrender.com"; // RENDER ✅
+  const baseUrl = "https://gofastbackend.onrender.com";
 
   const handleSend = async () => {
     if (!userText.trim()) return;
     setSending(true);
     setError(null);
+
     try {
       const res = await axios.post(`${baseUrl}/trip/${tripId}/chat`, {
         userInput: userText,
-        tripData: {}, // skipping for now
+        tripData: {}, // required by backend, send empty if no data
         userData,
       });
+
       setGptReply(res.data.reply || "No response from AI.");
-      setUserText(""); // Clear input after send
+      setUserText("");
     } catch (err) {
       console.error("🔥 GPT chat failed:", err);
       setError("AI assistant failed to respond.");
@@ -63,9 +65,7 @@ export default function TripPlannerAI({ tripId, userData = {} }) {
         {sending ? "Spinning magic..." : "Send to TripWell AI"}
       </button>
 
-      {error && (
-        <div className="mt-4 text-red-600 font-semibold">{error}</div>
-      )}
+      {error && <div className="mt-4 text-red-600 font-semibold">{error}</div>}
 
       {gptReply && (
         <div className="mt-6 bg-gray-50 border-l-4 border-blue-500 p-4 rounded shadow">
