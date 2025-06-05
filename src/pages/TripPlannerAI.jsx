@@ -12,18 +12,21 @@ export default function TripPlannerAI({ tripId, userData = {} }) {
   const handleSend = async () => {
     if (!userText.trim()) return;
     setSending(true);
+    setError(null);
     try {
       const res = await axios.post(`${baseUrl}/trip/${tripId}/chat`, {
         userInput: userText,
-        tripData: {},          // ⛔ skip for now
-        userData,              // pass user info only
+        tripData: {}, // skipping for now
+        userData,
       });
-      setGptReply(res.data.reply);
+      setGptReply(res.data.reply || "No response from AI.");
+      setUserText(""); // Clear input after send
     } catch (err) {
       console.error("🔥 GPT chat failed:", err);
       setError("AI assistant failed to respond.");
+    } finally {
+      setSending(false);
     }
-    setSending(false);
   };
 
   const userName = userData?.name?.split(" ")[0] || "Adam";
@@ -36,7 +39,9 @@ export default function TripPlannerAI({ tripId, userData = {} }) {
         <p className="text-lg font-semibold">
           Alright {userName}, ready to plan this trip? Let’s f***ing go. 🔥✈️
         </p>
-        <p className="mt-3">Tell me what’s in your head — vibe, food, schedule, chaos, dreams. Drop it below:</p>
+        <p className="mt-3">
+          Tell me what’s in your head — vibe, food, schedule, chaos, dreams. Drop it below:
+        </p>
         <p className="italic text-gray-600 mt-2">
           Example: “Need ocean views, epic tacos, kid-friendly spots, and some chill downtime in the morning.”
         </p>
@@ -47,20 +52,19 @@ export default function TripPlannerAI({ tripId, userData = {} }) {
         placeholder="Drop your trip brain dump here..."
         value={userText}
         onChange={(e) => setUserText(e.target.value)}
+        disabled={sending}
       />
 
       <button
         onClick={handleSend}
         disabled={sending}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
       >
         {sending ? "Spinning magic..." : "Send to TripWell AI"}
       </button>
 
       {error && (
-        <div className="mt-4 text-red-600 font-semibold">
-          {error}
-        </div>
+        <div className="mt-4 text-red-600 font-semibold">{error}</div>
       )}
 
       {gptReply && (
