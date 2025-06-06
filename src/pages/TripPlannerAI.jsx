@@ -9,6 +9,16 @@ export default function TripPlannerAI({ tripId, userData = {} }) {
 
   const baseUrl = "https://gofastbackend.onrender.com";
 
+  console.log("🧪 TripPlannerAI loaded with tripId:", tripId);
+
+  if (!tripId) {
+    return (
+      <div className="max-w-2xl mx-auto p-6 text-red-600 font-semibold border-l-4 border-red-500 bg-red-50 rounded">
+        ❌ No trip ID provided. Please return to trip setup or refresh the page.
+      </div>
+    );
+  }
+
   const handleSend = async () => {
     if (!userText.trim()) return;
     setSending(true);
