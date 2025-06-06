@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 
 export default function TripPlannerAI({ userData, tripData }) {
@@ -7,7 +7,12 @@ export default function TripPlannerAI({ userData, tripData }) {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
 
-  const baseUrl = "https://gofastbackend.onrender.com"; // 🔁 adjust if needed
+  const baseUrl = "https://gofastbackend.onrender.com";
+
+  useEffect(() => {
+    console.log("🛰️ Trip Data Hydrated:", tripData);
+    console.log("🛰️ User Data Hydrated:", userData);
+  }, [tripData, userData]);
 
   const handleSend = async () => {
     if (!userText.trim()) return;
@@ -33,7 +38,12 @@ export default function TripPlannerAI({ userData, tripData }) {
   };
 
   const userName = userData?.name?.split(" ")[0] || "Traveler";
-  const destination = tripData?.destination || tripData?.city || "your destination";
+
+  const destination =
+    tripData?.destination?.trim() ||
+    tripData?.city?.trim() ||
+    tripData?.destinations?.[0]?.city?.trim() ||
+    "somewhere amazing";
 
   return (
     <div className="max-w-3xl mx-auto p-6">
