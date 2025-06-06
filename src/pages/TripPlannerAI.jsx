@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-export default function TripPlannerAI({ userData, tripData }) {
+export default function TripPlannerAI({ tripId }) {
+  const [user, setUser] = useState(null);
+  const [trip, setTrip] = useState(null);
   const [userText, setUserText] = useState("");
   const [gptReply, setGptReply] = useState(null);
   const [sending, setSending] = useState(false);
@@ -10,22 +12,50 @@ export default function TripPlannerAI({ userData, tripData }) {
   const baseUrl = "https://gofastbackend.onrender.com";
 
   useEffect(() => {
-    console.log("🛰️ Trip Data Hydrated:", tripData);
-    console.log("🛰️ User Data Hydrated:", userData);
-  }, [tripData, userData]);
+    const hydrate = async () => {
+      const token = localStorage.getItem("firebaseToken");
+
+      if (!token || !tripId) {
+        setError("Missing auth or trip context.");
+        return;
+      }
+
+      try {
+        const userRes = await axios.get(`${baseUrl}/tripwell/whoami`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const tripRes = await axios.get(`${baseUrl}/trip/${tripId}/hydrate`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        setUser(userRes.data);
+        setTrip(tripRes.data.trip);
+
+        console.log("🛰️ Trip Hydrated:", tripRes.data.trip?.destination);
+        console.log("🛰️ User Hydrated:", userRes.data?.name);
+      } catch (err) {
+        console.error("💥 Hydration failed:", err);
+        setError("Unable to load user or trip.");
+      }
+    };
+
+    hydrate();
+  }, [tripId]);
 
   const handleSend = async () => {
-    if (!userText.trim()) return;
+    if (!userText.trim() || !trip) return;
 
     setSending(true);
     setError(null);
 
     try {
-      const res = await axios.post(`${baseUrl}/trip/${tripData._id}/chat`, {
-        userInput: userText,
-        userData,
-        tripData,
-      });
+      const token = localStorage.getItem("firebaseToken");
+      const res = await axios.post(
+        `${baseUrl}/trip/${trip._id}/ask`,
+        { input: userText },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
       setGptReply(res.data.reply || "No response from AI.");
       setUserText("");
@@ -37,45 +67,52 @@ export default function TripPlannerAI({ userData, tripData }) {
     }
   };
 
-  const userName = userData?.name?.split(" ")[0] || "Traveler";
+  const userName = user?.name?.split(" ")[0] || "Traveler";
 
   const destination =
-    tripData?.destination?.trim() ||
-    tripData?.city?.trim() ||
-    tripData?.destinations?.[0]?.city?.trim() ||
+    trip?.destination?.trim() ||
+    trip?.city?.trim() ||
+    trip?.destinations?.[0]?.city?.trim() ||
     "somewhere amazing";
 
   return (
     <div className="max-w-3xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-4">🧠 TripWell Assistant</h2>
 
-      <div className="text-gray-700 mb-6">
-        <p className="text-lg font-semibold">
-          Alright {userName}, ready to plan your trip to <strong>{destination}</strong>? Let’s go. 🔥✈️
-        </p>
-        <p className="mt-3">
-          Tell me what’s in your head — vibe, food, schedule, chaos, dreams. Drop it below:
-        </p>
-        <p className="italic text-gray-600 mt-2">
-          Example: “Need ocean views, epic tacos, kid-friendly spots, and some chill downtime in the morning.”
-        </p>
-      </div>
+      {!user || !trip ? (
+        <div className="text-gray-600 italic">Loading trip and user...</div>
+      ) : (
+        <>
+          <div className="text-gray-700 mb-6">
+            <p className="text-lg font-semibold">
+              Alright {userName}, ready to plan your trip to{" "}
+              <strong>{destination}</strong>? Let’s go. 🔥✈️
+            </p>
+            <p className="mt-3">
+              Tell me what’s in your head — vibe, food, schedule, chaos, dreams. Drop it below:
+            </p>
+            <p className="italic text-gray-600 mt-2">
+              Example: “Need ocean views, epic tacos, kid-friendly spots, and some chill downtime in the morning.”
+            </p>
+          </div>
 
-      <textarea
-        className="w-full h-40 border rounded p-4 mb-4"
-        placeholder="Drop your trip brain dump here..."
-        value={userText}
-        onChange={(e) => setUserText(e.target.value)}
-        disabled={sending}
-      />
+          <textarea
+            className="w-full h-40 border rounded p-4 mb-4"
+            placeholder="Drop your trip brain dump here..."
+            value={userText}
+            onChange={(e) => setUserText(e.target.value)}
+            disabled={sending}
+          />
 
-      <button
-        onClick={handleSend}
-        disabled={sending}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-      >
-        {sending ? "Spinning magic..." : "Send to TripWell AI"}
-      </button>
+          <button
+            onClick={handleSend}
+            disabled={sending}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+          >
+            {sending ? "Spinning magic..." : "Send to TripWell AI"}
+          </button>
+        </>
+      )}
 
       {error && <div className="mt-4 text-red-600 font-semibold">{error}</div>}
 
