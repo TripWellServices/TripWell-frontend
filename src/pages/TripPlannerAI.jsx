@@ -1,34 +1,25 @@
 import { useState } from "react";
 import axios from "axios";
 
-export default function TripPlannerAI({ tripId, userData = {} }) {
+export default function TripPlannerAI({ userData, tripData }) {
   const [userText, setUserText] = useState("");
   const [gptReply, setGptReply] = useState(null);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
 
-  const baseUrl = "https://gofastbackend.onrender.com";
-
-  console.log("🧪 TripPlannerAI loaded with tripId:", tripId);
-
-  if (!tripId) {
-    return (
-      <div className="max-w-2xl mx-auto p-6 text-red-600 font-semibold border-l-4 border-red-500 bg-red-50 rounded">
-        ❌ No trip ID provided. Please return to trip setup or refresh the page.
-      </div>
-    );
-  }
+  const baseUrl = "https://gofastbackend.onrender.com"; // 🔁 adjust if needed
 
   const handleSend = async () => {
     if (!userText.trim()) return;
+
     setSending(true);
     setError(null);
 
     try {
-      const res = await axios.post(`${baseUrl}/trip/${tripId}/chat`, {
+      const res = await axios.post(`${baseUrl}/trip/${tripData._id}/chat`, {
         userInput: userText,
-        tripData: {}, // required by backend, send empty if no data
         userData,
+        tripData,
       });
 
       setGptReply(res.data.reply || "No response from AI.");
@@ -41,7 +32,8 @@ export default function TripPlannerAI({ tripId, userData = {} }) {
     }
   };
 
-  const userName = userData?.name?.split(" ")[0] || "Adam";
+  const userName = userData?.name?.split(" ")[0] || "Traveler";
+  const destination = tripData?.destination || tripData?.city || "your destination";
 
   return (
     <div className="max-w-3xl mx-auto p-6">
@@ -49,7 +41,7 @@ export default function TripPlannerAI({ tripId, userData = {} }) {
 
       <div className="text-gray-700 mb-6">
         <p className="text-lg font-semibold">
-          Alright {userName}, ready to plan this trip? Let’s f***ing go. 🔥✈️
+          Alright {userName}, ready to plan your trip to <strong>{destination}</strong>? Let’s go. 🔥✈️
         </p>
         <p className="mt-3">
           Tell me what’s in your head — vibe, food, schedule, chaos, dreams. Drop it below:
