@@ -4,8 +4,8 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 const TripContext = createContext();
 
 export const TripProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [trip, setTrip] = useState(null);
+  const [user, setUser] = useState(null);     // Mongo user
+  const [trip, setTrip] = useState(null);     // Latest trip
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -22,22 +22,17 @@ export const TripProvider = ({ children }) => {
       try {
         const token = await firebaseUser.getIdToken(true);
 
-        // ✅ Get Mongo user
-        const userRes = await fetch("https://gofastbackend.onrender.com/auth/me", {
+        const res = await fetch("https://gofastbackend.onrender.com/tripwell/whoami", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        if (!userRes.ok) throw new Error("Failed to fetch user");
-        const userData = await userRes.json();
-        setUser(userData);
+        if (!res.ok) throw new Error("TripWell whoami fetch failed");
 
-        // ✅ Get latest trip
-        const tripRes = await fetch(`https://gofastbackend.onrender.com/trip/user/${userData._id}/latest`);
-        if (!tripRes.ok) throw new Error("Failed to fetch trip");
-        const tripData = await tripRes.json();
-        setTrip(tripData);
+        const { user: mongoUser, trip: latestTrip } = await res.json();
+        setUser(mongoUser);
+        setTrip(latestTrip);
       } catch (err) {
-        console.error("❌ TripContext hydration failed:", err);
+        console.error("❌ TripContext (TripWell) hydration failed:", err);
         setUser(null);
         setTrip(null);
       } finally {
@@ -50,7 +45,7 @@ export const TripProvider = ({ children }) => {
 
   return (
     <TripContext.Provider value={{ user, trip, loading }}>
-      {children}
+      {loading ? <div>Loading...</div> : children}
     </TripContext.Provider>
   );
 };
