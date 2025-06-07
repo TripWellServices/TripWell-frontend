@@ -22,15 +22,18 @@ export const TripProvider = ({ children }) => {
       try {
         const token = await firebaseUser.getIdToken(true);
 
-        // Get Mongo user
+        // ✅ Get Mongo user
         const userRes = await fetch("https://gofastbackend.onrender.com/auth/me", {
           headers: { Authorization: `Bearer ${token}` },
         });
+
+        if (!userRes.ok) throw new Error("Failed to fetch user");
         const userData = await userRes.json();
         setUser(userData);
 
-        // Get latest trip
+        // ✅ Get latest trip
         const tripRes = await fetch(`https://gofastbackend.onrender.com/trip/user/${userData._id}/latest`);
+        if (!tripRes.ok) throw new Error("Failed to fetch trip");
         const tripData = await tripRes.json();
         setTrip(tripData);
       } catch (err) {
@@ -52,4 +55,10 @@ export const TripProvider = ({ children }) => {
   );
 };
 
-export const useTripContext = () => useContext(TripContext);
+export const useTripContext = () => {
+  const context = useContext(TripContext);
+  if (!context) {
+    throw new Error("useTripContext must be used within a TripProvider");
+  }
+  return context;
+};
