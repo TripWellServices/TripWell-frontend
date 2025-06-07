@@ -1,12 +1,14 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
-import App from "./App";
-import { TripProvider } from "./context/TripContext"; // ✅ import this
-
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
-    <TripProvider> {/* ✅ wrap app in context */}
-      <App />
-    </TripProvider>
-  </React.StrictMode>
-);
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="TripWell - Your smart co-pilot for travel planning and execution." />
+    <title>TripWell</title>
+  </head>
+  <body>
+    <div id="root"></div> <!-- ✅ This is where React mounts -->
+    <script type="module" src="/src/index.jsx"></script> <!-- ✅ Starts the app -->
+  </body>
+</html>
