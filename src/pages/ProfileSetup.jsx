@@ -1,214 +1,84 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { useTripContext } from "../context/TripContext";
+
+const BACKEND_URL = "https://gofastbackend.onrender.com";
 
 export default function ProfileSetup() {
+  const { user, loading } = useTripContext();
+  const navigate = useNavigate();
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [city, setCity] = useState("");
-  const [state, setState] = useState("");
+  const [stateRegion, setStateRegion] = useState("");
   const [familySituation, setFamilySituation] = useState([]);
   const [travelStyle, setTravelStyle] = useState([]);
   const [tripVibe, setTripVibe] = useState([]);
 
-  const [loading, setLoading] = useState(true);
-  const [firebaseId, setFirebaseId] = useState(null);
-
-  const navigate = useNavigate();
-
-  // 🔐 Auth hook
   useEffect(() => {
-    const auth = getAuth();
-    const unsub = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setName(user.displayName || "");
-        setEmail(user.email || "");
-        setFirebaseId(user.uid);
-        localStorage.setItem("firebaseId", user.uid); // 🧠 Persist it
-
-        // 🔍 Check if user already exists in Mongo
-        try {
-          const res = await axios.get(`https://gofastbackend.onrender.com/api/users/${user.uid}`);
-          if (res.data) {
-            console.log("✅ Existing user found:", res.data);
-            navigate("/hub");
-          }
-        } catch (err) {
-          console.log("➡️ New user, proceeding to setup form");
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        console.log("❌ No user found");
-        setLoading(false);
-      }
-    });
-
-    return () => unsub();
-  }, [navigate]);
-
-  const toggleCheckbox = (value, setFn, current) => {
-    if (current.includes(value)) {
-      setFn(current.filter((v) => v !== value));
-    } else {
-      setFn([...current, value]);
+    if (user) {
+      setName(user.displayName || "");
+      setEmail(user.email || "");
+      setCity(user.city || "");
+      setStateRegion(user.state || "");
     }
-  };
+  }, [user]);
 
   const handleSubmit = async () => {
-    if (!firebaseId) return;
-
     try {
-      const auth = getAuth();
-      const token = await auth.currentUser.getIdToken();
-
-      const payload = {
-        firebaseId,
-        userId: firebaseId,
-        name,
-        email,
-        location: `${city}, ${state}`,
-        profile: {
+      const token = await user.firebaseToken; // if you’re storing it, or fetch from firebaseUser
+      const res = await fetch(`${BACKEND_URL}/tripwell/profile`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          userId: user._id,
+          name,
+          email,
+          city,
+          state: stateRegion,
           familySituation,
           travelStyle,
           tripVibe,
-          userStatus: "registered",
-        },
-      };
+        }),
+      });
 
-      await axios.post(
-        "https://gofastbackend.onrender.com/api/users/profile/setup",
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          withCredentials: true,
-        }
-      );
+      if (!res.ok) throw new Error("Profile update failed");
 
-      console.log("✅ Profile saved!");
       navigate("/hub");
     } catch (err) {
-      console.error("❌ Profile setup failed", err);
+      console.error("❌ Failed to save profile:", err);
+      alert("Could not save profile.");
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return <div className="p-6 text-gray-500">Loading profile setup…</div>;
+  }
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-4">Tell us about you</h2>
+    <div className="max-w-xl mx-auto p-6 space-y-6">
+      <h1 className="text-2xl font-bold">Set Up Your Profile</h1>
 
-      <input
-        className="w-full border p-2 mb-3 rounded"
-        placeholder="Full Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-      <input
-        className="w-full border p-2 mb-3 rounded"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <div className="flex space-x-2 mb-3">
-        <input
-          className="w-1/2 border p-2 rounded"
-          placeholder="City"
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-        />
-        <input
-          className="w-1/2 border p-2 rounded"
-          placeholder="State"
-          value={state}
-          onChange={(e) => setState(e.target.value)}
-        />
-      </div>
+      <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name" className="w-full p-3 border rounded" />
+      <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" className="w-full p-3 border rounded" />
+      <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" className="w-full p-3 border rounded" />
+      <input value={stateRegion} onChange={(e) => setStateRegion(e.target.value)} placeholder="State/Region" className="w-full p-3 border rounded" />
 
-      <div className="mb-4">
-        <h3 className="font-semibold mb-1">Your Family Situation</h3>
-        {[
-          "I'm a parent",
-          "Married/partnered",
-          "Young kids",
-          "Teens",
-          "Travel solo",
-          "Extended family",
-          "Friends trips",
-        ].map((opt) => (
-          <label key={opt} className="block">
-            <input
-              type="checkbox"
-              checked={familySituation.includes(opt)}
-              onChange={() =>
-                toggleCheckbox(opt, setFamilySituation, familySituation)
-              }
-            />
-            <span className="ml-2">{opt}</span>
-          </label>
-        ))}
-      </div>
-
-      <div className="mb-4">
-        <h3 className="font-semibold mb-1">Your Travel Style</h3>
-        {[
-          "Planner",
-          "Spontaneous",
-          "Chill trips",
-          "High energy trips",
-          "Guided tours",
-          "DIY travel",
-          "Pack light",
-          "Overprepare",
-        ].map((opt) => (
-          <label key={opt} className="block">
-            <input
-              type="checkbox"
-              checked={travelStyle.includes(opt)}
-              onChange={() =>
-                toggleCheckbox(opt, setTravelStyle, travelStyle)
-              }
-            />
-            <span className="ml-2">{opt}</span>
-          </label>
-        ))}
-      </div>
-
-      <div className="mb-6">
-        <h3 className="font-semibold mb-1">What Do You Want Most From Trips?</h3>
-        {[
-          "Culture",
-          "Food",
-          "History",
-          "Relaxation",
-          "Bonding time",
-          "Nature",
-          "Adventure",
-          "Nightlife",
-          "Fitness / Staying active",
-        ].map((opt) => (
-          <label key={opt} className="block">
-            <input
-              type="checkbox"
-              checked={tripVibe.includes(opt)}
-              onChange={() =>
-                toggleCheckbox(opt, setTripVibe, tripVibe)
-              }
-            />
-            <span className="ml-2">{opt}</span>
-          </label>
-        ))}
-      </div>
+      {/* You can use dropdowns or checkbox groups here */}
+      {/* Placeholder array handling logic */}
+      <input value={familySituation.join(", ")} onChange={(e) => setFamilySituation(e.target.value.split(",").map(s => s.trim()))} placeholder="Family Situation" className="w-full p-3 border rounded" />
+      <input value={travelStyle.join(", ")} onChange={(e) => setTravelStyle(e.target.value.split(",").map(s => s.trim()))} placeholder="Travel Style" className="w-full p-3 border rounded" />
+      <input value={tripVibe.join(", ")} onChange={(e) => setTripVibe(e.target.value.split(",").map(s => s.trim()))} placeholder="Trip Vibe" className="w-full p-3 border rounded" />
 
       <button
         onClick={handleSubmit}
-        className="bg-blue-600 text-white px-6 py-2 rounded"
+        className="bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition"
       >
-        Save and Continue
+        Save Profile
       </button>
     </div>
   );

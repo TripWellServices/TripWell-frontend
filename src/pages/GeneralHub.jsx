@@ -1,10 +1,14 @@
 import { useNavigate } from "react-router-dom";
-import { getAuth } from "firebase/auth";
+import { useTripContext } from "../context/TripContext";
 
 export default function GeneralHub() {
+  const { user, loading } = useTripContext();
   const navigate = useNavigate();
-  const auth = getAuth();
-  const user = auth.currentUser;
+
+  if (loading) {
+    return <div className="p-6 text-gray-600">Loading your travel dashboard…</div>;
+  }
+
   const firstName = user?.displayName?.split(" ")[0] || "traveler";
 
   return (
@@ -28,14 +32,7 @@ export default function GeneralHub() {
           onClick={() => navigate("/join-trip")}
           className="w-[280px] bg-green-600 text-white py-3 rounded-lg shadow hover:bg-green-700"
         >
-          🔗 Join with a Code
-        </button>
-
-        <button
-          onClick={() => navigate("/profile")}
-          className="w-[280px] bg-gray-200 text-gray-800 py-3 rounded-lg shadow hover:bg-gray-300"
-        >
-          🧑‍💼 Edit My Profile
+          👯 Join an Existing Trip
         </button>
       </div>
     </div>

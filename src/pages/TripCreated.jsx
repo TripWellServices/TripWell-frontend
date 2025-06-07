@@ -1,20 +1,27 @@
-import React from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useTripContext } from "../context/TripContext";
+import { useNavigate } from "react-router-dom";
 
 export default function TripCreated() {
+  const { trip, loading } = useTripContext();
   const navigate = useNavigate();
-  const { tripCode } = useParams(); // optional, or pass via state
 
-  // fake props for now — replace with real state or fetch later
-  const trip = {
-    name: "Paris Adventure",
-    destination: "Paris",
-    startDate: "2025-05-24",
-    endDate: "2025-05-27",
-    tripCode: tripCode || "paris2025",
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-500">
+        Loading your trip...
+      </div>
+    );
+  }
 
-  const shareMessage = `Hey! Join me on TripWell to plan our ${trip.destination} trip.\n\nTrip code: ${trip.tripCode}\nDownload: https://tripwell.app/download`;
+  if (!trip) {
+    return (
+      <div className="p-6 text-center text-red-600 font-semibold">
+        🚫 Could not load trip. Please try again or create a new one.
+      </div>
+    );
+  }
+
+  const shareMessage = `Hey! Join me on TripWell to plan our ${trip.city} trip.\n\nTrip code: ${trip.joinCode || trip._id}\nDownload: https://tripwell.app/download`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(shareMessage);
@@ -26,16 +33,16 @@ export default function TripCreated() {
       <h1 className="text-3xl font-bold text-center text-green-700">Congrats — Your Trip Has Been Created</h1>
 
       <div className="bg-white shadow rounded-lg p-4 space-y-2 border">
-        <p><strong>Trip Name:</strong> {trip.name}</p>
-        <p><strong>Destination:</strong> {trip.destination}</p>
+        <p><strong>Trip Name:</strong> {trip.tripName}</p>
+        <p><strong>Destination:</strong> {trip.city}</p>
         <p><strong>Dates:</strong> {new Date(trip.startDate).toLocaleDateString()} – {new Date(trip.endDate).toLocaleDateString()}</p>
-        <p><strong>Trip Code:</strong> <span className="font-mono text-blue-600">{trip.tripCode}</span></p>
+        <p><strong>Trip Code:</strong> <span className="font-mono text-blue-600">{trip.joinCode || trip._id}</span></p>
       </div>
 
       <div className="space-y-4 text-gray-700">
         <h2 className="text-xl font-semibold">What Happens Next</h2>
         <p>
-          From the <strong>General Hub</strong>, select <strong>My Trips</strong>. Find your trip: <em>{trip.name}</em>, then choose <strong>Add Trip Details</strong> to begin planning.
+          From the <strong>General Hub</strong>, select <strong>My Trips</strong>. Find your trip: <em>{trip.tripName}</em>, then choose <strong>Add Trip Details</strong> to begin planning.
         </p>
         <ul className="list-disc pl-5 text-sm text-gray-600">
           <li>Add Flights</li>
@@ -48,13 +55,13 @@ export default function TripCreated() {
       <div className="space-y-4 text-gray-700">
         <h2 className="text-xl font-semibold">Want to Invite Friends?</h2>
         <p>
-          Share this trip code with them: <strong className="text-blue-600">{trip.tripCode}</strong>
+          Share this trip code with them: <strong className="text-blue-600">{trip.joinCode || trip._id}</strong>
         </p>
         <p>Ask them to:</p>
         <ol className="list-decimal pl-5 text-sm text-gray-600">
           <li>Download TripWell from the App Store</li>
           <li>Select “Join a Trip”</li>
-          <li>Enter the code: <strong>{trip.tripCode}</strong></li>
+          <li>Enter the code: <strong>{trip.joinCode || trip._id}</strong></li>
         </ol>
         <p className="text-xs italic text-gray-500">Here's a message you can copy and paste:</p>
         <textarea
