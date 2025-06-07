@@ -5,7 +5,7 @@ const TripContext = createContext();
 
 export const TripProvider = ({ children }) => {
   const [user, setUser] = useState(null);     // Mongo user
-  const [trip, setTrip] = useState(null);     // Latest trip
+  const [trip, setTrip] = useState(null);     // TripBase trip
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,9 +28,9 @@ export const TripProvider = ({ children }) => {
 
         if (!res.ok) throw new Error("TripWell whoami fetch failed");
 
-        const { user: mongoUser, trip: latestTrip } = await res.json();
-        setUser(mongoUser);
-        setTrip(latestTrip);
+        const { user, trip } = await res.json(); // 🔄 cleaner naming
+        setUser(user);
+        setTrip(trip);
       } catch (err) {
         console.error("❌ TripContext (TripWell) hydration failed:", err);
         setUser(null);
