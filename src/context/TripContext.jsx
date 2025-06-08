@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { auth } from "../firebase"; // 🔐 Your source-of-truth auth
+import { auth } from "../firebase";
+import { onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 
 const TripContext = createContext();
@@ -11,57 +12,53 @@ export const TripProvider = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const hydrate = async () => {
-      try {
-        const firebaseUser = auth.currentUser;
-        if (!firebaseUser) {
-          console.warn("⚠️ No Firebase user. Redirecting to explainer.");
-          setUser(null);
-          setTrip(null);
-          setLoading(false);
-          navigate("/explainer");
-          return;
-        }
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!firebaseUser) {
+        console.warn("⚠️ No Firebase user. Redirecting to explainer.");
+        setUser(null);
+        setTrip(null);
+        setLoading(false);
+        navigate("/explainer");
+        return;
+      }
 
+      try {
         const token = await firebaseUser.getIdToken(true);
 
         const res = await fetch("https://gofastbackend.onrender.com/tripwell/whoami", {
-          method: "POST", // 🔁 unified identity handshake
+          method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({}),
-          cache: "no-store", // 🚫 no 304s allowed
+          cache: "no-store",
         });
 
         if (!res.ok) throw new Error(`❌ whoami failed: ${res.status}`);
-
         const { user, trip } = await res.json();
-
         setUser(user);
         setTrip(trip);
 
-        // 🧭 Routing logic override — full redirect control
         if (!user) {
           navigate("/explainer");
         } else if (!trip) {
           navigate("/generalhub");
         } else {
-          navigate("/trip/hub");
+          navigate("/tripwellhub");
         }
 
       } catch (err) {
         console.error("💥 TripContext hydration failed:", err);
         setUser(null);
         setTrip(null);
-        navigate("/explainer"); // fallback if all else breaks
+        navigate("/explainer");
       } finally {
         setLoading(false);
       }
-    };
+    });
 
-    hydrate();
+    return () => unsubscribe();
   }, [navigate]);
 
   return (
