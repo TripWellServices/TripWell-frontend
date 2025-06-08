@@ -1,8 +1,9 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { getUserAndTrip } from "../services/userService";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "../firebase";
-import { useTripContext } from "../context/TripContext";
+
 
 export default function Explainer() {
   const navigate = useNavigate();

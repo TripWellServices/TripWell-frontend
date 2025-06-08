@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useTripContext } from "../context/TripContext";
+import { getUserAndTrip } from "../services/userService";
+
 
 const BACKEND_URL = "https://gofastbackend.onrender.com";
 

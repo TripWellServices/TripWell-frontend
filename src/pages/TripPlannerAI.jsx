@@ -1,57 +1,49 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth } from "../firebase";
-import { getIdToken } from "../services/firebaseAuthService"; // custom helper
-import { submitTripPrompt } from "../services/tripChatService";
+import { getUserAndTrip } from "../services/userService";
 
 export default function TripPlannerAI() {
-  const [tripExists, setTripExists] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [response, setResponse] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const checkTrip = async () => {
-      const user = auth.currentUser;
-      if (!user) return navigate("/explainer");
-
-      const token = await getIdToken(user);
-      const res = await fetch("https://gofastbackend.onrender.com/tripwell/whoami", {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (!data?.trip) return navigate("/trip/create");
-      setTripExists(true);
-    };
-    checkTrip();
-  }, []);
-
   const handleSubmit = async () => {
-    const user = auth.currentUser;
-    if (!user || !tripExists) return;
-    const token = await getIdToken(user);
-    const reply = await submitTripPrompt(prompt, token);
-    setResponse(reply);
+    setLoading(true);
+    try {
+      const { user } = await getUserAndTrip();
+      const token = await user.firebaseToken || await user.firebaseUser?.getIdToken?.();
+
+      const reply = await submitTripPrompt({ prompt, token });
+      setResponse(reply.message || "No response.");
+    } catch (err) {
+      console.error("❌ AI prompt failed:", err);
+      setResponse("Error generating trip plan.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (!tripExists) return null;
-
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Trip Planner AI</h1>
+    <div className="max-w-2xl mx-auto p-6 space-y-6">
+      <h1 className="text-2xl font-bold">Trip Planner AI</h1>
       <textarea
+        className="w-full p-3 border rounded"
+        rows={4}
+        placeholder="Where do you want to go and what do you want to do?"
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
-        className="w-full border p-2 mb-4"
-        placeholder="Ask me about your trip..."
       />
-      <button onClick={handleSubmit} className="bg-blue-600 text-white px-4 py-2">
-        Ask GPT
+      <button
+        onClick={handleSubmit}
+        className="bg-indigo-600 text-white py-2 px-4 rounded hover:bg-indigo-700 transition"
+      >
+        Generate Plan
       </button>
+      {loading && <p className="text-gray-500">Thinking...</p>}
       {response && (
-        <div className="mt-4 p-4 border bg-gray-100">
-          <p>{response}</p>
+        <div className="bg-gray-100 p-4 rounded border">
+          <pre className="whitespace-pre-wrap">{response}</pre>
         </div>
       )}
     </div>

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useTripContext } from "../context/TripContext";
+import { getUserAndTrip } from "../services/userService";
 
 const BACKEND_URL = "https://gofastbackend.onrender.com";
 
 export default function ProfileSetup() {
-  const { user, loading } = useTripContext();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
@@ -17,17 +18,28 @@ export default function ProfileSetup() {
   const [tripVibe, setTripVibe] = useState([]);
 
   useEffect(() => {
-    if (user) {
-      setName(user.displayName || "");
-      setEmail(user.email || "");
-      setCity(user.city || "");
-      setStateRegion(user.state || "");
-    }
-  }, [user]);
+    const hydrate = async () => {
+      try {
+        const { user } = await getUserAndTrip();
+        setUser(user);
+        setName(user.displayName || "");
+        setEmail(user.email || "");
+        setCity(user.city || "");
+        setStateRegion(user.state || "");
+      } catch (err) {
+        console.error("❌ Failed to load user:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    hydrate();
+  }, []);
 
   const handleSubmit = async () => {
     try {
-      const token = await user.firebaseToken; // if you’re storing it, or fetch from firebaseUser
+      const token = await user.firebaseToken || await user.firebaseUser?.getIdToken?.();
+
       const res = await fetch(`${BACKEND_URL}/tripwell/profile`, {
         method: "PUT",
         headers: {
@@ -68,8 +80,6 @@ export default function ProfileSetup() {
       <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" className="w-full p-3 border rounded" />
       <input value={stateRegion} onChange={(e) => setStateRegion(e.target.value)} placeholder="State/Region" className="w-full p-3 border rounded" />
 
-      {/* You can use dropdowns or checkbox groups here */}
-      {/* Placeholder array handling logic */}
       <input value={familySituation.join(", ")} onChange={(e) => setFamilySituation(e.target.value.split(",").map(s => s.trim()))} placeholder="Family Situation" className="w-full p-3 border rounded" />
       <input value={travelStyle.join(", ")} onChange={(e) => setTravelStyle(e.target.value.split(",").map(s => s.trim()))} placeholder="Travel Style" className="w-full p-3 border rounded" />
       <input value={tripVibe.join(", ")} onChange={(e) => setTripVibe(e.target.value.split(",").map(s => s.trim()))} placeholder="Trip Vibe" className="w-full p-3 border rounded" />

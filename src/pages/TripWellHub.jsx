@@ -1,5 +1,6 @@
-import { useTripContext } from "../context/TripContext";
+
 import { useNavigate } from "react-router-dom";
+import { getUserAndTrip } from "../services/userService";
 
 export default function TripWellHub() {
   const { user, trip, loading } = useTripContext();

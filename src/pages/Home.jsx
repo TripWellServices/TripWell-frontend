@@ -15,10 +15,9 @@ export default function Home() {
       });
 
       const { user, trip } = await res.json();
-
       if (!user || !trip) return navigate("/explainer");
 
-      return navigate("/trip-planner-ai"); // 🔥 New canonical brain
+      return navigate("/trip-planner-ai");
     } catch (err) {
       console.error("💥 Plan Trip failed:", err);
       navigate("/explainer");

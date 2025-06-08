@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { useTripContext } from "../context/TripContext";
+import { getUserAndTrip } from "../services/userService";
+
 
 export default function GeneralHub() {
   const { user, loading } = useTripContext();
