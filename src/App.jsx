@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { useState, useEffect } from "react";
+import { useTripContext } from "./context/TripContext";
 import axios from "axios";
+import { getAuth } from "firebase/auth";
 
 // Pages
 import Home from "./pages/Home";
@@ -13,9 +13,8 @@ import TripJoin from "./pages/TripJoin";
 import ProfileSetup from "./pages/ProfileSetup";
 import TripPlannerAI from "./pages/TripPlannerAI";
 import TripCreated from "./pages/TripCreated";
-import Login from "./pages/Login";
 
-// 🔒 Attach Firebase token to every Axios request
+// ✅ Attach Firebase token to every Axios request
 axios.interceptors.request.use(
   async (config) => {
     const user = getAuth().currentUser;
@@ -29,27 +28,16 @@ axios.interceptors.request.use(
 );
 
 export default function App() {
-  const [user, setUser] = useState(null);
+  const { user, loading } = useTripContext();
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(getAuth(), (currentUser) => {
-      setUser(currentUser);
-    });
-    return () => unsubscribe();
-  }, []);
+  if (loading) return <div>Loading app...</div>;
 
   return (
     <BrowserRouter>
       <Routes>
         {/* Public Routes */}
-        <Route
-          path="/explainer"
-          element={
-            localStorage.getItem("uid") ? <Navigate to="/login" /> : <Explainer />
-          }
-        />
-        <Route path="/login" element={<Login />} />
         <Route path="/" element={<Home />} />
+        <Route path="/explainer" element={<Explainer />} />
 
         {/* Auth-Protected Routes */}
         <Route path="/hub" element={user ? <GeneralHub /> : <Navigate to="/explainer" />} />
@@ -59,6 +47,9 @@ export default function App() {
         <Route path="/trip-created/:tripId" element={user ? <TripCreated /> : <Navigate to="/explainer" />} />
         <Route path="/profile" element={user ? <ProfileSetup /> : <Navigate to="/explainer" />} />
         <Route path="/trip-planner-ai" element={user ? <TripPlannerAI /> : <Navigate to="/explainer" />} />
+
+        {/* Fallback Route */}
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>
   );
