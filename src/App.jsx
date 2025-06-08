@@ -1,9 +1,7 @@
-// src/App.jsx
-
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useTripContext } from "./context/TripContext";
 import axios from "axios";
-import { auth } from "./firebase"; // ✅ Centralized, safe Firebase import
+import { auth } from "./firebase";
 
 // Pages
 import Home from "./pages/Home";
@@ -16,7 +14,7 @@ import ProfileSetup from "./pages/ProfileSetup";
 import TripPlannerAI from "./pages/TripPlannerAI";
 import TripCreated from "./pages/TripCreated";
 
-// ✅ Attach Firebase token to every Axios request
+// ✅ Attach Firebase token to all Axios requests
 axios.interceptors.request.use(
   async (config) => {
     const user = auth.currentUser;
@@ -30,29 +28,27 @@ axios.interceptors.request.use(
 );
 
 export default function App() {
-  const { user, loading } = useTripContext(); // ✅ Hydrated from TripProvider
+  const { user, loading } = useTripContext();
 
-  if (loading) return <div>Loading app...</div>; // ✅ Only renders after hydration
+  if (loading) return <div>Loading app...</div>;
 
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<Home />} />
-        <Route path="/explainer" element={<Explainer />} />
+    <Routes>
+      {/* Public Routes */}
+      <Route path="/" element={<Home />} />
+      <Route path="/explainer" element={<Explainer />} />
 
-        {/* Auth-Protected Routes */}
-        <Route path="/hub" element={user ? <GeneralHub /> : <Navigate to="/explainer" />} />
-        <Route path="/trip-setup" element={user ? <TripSetup /> : <Navigate to="/explainer" />} />
-        <Route path="/join-trip" element={user ? <TripJoin /> : <Navigate to="/explainer" />} />
-        <Route path="/tripwellhub" element={user ? <TripWellHub /> : <Navigate to="/explainer" />} />
-        <Route path="/trip-created/:tripId" element={user ? <TripCreated /> : <Navigate to="/explainer" />} />
-        <Route path="/profile" element={user ? <ProfileSetup /> : <Navigate to="/explainer" />} />
-        <Route path="/trip-planner-ai" element={user ? <TripPlannerAI /> : <Navigate to="/explainer" />} />
+      {/* Auth-Protected Routes */}
+      <Route path="/hub" element={user ? <GeneralHub /> : <Navigate to="/explainer" />} />
+      <Route path="/trip-setup" element={user ? <TripSetup /> : <Navigate to="/explainer" />} />
+      <Route path="/join-trip" element={user ? <TripJoin /> : <Navigate to="/explainer" />} />
+      <Route path="/tripwellhub" element={user ? <TripWellHub /> : <Navigate to="/explainer" />} />
+      <Route path="/trip-created/:tripId" element={user ? <TripCreated /> : <Navigate to="/explainer" />} />
+      <Route path="/profile" element={user ? <ProfileSetup /> : <Navigate to="/explainer" />} />
+      <Route path="/trip-planner-ai" element={user ? <TripPlannerAI /> : <Navigate to="/explainer" />} />
 
-        {/* Fallback Route */}
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-    </BrowserRouter>
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
   );
 }
