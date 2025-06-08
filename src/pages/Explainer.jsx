@@ -1,25 +1,24 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import useAuthUser from "../hooks/useAuthUser";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { auth } from "../firebase";
+import { useTripContext } from "../context/TripContext";
 
 export default function Explainer() {
-  const { authReady, firebaseUser } = useAuthUser();
   const navigate = useNavigate();
+  const { loading, user } = useTripContext();
 
-  // 🔁 Redirect to home if already logged in
   useEffect(() => {
-    if (authReady && firebaseUser) {
-      navigate("/");
+    if (!loading && user) {
+      navigate("/hub");
     }
-  }, [authReady, firebaseUser, navigate]);
+  }, [loading, user, navigate]);
 
-  // 🧠 Trigger Google sign-in
   const handleGoogleLogin = async () => {
     try {
-      const auth = getAuth();
-      await signInWithPopup(auth, new GoogleAuthProvider());
-      // Firebase listener will handle the rest
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      // TripContext will pick this up and hydrate
     } catch (err) {
       console.error("Google login failed:", err);
     }
