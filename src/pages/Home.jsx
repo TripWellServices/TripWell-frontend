@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
-import logo from "../assets/tripwell-logo.png";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -28,10 +27,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center px-6 bg-white gap-4 text-center">
-      <img src={logo} alt="TripWell Logo" className="h-20 object-contain" />
+      <h1 className="text-3xl font-bold text-green-600 mt-2">TripWell</h1>
 
-      <h1 className="text-2xl font-bold mt-6 text-gray-800">Welcome to TripWell</h1>
-      <p className="text-gray-600 max-w-md">
+      <p className="text-gray-600 max-w-md mt-2">
         We’re here to help you plan the kind of trip you actually want — built around your goals, your vibe, and what you want to see.
       </p>
 
