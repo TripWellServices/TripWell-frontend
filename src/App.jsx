@@ -1,5 +1,4 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { useTripContext } from "./context/TripContext";
 import axios from "axios";
 import { auth } from "./firebase";
 
@@ -28,24 +27,20 @@ axios.interceptors.request.use(
 );
 
 export default function App() {
-  const { user, loading } = useTripContext();
-
-  if (loading) return <div>Loading app...</div>;
-
   return (
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<Home />} />
       <Route path="/explainer" element={<Explainer />} />
 
-      {/* Auth-Protected Routes */}
-      <Route path="/hub" element={user ? <GeneralHub /> : <Navigate to="/explainer" />} />
-      <Route path="/trip-setup" element={user ? <TripSetup /> : <Navigate to="/explainer" />} />
-      <Route path="/join-trip" element={user ? <TripJoin /> : <Navigate to="/explainer" />} />
-      <Route path="/tripwellhub" element={user ? <TripWellHub /> : <Navigate to="/explainer" />} />
-      <Route path="/trip-created/:tripId" element={user ? <TripCreated /> : <Navigate to="/explainer" />} />
-      <Route path="/profile" element={user ? <ProfileSetup /> : <Navigate to="/explainer" />} />
-      <Route path="/trip-planner-ai" element={user ? <TripPlannerAI /> : <Navigate to="/explainer" />} />
+      {/* Let pages handle auth/trip gating */}
+      <Route path="/hub" element={<GeneralHub />} />
+      <Route path="/trip-setup" element={<TripSetup />} />
+      <Route path="/join-trip" element={<TripJoin />} />
+      <Route path="/tripwellhub" element={<TripWellHub />} />
+      <Route path="/trip-created/:tripId" element={<TripCreated />} />
+      <Route path="/profile" element={<ProfileSetup />} />
+      <Route path="/trip-planner-ai" element={<TripPlannerAI />} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" />} />
