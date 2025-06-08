@@ -1,7 +1,9 @@
+// src/App.jsx
+
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useTripContext } from "./context/TripContext";
 import axios from "axios";
-import { getAuth } from "firebase/auth";
+import { auth } from "./firebase"; // ✅ Centralized, safe Firebase import
 
 // Pages
 import Home from "./pages/Home";
@@ -17,7 +19,7 @@ import TripCreated from "./pages/TripCreated";
 // ✅ Attach Firebase token to every Axios request
 axios.interceptors.request.use(
   async (config) => {
-    const user = getAuth().currentUser;
+    const user = auth.currentUser;
     if (user) {
       const token = await user.getIdToken();
       config.headers.Authorization = `Bearer ${token}`;
@@ -28,9 +30,9 @@ axios.interceptors.request.use(
 );
 
 export default function App() {
-  const { user, loading } = useTripContext();
+  const { user, loading } = useTripContext(); // ✅ Hydrated from TripProvider
 
-  if (loading) return <div>Loading app...</div>;
+  if (loading) return <div>Loading app...</div>; // ✅ Only renders after hydration
 
   return (
     <BrowserRouter>
