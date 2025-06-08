@@ -3,22 +3,18 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
+// ✅ Real TripWell Firebase configuration
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
+  apiKey: "AIzaSyCjpoH763y2GH4VDc181IUBaZHqE_ryZ1c",
+  authDomain: "gofast-a5f94.firebaseapp.com",
+  projectId: "gofast-a5f94",
+  storageBucket: "gofast-a5f94.firebasestorage.app",
+  messagingSenderId: "500941094498",
+  appId: "1:500941094498:web:eee09da6918f9e53889b3b",
+  measurementId: "G-L0NGHRBSDE"
 };
 
-if (
-  !firebaseConfig.apiKey ||
-  firebaseConfig.apiKey === "YOUR_API_KEY"
-) {
-  throw new Error("🔥 Firebase config missing or using placeholder values.");
-}
-
+// ✅ Initialize Firebase app and export auth
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
