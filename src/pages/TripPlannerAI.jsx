@@ -1,92 +1,111 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getUserAndTrip } from "../services/userService";
-
-const BACKEND_URL = "https://gofastbackend.onrender.com";
+import { auth } from "../firebase";
 
 export default function TripPlannerAI() {
-  const [prompt, setPrompt] = useState("");
-  const [response, setResponse] = useState("");
-  const [loading, setLoading] = useState(false);
-
   const navigate = useNavigate();
-
   const [user, setUser] = useState(null);
   const [trip, setTrip] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [input, setInput] = useState("");
+  const [response, setResponse] = useState(null);
+  const [error, setError] = useState(null);
 
-  // 🚦 Load + validate user + trip
+  // 🧠 On mount: validate user and trip
   useEffect(() => {
-    (async () => {
-      const { user, trip } = await getUserAndTrip();
+    const fetchUserAndTrip = async () => {
+      try {
+        const firebaseUser = auth.currentUser;
+        if (!firebaseUser) return navigate("/explainer");
 
-      if (!user || !user._id) {
-        navigate("/explainer"); // 🚨 No user in Mongo → onboarding
-      } else if (!trip || !trip._id) {
-        navigate("/generalhub"); // 🚧 User exists but no trip
-      } else {
-        setUser(user);
-        setTrip(trip);
+        const token = await firebaseUser.getIdToken(true);
+        const res = await fetch("https://gofastbackend.onrender.com/tripwell/whoami", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const data = await res.json();
+        if (!data?.user?._id) return navigate("/explainer");
+        if (!data?.trip?._id) return navigate("/generalhub");
+
+        setUser(data.user);
+        setTrip(data.trip);
+        setLoading(false);
+      } catch (err) {
+        console.error("❌ WhoAmI failed:", err);
+        navigate("/explainer");
       }
-    })();
-  }, []);
+    };
+
+    fetchUserAndTrip();
+  }, [navigate]);
 
   const handleSubmit = async () => {
-    if (!prompt.trim() || !user || !trip) return;
-
-    setLoading(true);
+    if (!input.trim()) return;
     try {
-      const token = await user.firebaseToken;
-      const res = await fetch(`${BACKEND_URL}/tripwell/${trip._id}/chat`, {
+      setError(null);
+      setResponse("Loading...");
+
+      const firebaseUser = auth.currentUser;
+      const token = await firebaseUser.getIdToken(true);
+
+      const res = await fetch(`https://gofastbackend.onrender.com/tripwell/${trip._id}/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          userId: user._id,
-          tripId: trip._id,
-          userInput: prompt,
+          userInput: input,
+          tripData: trip,
+          userData: user,
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Chat failed");
-
-      setResponse(data.message || "No response from AI");
+      if (!res.ok) throw new Error("GPT chat failed");
+      const result = await res.json();
+      setResponse(result?.reply || "No response.");
     } catch (err) {
       console.error("❌ AI prompt failed:", err);
-      alert("Failed to get AI response.");
-    } finally {
-      setLoading(false);
+      setResponse(null);
+      setError("Something went wrong. Try again later.");
     }
   };
 
+  if (loading) return <div className="p-6">Loading trip info…</div>;
+
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-bold">
-        Hi {user?.displayName || "traveler"}, what do you want to ask about {trip?.city}?
-      </h1>
+    <div className="max-w-2xl mx-auto p-6 space-y-4">
+      <h2 className="text-xl font-semibold text-gray-800">
+        Hi traveler — what do you want to know about <span className="text-blue-600">{trip.destination}</span>?
+      </h2>
+      <p className="text-sm text-gray-500">
+        You can ask about food, culture, activities, safety, or even hidden gems — and TripWell will respond with curated insights.
+      </p>
 
-      <textarea
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        rows={4}
-        placeholder="Ask anything about your trip…"
-        className="w-full p-4 border rounded resize-none"
-      />
-
-      <button
-        onClick={handleSubmit}
-        disabled={loading}
-        className="bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition"
-      >
-        {loading ? "Thinking…" : "Ask GPT"}
-      </button>
+      <div className="flex gap-2 mt-4">
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder={`e.g., What's the best place for coffee in ${trip.destination}?`}
+          className="flex-1 p-3 border rounded"
+        />
+        <button
+          onClick={handleSubmit}
+          className="bg-purple-600 text-white px-4 rounded hover:bg-purple-700 transition"
+        >
+          Ask
+        </button>
+      </div>
 
       {response && (
-        <div className="bg-gray-100 p-4 rounded shadow">
-          <h2 className="text-lg font-semibold mb-2">GPT Says:</h2>
-          <p>{response}</p>
+        <div className="bg-gray-100 p-4 rounded mt-4 whitespace-pre-wrap">
+          {response}
+        </div>
+      )}
+
+      {error && (
+        <div className="text-red-600 text-sm mt-2">
+          {error}
         </div>
       )}
     </div>
