@@ -1,14 +1,19 @@
+// src/pages/Home.jsx
+
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTripContext } from "../context/TripContext";
-import logo from "../assets/tripwell-logo.png"; // ✅ imported from src
+import TripWrapper from "../components/TripWrapper";
+import tripwellLogo from "../assets/tripwell-logo.png";
 
 export default function Home() {
-  const { firebaseUser, mongoUser, trip, loading } = useTripContext();
   const navigate = useNavigate();
+  const { firebaseUser, trip, authReady } = useTripContext();
 
   useEffect(() => {
     const timer = setTimeout(() => {
+      if (!authReady) return;
+
       if (!firebaseUser) {
         navigate("/explainer");
       } else if (!trip) {
@@ -16,18 +21,20 @@ export default function Home() {
       } else {
         navigate("/trip/hub");
       }
-    }, 3000); // wait 3 seconds
+    }, 3000);
 
     return () => clearTimeout(timer);
-  }, [firebaseUser, trip, navigate]);
+  }, [authReady, firebaseUser, trip, navigate]);
 
   return (
-    <div className="flex items-center justify-center h-screen bg-white">
-      <img
-        src={logo}
-        alt="TripWell Logo"
-        className="w-40 h-auto"
-      />
-    </div>
+    <TripWrapper>
+      <div className="flex justify-center items-center h-screen bg-white">
+        <img
+          src={tripwellLogo}
+          alt="TripWell Logo"
+          className="w-48 h-auto"
+        />
+      </div>
+    </TripWrapper>
   );
 }
