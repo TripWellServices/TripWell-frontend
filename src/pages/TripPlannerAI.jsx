@@ -1,76 +1,57 @@
 import { useEffect, useState } from "react";
-import { useTripContext } from "../context/TripContext";
-
-const baseUrl = "https://gofastbackend.onrender.com";
+import { useNavigate } from "react-router-dom";
+import { auth } from "../firebase";
+import { getIdToken } from "../services/firebaseAuthService"; // custom helper
+import { submitTripPrompt } from "../services/tripChatService";
 
 export default function TripPlannerAI() {
-  const { user, trip, loading } = useTripContext();
-  const [userText, setUserText] = useState("");
-  const [gptReply, setGptReply] = useState(null);
-  const [sending, setSending] = useState(false);
-  const [error, setError] = useState(null);
+  const [tripExists, setTripExists] = useState(false);
+  const [prompt, setPrompt] = useState("");
+  const [response, setResponse] = useState("");
+  const navigate = useNavigate();
 
-  const handleSend = async () => {
-    if (!userText.trim()) return;
+  useEffect(() => {
+    const checkTrip = async () => {
+      const user = auth.currentUser;
+      if (!user) return navigate("/explainer");
 
-    setSending(true);
-    setError(null);
-
-    try {
-      const token = await user?.firebaseToken; // or fetch it via firebaseUser if stored separately
-
-      const res = await fetch(`${baseUrl}/tripchat/${trip._id}/ask`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          prompt: userText,
-        }),
+      const token = await getIdToken(user);
+      const res = await fetch("https://gofastbackend.onrender.com/tripwell/whoami", {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
       });
+      const data = await res.json();
+      if (!data?.trip) return navigate("/trip/create");
+      setTripExists(true);
+    };
+    checkTrip();
+  }, []);
 
-      if (!res.ok) throw new Error("GPT request failed");
-
-      const result = await res.json();
-      setGptReply(result.reply || "No response from GPT.");
-    } catch (err) {
-      console.error("❌ GPT error:", err);
-      setError("Something went wrong.");
-    } finally {
-      setSending(false);
-    }
+  const handleSubmit = async () => {
+    const user = auth.currentUser;
+    if (!user || !tripExists) return;
+    const token = await getIdToken(user);
+    const reply = await submitTripPrompt(prompt, token);
+    setResponse(reply);
   };
 
-  if (loading) return <div className="p-6">Loading trip planner...</div>;
-  if (!trip || !user) return <div className="p-6 text-red-600">Trip or user not found.</div>;
+  if (!tripExists) return null;
 
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Plan with AI ✨</h1>
-      <p className="text-sm text-gray-500">Trip to <strong>{trip.city}</strong>, {trip.startDate} → {trip.endDate}</p>
-
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Trip Planner AI</h1>
       <textarea
-        value={userText}
-        onChange={(e) => setUserText(e.target.value)}
-        placeholder="Ask AI to help plan your trip..."
-        className="w-full border rounded p-3 text-sm"
-        rows={4}
+        value={prompt}
+        onChange={(e) => setPrompt(e.target.value)}
+        className="w-full border p-2 mb-4"
+        placeholder="Ask me about your trip..."
       />
-
-      <button
-        onClick={handleSend}
-        disabled={sending}
-        className="bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700 disabled:opacity-50"
-      >
-        {sending ? "Sending..." : "Send to AI"}
+      <button onClick={handleSubmit} className="bg-blue-600 text-white px-4 py-2">
+        Ask GPT
       </button>
-
-      {error && <p className="text-red-600">{error}</p>}
-
-      {gptReply && (
-        <div className="bg-gray-50 border border-gray-300 rounded p-4 whitespace-pre-wrap text-sm">
-          {gptReply}
+      {response && (
+        <div className="mt-4 p-4 border bg-gray-100">
+          <p>{response}</p>
         </div>
       )}
     </div>
