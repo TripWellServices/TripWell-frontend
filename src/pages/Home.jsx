@@ -28,7 +28,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center px-6 bg-white gap-4 text-center">
-      <img src={logo} alt="TripWell Logo" className="w-48" />
+      <img src={logo} alt="TripWell Logo" className="h-20 object-contain" />
 
       <h1 className="text-2xl font-bold mt-6 text-gray-800">Welcome to TripWell</h1>
       <p className="text-gray-600 max-w-md">
