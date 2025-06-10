@@ -8,17 +8,18 @@ export default function TripPlannerAI() {
   const [trip, setTrip] = useState(null);
   const [loading, setLoading] = useState(true);
   const [input, setInput] = useState("");
+  const [askId, setAskId] = useState(null);
   const [response, setResponse] = useState(null);
   const [error, setError] = useState(null);
 
-  // 🧠 On mount: validate user and trip
+  // ✅ On mount: hydrate user/trip
   useEffect(() => {
     const fetchUserAndTrip = async () => {
       try {
         const firebaseUser = auth.currentUser;
         if (!firebaseUser) return navigate("/explainer");
-
         const token = await firebaseUser.getIdToken(true);
+
         const res = await fetch("https://gofastbackend.onrender.com/tripwell/whoami", {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -39,11 +40,12 @@ export default function TripPlannerAI() {
     fetchUserAndTrip();
   }, [navigate]);
 
-  const handleSubmit = async () => {
+  // 🧠 Step 1: Save Ask
+  const handleSaveAsk = async () => {
     if (!input.trim()) return;
     try {
       setError(null);
-      setResponse("Loading...");
+      setResponse("Saving your question…");
 
       const firebaseUser = auth.currentUser;
       const token = await firebaseUser.getIdToken(true);
@@ -61,13 +63,46 @@ export default function TripPlannerAI() {
         }),
       });
 
-      if (!res.ok) throw new Error("GPT chat failed");
       const result = await res.json();
-      setResponse(result?.reply || "No response.");
+      if (!res.ok || !result.askId) throw new Error("Failed to save ask");
+
+      setAskId(result.askId);
+      setResponse("✅ Question saved. Ready to ask GPT.");
     } catch (err) {
-      console.error("❌ AI prompt failed:", err);
+      console.error("❌ Save ask failed:", err);
+      setError("Could not save question.");
       setResponse(null);
-      setError("Something went wrong. Try again later.");
+    }
+  };
+
+  // 🤖 Step 2: Trigger GPT
+  const handleAskGPT = async () => {
+    if (!askId) return setError("Ask must be saved first.");
+
+    try {
+      setError(null);
+      setResponse("Talking to GPT…");
+
+      const firebaseUser = auth.currentUser;
+      const token = await firebaseUser.getIdToken(true);
+
+      const res = await fetch(`https://gofastbackend.onrender.com/tripwell/${trip._id}/gpt`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ askId }),
+      });
+
+      const result = await res.json();
+      if (!res.ok || !result.reply) throw new Error("GPT failed");
+
+      setResponse(result.reply);
+    } catch (err) {
+      console.error("❌ GPT call failed:", err);
+      setError("GPT failed.");
+      setResponse(null);
     }
   };
 
@@ -76,38 +111,42 @@ export default function TripPlannerAI() {
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-4">
       <h2 className="text-xl font-semibold text-gray-800">
-        Hi traveler — what do you want to know about <span className="text-blue-600">{trip.destination}</span>?
+        Ask about <span className="text-blue-600">{trip.destination}</span>
       </h2>
-      <p className="text-sm text-gray-500">
-        You can ask about food, culture, activities, safety, or even hidden gems — and TripWell will respond with curated insights.
-      </p>
 
-      <div className="flex gap-2 mt-4">
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={`e.g., What's the best place for coffee in ${trip.destination}?`}
-          className="flex-1 p-3 border rounded"
-        />
+      <input
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        placeholder={`e.g., Best place for coffee in ${trip.destination}?`}
+        className="w-full p-3 border rounded"
+      />
+
+      <div className="flex gap-2">
         <button
-          onClick={handleSubmit}
-          className="bg-purple-600 text-white px-4 rounded hover:bg-purple-700 transition"
+          onClick={handleSaveAsk}
+          className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-black"
         >
-          Ask
+          Save Ask
+        </button>
+
+        <button
+          onClick={handleAskGPT}
+          disabled={!askId}
+          className={`px-4 py-2 rounded ${
+            askId ? "bg-purple-600 hover:bg-purple-700" : "bg-gray-300"
+          } text-white`}
+        >
+          Hit GPT
         </button>
       </div>
 
       {response && (
-        <div className="bg-gray-100 p-4 rounded mt-4 whitespace-pre-wrap">
+        <div className="bg-gray-100 p-4 rounded whitespace-pre-wrap">
           {response}
         </div>
       )}
 
-      {error && (
-        <div className="text-red-600 text-sm mt-2">
-          {error}
-        </div>
-      )}
+      {error && <div className="text-red-600 text-sm">{error}</div>}
     </div>
   );
 }
