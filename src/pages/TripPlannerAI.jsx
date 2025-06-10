@@ -73,8 +73,8 @@ export default function TripPlannerAI() {
   };
 
   const handRunGPT = async () => {
-    if (!trip?._id) {
-      setError("Trip not ready");
+    if (!trip?._id || !user) {
+      setError("Trip or user not ready");
       return;
     }
 
@@ -93,6 +93,11 @@ export default function TripPlannerAI() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
+        body: JSON.stringify({
+          userData: {
+            firebaseId: user.firebaseId || user.userId,
+          },
+        }),
       });
 
       if (!gptRes.ok) throw new Error("GPT reply failed");
@@ -117,7 +122,8 @@ export default function TripPlannerAI() {
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-4">
       <h2 className="text-2xl font-semibold text-gray-800">
-        Hi {user.preferredName}, what do you want to know about <span className="text-blue-600">{trip.destination}</span>?
+        Hi {user.preferredName}, what do you want to know about{" "}
+        <span className="text-blue-600">{trip.destination}</span>?
       </h2>
 
       <p className="text-sm text-gray-500">
