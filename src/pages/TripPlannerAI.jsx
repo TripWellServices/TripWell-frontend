@@ -40,8 +40,39 @@ export default function TripPlannerAI() {
     fetchData();
   }, [navigate]);
 
-  const handleAskAndReply = async () => {
-    if (!input.trim()) return;
+  const handAsk = async () => {
+    if (!input.trim() || !trip?._id) {
+      setError("Trip or input missing");
+      return;
+    }
+
+    try {
+      setError(null);
+      setResponse("Ask saved. Ready to run GPT…");
+
+      const firebaseUser = auth.currentUser;
+      const token = await firebaseUser.getIdToken(true);
+
+      const askRes = await fetch(`https://gofastbackend.onrender.com/tripwell/${trip._id}/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ userInput: input }),
+      });
+
+      if (!askRes.ok) throw new Error("Failed to save ask");
+
+      setInput(""); // Clear input after save
+    } catch (err) {
+      console.error("❌ handAsk failed:", err);
+      setError("Couldn’t save your question. Try again.");
+      setResponse(null);
+    }
+  };
+
+  const handRunGPT = async () => {
     if (!trip?._id) {
       setError("Trip not ready");
       return;
@@ -49,33 +80,18 @@ export default function TripPlannerAI() {
 
     try {
       setError(null);
-      setResponse("Loading...");
+      setResponse("Thinking...");
 
       const firebaseUser = auth.currentUser;
       const token = await firebaseUser.getIdToken(true);
 
-      // Step 1: Save Ask
-      const askRes = await fetch(`https://gofastbackend.onrender.com/tripwell/${trip._id}/chat`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          userInput: input,
-        }),
-      });
-
-      if (!askRes.ok) throw new Error("Failed to log ask");
-
-      // Step 2: Trigger GPT
       await new Promise((r) => setTimeout(r, 250)); // debounce for write safety
 
       const gptRes = await fetch(`https://gofastbackend.onrender.com/tripwell/${trip._id}/gpt`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // ✅ token-only, no userData
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -84,9 +100,9 @@ export default function TripPlannerAI() {
       const gptData = await gptRes.json();
       setResponse(gptData.gptReply || "No GPT response.");
     } catch (err) {
-      console.error("❌ Full ask-reply flow failed:", err);
+      console.error("❌ handRunGPT failed:", err);
+      setError("GPT reply error. Try again.");
       setResponse(null);
-      setError("Something went wrong. Try again later.");
     }
   };
 
@@ -116,11 +132,18 @@ export default function TripPlannerAI() {
           className="flex-1 p-3 border rounded"
         />
         <button
-          onClick={handleAskAndReply}
-          className="bg-purple-600 text-white px-4 rounded hover:bg-purple-700 transition"
+          onClick={handAsk}
+          className="bg-blue-600 text-white px-4 rounded hover:bg-blue-700 transition"
           disabled={!input.trim() || loading}
         >
-          Ask GPT
+          Save Ask
+        </button>
+        <button
+          onClick={handRunGPT}
+          className="bg-purple-600 text-white px-4 rounded hover:bg-purple-700 transition"
+          disabled={loading}
+        >
+          Run GPT
         </button>
       </div>
 
