@@ -10,7 +10,6 @@ export default function TripPlannerAI() {
   const [input, setInput] = useState("");
   const [response, setResponse] = useState(null);
   const [error, setError] = useState(null);
-  const [askSaved, setAskSaved] = useState(false);
 
   // 🧠 On mount: validate user and trip
   useEffect(() => {
@@ -20,17 +19,24 @@ export default function TripPlannerAI() {
         if (!firebaseUser) return navigate("/explainer");
 
         const token = await firebaseUser.getIdToken(true);
+
+        const start = Date.now();
         const res = await fetch("https://gofastbackend.onrender.com/tripwell/whoami", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         const data = await res.json();
-        if (!data?.user?._id) return navigate("/explainer");
-        if (!data?.trip?._id) return navigate("/generalhub");
+        const elapsed = Date.now() - start;
+        const delay = Math.max(0, 2000 - elapsed);
 
-        setUser(data.user);
-        setTrip(data.trip);
-        setLoading(false);
+        setTimeout(() => {
+          if (!data?.user?._id) return navigate("/explainer");
+          if (!data?.trip?._id) return navigate("/generalhub");
+
+          setUser(data.user);
+          setTrip(data.trip);
+          setLoading(false);
+        }, delay);
       } catch (err) {
         console.error("❌ WhoAmI failed:", err);
         navigate("/explainer");
@@ -40,13 +46,11 @@ export default function TripPlannerAI() {
     fetchUserAndTrip();
   }, [navigate]);
 
-  // STEP 1️⃣ – Save the Ask
-  const handleSaveAsk = async () => {
+  const handleSubmit = async () => {
     if (!input.trim()) return;
     try {
       setError(null);
-      setResponse(null);
-      setAskSaved(false);
+      setResponse("Loading...");
 
       const firebaseUser = auth.currentUser;
       const token = await firebaseUser.getIdToken(true);
@@ -64,56 +68,34 @@ export default function TripPlannerAI() {
         }),
       });
 
-      if (!res.ok) throw new Error("Ask save failed");
-      setAskSaved(true);
-    } catch (err) {
-      console.error("❌ Ask save failed:", err);
-      setError("Something went wrong saving your ask.");
-    }
-  };
-
-  // STEP 2️⃣ – Trigger GPT
-  const handleRunGPT = async () => {
-    try {
-      setError(null);
-      setResponse("⏳ Thinking...");
-
-      const firebaseUser = auth.currentUser;
-      const token = await firebaseUser.getIdToken(true);
-
-      const res = await fetch(`https://gofastbackend.onrender.com/tripwell/${trip._id}/gpt`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ tripId: trip._id }), // You can add more context here if needed
-      });
-
       if (!res.ok) throw new Error("GPT chat failed");
       const result = await res.json();
       setResponse(result?.reply || "No response.");
     } catch (err) {
-      console.error("❌ GPT failed:", err);
+      console.error("❌ AI prompt failed:", err);
       setResponse(null);
-      setError("GPT failed to reply. Try again.");
+      setError("Something went wrong. Try again later.");
     }
   };
 
-  // ✨ Loading UX
-  if (loading) return (
-    <div className="p-10 text-center text-2xl text-gray-700 animate-pulse">
-      🌍 Warming up the <span className="font-semibold text-purple-600">AI Travel Engine</span>…
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="p-6 text-2xl font-semibold text-center text-gray-700">
+        🧠 Warming up the AI travel engine…
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-4">
       <h2 className="text-2xl font-semibold text-gray-800">
-        Hi traveler — what do you want to know about <span className="text-blue-600">{trip.destination}</span>?
+        Hi {user.preferredName} — what do you want to know about <span className="text-blue-600">{trip.destination}</span>?
       </h2>
+      <p className="text-sm text-gray-500">
+        You can ask about food, culture, activities, safety, or even hidden gems — and TripWell will respond with curated insights.
+      </p>
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 mt-4">
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -121,26 +103,12 @@ export default function TripPlannerAI() {
           className="flex-1 p-3 border rounded"
         />
         <button
-          onClick={handleSaveAsk}
-          className="bg-yellow-500 text-white px-4 rounded hover:bg-yellow-600 transition"
+          onClick={handleSubmit}
+          className="bg-purple-600 text-white px-4 rounded hover:bg-purple-700 transition"
         >
-          Save Ask
+          Ask
         </button>
       </div>
-
-      {askSaved && (
-        <div className="flex gap-2 mt-2">
-          <button
-            onClick={handleRunGPT}
-            className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition"
-          >
-            ▶️ Run GPT
-          </button>
-          <div className="text-green-600 text-sm mt-2">
-            ✅ Ask saved! Ready to generate response.
-          </div>
-        </div>
-      )}
 
       {response && (
         <div className="bg-gray-100 p-4 rounded mt-4 whitespace-pre-wrap">
