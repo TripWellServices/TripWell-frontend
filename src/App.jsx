@@ -13,6 +13,10 @@ import ProfileSetup from "./pages/ProfileSetup";
 import TripPlannerAI from "./pages/TripPlannerAI";
 import TripCreated from "./pages/TripCreated";
 
+// 🆕 New Pages
+import TripPlanner from "./pages/TripPlanner";
+import AnchorSelectPage from "./pages/AnchorSelectPage";
+
 // ✅ Attach Firebase token to all Axios requests
 axios.interceptors.request.use(
   async (config) => {
@@ -41,6 +45,8 @@ export default function App() {
       <Route path="/trip-created/:tripId" element={<TripCreated />} />
       <Route path="/profile" element={<ProfileSetup />} />
       <Route path="/trip-planner-ai" element={<TripPlannerAI />} />
+      <Route path="/trip-planner" element={<TripPlanner />} />
+      <Route path="/anchor-select" element={<AnchorSelectPage />} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" />} />
