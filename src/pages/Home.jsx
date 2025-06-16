@@ -18,7 +18,7 @@ export default function Home() {
       if (!user || !user._id) return navigate("/explainer");
       if (!trip || !trip._id) return navigate("/generalhub");
 
-      return navigate("/trip-planner-ai");
+      return navigate("/trip-planner"); // ✅ updated route
     } catch (err) {
       console.error("💥 Plan Trip failed:", err);
       navigate("/explainer");
