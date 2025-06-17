@@ -1,17 +1,16 @@
-// pages/TripWell/AnchorSelectPage.jsx
-
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import useTripContext from "../../hooks/useTripContext";
+import { useNavigate, useParams } from "react-router-dom";
 
 export default function AnchorSelectPage() {
   const navigate = useNavigate();
-  const { trip } = useTripContext(); // assumes trip context is hydrated
+  const { tripId } = useParams(); // assumes route is /tripwell/:tripId/anchors
   const [anchors, setAnchors] = useState([]);
   const [selected, setSelected] = useState([]);
 
+  // TEMP destination label
+  const destination = "your destination"; // upgrade later with `/tripwell/whoami`
+
   useEffect(() => {
-    // TEMP HARDCODED — eventually call GPTAnchorSuggestService
     const exampleAnchors = [
       "Eiffel Tower",
       "Louvre Museum",
@@ -33,7 +32,7 @@ export default function AnchorSelectPage() {
 
   const handleNext = async () => {
     try {
-      const res = await fetch(`https://gofastbackend.onrender.com/tripwell/${trip._id}/anchors`, {
+      const res = await fetch(`https://gofastbackend.onrender.com/tripwell/${tripId}/anchors`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -43,7 +42,7 @@ export default function AnchorSelectPage() {
 
       if (!res.ok) throw new Error("Failed to save anchors");
 
-      navigate(`/tripwell/${trip._id}/itinerary`);
+      navigate(`/tripwell/${tripId}/itinerary`);
     } catch (err) {
       console.error("Failed to save anchors:", err);
     }
@@ -52,7 +51,7 @@ export default function AnchorSelectPage() {
   return (
     <div className="min-h-screen bg-white px-6 py-8 flex flex-col items-center">
       <h1 className="text-2xl font-bold text-center text-green-700 mb-4">
-        Pick Your Must-Dos in {trip?.destination || "your destination"}
+        Pick Your Must-Dos in {destination}
       </h1>
       <p className="text-gray-600 text-center mb-6 max-w-md">
         We’ve pulled some highlights. Choose up to 3 and we’ll plan your trip around them.
