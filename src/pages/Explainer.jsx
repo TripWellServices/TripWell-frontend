@@ -9,14 +9,7 @@ export default function Explainer() {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      const res = await fetch("/tripwell/whoami");
-      const data = await res.json();
-
-      if (data?.trip) {
-        navigate("/trip/hub");
-      } else {
-        navigate("/generalhub");
-      }
+      navigate("/"); // 🎯 Back to home — user picks what to do next
     } catch (err) {
       console.error("Google Auth failed:", err);
     }
@@ -25,7 +18,9 @@ export default function Explainer() {
   return (
     <div className="p-10 text-center">
       <h2 className="text-3xl font-semibold mb-4">Welcome to TripWell</h2>
-      <p className="mb-6">We help you plan your trips and execute them with calm, clarity, and confidence.</p>
+      <p className="mb-6">
+        We help you plan your trips and execute them with calm, clarity, and confidence.
+      </p>
 
       <button
         onClick={handleAuth}
