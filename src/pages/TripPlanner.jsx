@@ -6,7 +6,6 @@ export default function TripPlanner() {
   const navigate = useNavigate();
   const [trip, setTrip] = useState(null);
   const [user, setUser] = useState(null);
-  const [scene, setScene] = useState("");
   const [loading, setLoading] = useState(true);
 
   const [priorities, setPriorities] = useState([]);
@@ -18,41 +17,44 @@ export default function TripPlanner() {
   const mobilityOptions = ["Walk Everywhere", "Bike or Scooter", "Public Transit", "Day Trips OK"];
 
   useEffect(() => {
-    const hydrate = async () => {
-      try {
-        const firebaseUser = auth.currentUser;
-        if (!firebaseUser) return navigate("/explainer");
+    const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
+      if (!firebaseUser) {
+        navigate("/explainer");
+        return;
+      }
 
+      try {
         const token = await firebaseUser.getIdToken(true);
+
         const res = await fetch("https://gofastbackend.onrender.com/tripwell/whoami", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         const { user, trip } = await res.json();
-        if (!user || !trip) return navigate("/explainer");
+        if (!user || !trip) {
+          navigate("/explainer");
+          return;
+        }
 
         setUser(user);
         setTrip(trip);
 
-        const sceneRes = await fetch(`https://gofastbackend.onrender.com/tripwell/gpt/scenesetter/${trip._id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // 🔒 GPT scene temporarily removed
+        // (see preserved block below)
 
-        const data = await sceneRes.json();
-        setScene(data.scene || "");
       } catch (err) {
         console.error("TripPlanner load failed", err);
         navigate("/explainer");
       } finally {
         setLoading(false);
       }
-    };
+    });
 
-    hydrate();
+    return () => unsubscribe();
   }, [navigate]);
 
   const toggle = (value, list, setter) => {
-    setter(list.includes(value) ? list.filter(v => v !== value) : [...list, value]);
+    setter(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
   };
 
   const handleNext = async () => {
@@ -85,11 +87,7 @@ export default function TripPlanner() {
     <div className="p-6 max-w-xl mx-auto space-y-6">
       <h1 className="text-2xl font-bold text-green-700">Let’s Get Started</h1>
 
-      {scene && (
-        <div className="bg-gray-100 p-4 rounded shadow text-gray-800">
-          <p className="italic">{scene}</p>
-        </div>
-      )}
+      {/* GPT scene display removed for now */}
 
       <div className="space-y-4">
         <div>
