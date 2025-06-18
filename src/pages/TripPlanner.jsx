@@ -11,12 +11,12 @@ export default function TripPlanner() {
   const [priorities, setPriorities] = useState([]);
   const [vibes, setVibes] = useState([]);
   const [mobility, setMobility] = useState([]);
-  const [travelPace, setTravelPace] = useState("");
+  const [travelPace, setTravelPace] = useState([]);
   const [budget, setBudget] = useState("");
 
   const priorityOptions = ["Food", "Attractions", "Adventure", "Relaxation", "Culture"];
   const vibeOptions = ["Romantic", "Chill", "High Energy", "Family-Friendly", "Surprise Me"];
-  const mobilityOptions = ["Walk", "Bike", "Public Transit"];
+  const mobilityOptions = ["Walk", "Bike", "Public Transit", "Ride Share / Taxi"];
   const travelPaceOptions = ["Stay in one place", "Jump around", "Take day trips"];
 
   useEffect(() => {
@@ -76,7 +76,7 @@ export default function TripPlanner() {
         }),
       });
 
-      // Hold navigation for now
+      // No redirect yet – just testing submission
     } catch (err) {
       console.error("Intent save failed", err);
     }
@@ -138,17 +138,15 @@ export default function TripPlanner() {
         ))}
       </div>
 
-      {/* Time/Distance / Travel Pace */}
+      {/* Time/Distance Planning */}
       <div style={{ marginBottom: "24px" }}>
         <h2 style={{ fontWeight: "bold", marginBottom: "8px" }}>How do you want to move across locations?</h2>
         {travelPaceOptions.map((opt) => (
           <label key={opt} style={{ display: "block", marginBottom: "6px" }}>
             <input
-              type="radio"
-              name="travelPace"
-              value={opt}
-              checked={travelPace === opt}
-              onChange={() => setTravelPace(opt)}
+              type="checkbox"
+              checked={travelPace.includes(opt)}
+              onChange={() => toggle(opt, travelPace, setTravelPace)}
             />{" "}
             {opt}
           </label>
