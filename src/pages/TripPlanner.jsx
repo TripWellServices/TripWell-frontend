@@ -10,12 +10,14 @@ export default function TripPlanner() {
 
   const [priorities, setPriorities] = useState([]);
   const [vibes, setVibes] = useState([]);
-  const [mobility, setMobility] = useState("");
+  const [mobility, setMobility] = useState([]);
+  const [travelPace, setTravelPace] = useState("");
   const [budget, setBudget] = useState("");
 
   const priorityOptions = ["Food", "Attractions", "Adventure", "Relaxation", "Culture"];
   const vibeOptions = ["Romantic", "Chill", "High Energy", "Family-Friendly", "Surprise Me"];
-  const mobilityOptions = ["Walk Everywhere", "Bike or Scooter", "Public Transit", "Day Trips OK"];
+  const mobilityOptions = ["Walk", "Bike", "Public Transit"];
+  const travelPaceOptions = ["Stay in one place", "Jump around", "Take day trips"];
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
@@ -26,7 +28,6 @@ export default function TripPlanner() {
 
       try {
         const token = await firebaseUser.getIdToken(true);
-
         const res = await fetch("https://gofastbackend.onrender.com/tripwell/whoami", {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -39,8 +40,6 @@ export default function TripPlanner() {
 
         setUser(user);
         setTrip(trip);
-
-        // GPT scene fetch temporarily removed
 
       } catch (err) {
         console.error("TripPlanner load failed", err);
@@ -72,11 +71,12 @@ export default function TripPlanner() {
           priorities,
           vibes,
           mobility,
+          travelPace,
           budget,
         }),
       });
 
-      // No redirect yet – just testing submission
+      // Hold navigation for now
     } catch (err) {
       console.error("Intent save failed", err);
     }
@@ -129,10 +129,26 @@ export default function TripPlanner() {
         {mobilityOptions.map((opt) => (
           <label key={opt} style={{ display: "block", marginBottom: "6px" }}>
             <input
+              type="checkbox"
+              checked={mobility.includes(opt)}
+              onChange={() => toggle(opt, mobility, setMobility)}
+            />{" "}
+            {opt}
+          </label>
+        ))}
+      </div>
+
+      {/* Time/Distance / Travel Pace */}
+      <div style={{ marginBottom: "24px" }}>
+        <h2 style={{ fontWeight: "bold", marginBottom: "8px" }}>How do you want to move across locations?</h2>
+        {travelPaceOptions.map((opt) => (
+          <label key={opt} style={{ display: "block", marginBottom: "6px" }}>
+            <input
               type="radio"
+              name="travelPace"
               value={opt}
-              checked={mobility === opt}
-              onChange={() => setMobility(opt)}
+              checked={travelPace === opt}
+              onChange={() => setTravelPace(opt)}
             />{" "}
             {opt}
           </label>
