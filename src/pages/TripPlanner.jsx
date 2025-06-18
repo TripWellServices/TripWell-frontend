@@ -11,6 +11,7 @@ export default function TripPlanner() {
   const [priorities, setPriorities] = useState([]);
   const [vibes, setVibes] = useState([]);
   const [mobility, setMobility] = useState("");
+  const [budget, setBudget] = useState("");
 
   const priorityOptions = ["Food", "Attractions", "Adventure", "Relaxation", "Culture"];
   const vibeOptions = ["Romantic", "Chill", "High Energy", "Family-Friendly", "Surprise Me"];
@@ -39,8 +40,7 @@ export default function TripPlanner() {
         setUser(user);
         setTrip(trip);
 
-        // 🔒 GPT scene temporarily removed
-        // (see preserved block below)
+        // GPT scene fetch temporarily removed
 
       } catch (err) {
         console.error("TripPlanner load failed", err);
@@ -72,82 +72,103 @@ export default function TripPlanner() {
           priorities,
           vibes,
           mobility,
+          budget,
         }),
       });
 
-      navigate("/anchor-select");
+      // No redirect yet – just testing submission
     } catch (err) {
       console.error("Intent save failed", err);
     }
   };
 
-  if (loading) return <div className="p-6">Loading your trip...</div>;
+  if (loading) return <div style={{ padding: "20px" }}>Loading your trip...</div>;
 
   return (
-    <div className="p-6 max-w-xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-green-700">Let’s Get Started</h1>
+    <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
+      <h1 style={{ fontSize: "24px", fontWeight: "bold", marginBottom: "10px" }}>Let’s Get Started</h1>
 
-      {/* GPT scene display removed for now */}
+      <p style={{ marginBottom: "20px" }}>
+        In order to best plan your trip, we need to get a sense of what you want to do, your budget,
+        and how you like to travel.
+      </p>
 
-      <div className="space-y-4">
-        <div>
-          <h2 className="font-semibold">What matters most on this trip?</h2>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {priorityOptions.map((opt) => (
-              <button
-                key={opt}
-                onClick={() => toggle(opt, priorities, setPriorities)}
-                className={`px-3 py-1 rounded border ${
-                  priorities.includes(opt) ? "bg-green-500 text-white" : "bg-white text-gray-700"
-                }`}
-              >
-                {opt}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <h2 className="font-semibold">What vibe do you want?</h2>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {vibeOptions.map((opt) => (
-              <button
-                key={opt}
-                onClick={() => toggle(opt, vibes, setVibes)}
-                className={`px-3 py-1 rounded border ${
-                  vibes.includes(opt) ? "bg-blue-500 text-white" : "bg-white text-gray-700"
-                }`}
-              >
-                {opt}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <h2 className="font-semibold">How do you want to get around?</h2>
-          <div className="flex flex-col gap-2 mt-2">
-            {mobilityOptions.map((opt) => (
-              <label key={opt} className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  value={opt}
-                  checked={mobility === opt}
-                  onChange={() => setMobility(opt)}
-                />
-                {opt}
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <button
-          onClick={handleNext}
-          className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded shadow mt-6"
-        >
-          Next: Choose Anchors
-        </button>
+      {/* Priorities */}
+      <div style={{ marginBottom: "24px" }}>
+        <h2 style={{ fontWeight: "bold", marginBottom: "8px" }}>What matters most on this trip?</h2>
+        {priorityOptions.map((opt) => (
+          <label key={opt} style={{ display: "block", marginBottom: "6px" }}>
+            <input
+              type="checkbox"
+              checked={priorities.includes(opt)}
+              onChange={() => toggle(opt, priorities, setPriorities)}
+            />{" "}
+            {opt}
+          </label>
+        ))}
       </div>
+
+      {/* Vibes */}
+      <div style={{ marginBottom: "24px" }}>
+        <h2 style={{ fontWeight: "bold", marginBottom: "8px" }}>What vibe do you want?</h2>
+        {vibeOptions.map((opt) => (
+          <label key={opt} style={{ display: "block", marginBottom: "6px" }}>
+            <input
+              type="checkbox"
+              checked={vibes.includes(opt)}
+              onChange={() => toggle(opt, vibes, setVibes)}
+            />{" "}
+            {opt}
+          </label>
+        ))}
+      </div>
+
+      {/* Mobility */}
+      <div style={{ marginBottom: "24px" }}>
+        <h2 style={{ fontWeight: "bold", marginBottom: "8px" }}>How do you want to get around?</h2>
+        {mobilityOptions.map((opt) => (
+          <label key={opt} style={{ display: "block", marginBottom: "6px" }}>
+            <input
+              type="radio"
+              value={opt}
+              checked={mobility === opt}
+              onChange={() => setMobility(opt)}
+            />{" "}
+            {opt}
+          </label>
+        ))}
+      </div>
+
+      {/* Budget */}
+      <div style={{ marginBottom: "24px" }}>
+        <h2 style={{ fontWeight: "bold", marginBottom: "8px" }}>
+          Roughly, what’s your daily spend target (in USD)?
+        </h2>
+        <input
+          type="number"
+          value={budget}
+          onChange={(e) => setBudget(e.target.value)}
+          style={{ padding: "8px", width: "100%", fontSize: "16px" }}
+          placeholder="e.g. 150"
+        />
+      </div>
+
+      {/* Save Button */}
+      <button
+        onClick={handleNext}
+        style={{
+          width: "100%",
+          backgroundColor: "black",
+          color: "white",
+          padding: "12px",
+          fontSize: "16px",
+          fontWeight: "bold",
+          border: "none",
+          cursor: "pointer",
+        }}
+      >
+        Save
+      </button>
     </div>
   );
 }
