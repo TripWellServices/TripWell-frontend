@@ -1,29 +1,48 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getUserAndTrip } from "../services/userService";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "firebase/auth";
 import { auth } from "../firebase";
-
 
 export default function Explainer() {
   const navigate = useNavigate();
-  const { loading, user } = useTripContext();
+  const [firebaseUser, setFirebaseUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  // Check if user is already logged in
   useEffect(() => {
-    if (!loading && user) {
-      navigate("/hub");
-    }
-  }, [loading, user, navigate]);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setFirebaseUser(user);
+        // Fetch whoami to hydrate mongo user + trip
+        try {
+          const res = await fetch("/tripwell/whoami");
+          const data = await res.json();
+          if (data?.trip) {
+            navigate("/trip/hub");
+          } else {
+            navigate("/generalhub"); // or wherever non-trip users go
+          }
+        } catch (err) {
+          console.error("Error during whoami fetch:", err);
+        }
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
 
   const handleGoogleLogin = async () => {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-      // TripContext will pick this up and hydrate
+      // user will be picked up by onAuthStateChanged
     } catch (err) {
       console.error("Google login failed:", err);
     }
   };
+
+  if (loading) return <div className="p-10 text-gray-600">Loading...</div>;
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center px-6 bg-white">
