@@ -40,7 +40,6 @@ export default function TripPlanner() {
 
         setUser(user);
         setTrip(trip);
-
       } catch (err) {
         console.error("TripPlanner load failed", err);
         navigate("/explainer");
@@ -59,24 +58,32 @@ export default function TripPlanner() {
   const handleNext = async () => {
     try {
       const token = await auth.currentUser.getIdToken(true);
+      const userId = auth.currentUser.uid;
 
-      await fetch("https://gofastbackend.onrender.com/tripwell/intent", {
+      if (!trip || !trip._id || !userId) {
+        console.error("Missing trip or userId!");
+        return;
+      }
+
+      await fetch(`https://gofastbackend.onrender.com/tripwell/tripplanner/${trip._id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          tripId: trip._id,
+          userId,            // ✅ Firebase UID
           priorities,
           vibes,
           mobility,
-          travelPace,
           budget,
+          // 🔄 NOTE: backend doesn't support travelPace yet — keep it for now if planning to add
         }),
       });
 
-      // No redirect yet – just testing submission
+      console.log("Trip intent saved!");
+      // 👉 you can add a navigate("/somewhere") here if desired
+
     } catch (err) {
       console.error("Intent save failed", err);
     }
@@ -87,7 +94,6 @@ export default function TripPlanner() {
   return (
     <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
       <h1 style={{ fontSize: "24px", fontWeight: "bold", marginBottom: "10px" }}>Let’s Get Started</h1>
-
       <p style={{ marginBottom: "20px" }}>
         In order to best plan your trip, we need to get a sense of what you want to do, your budget,
         and how you like to travel.
@@ -102,8 +108,7 @@ export default function TripPlanner() {
               type="checkbox"
               checked={priorities.includes(opt)}
               onChange={() => toggle(opt, priorities, setPriorities)}
-            />{" "}
-            {opt}
+            /> {opt}
           </label>
         ))}
       </div>
@@ -117,8 +122,7 @@ export default function TripPlanner() {
               type="checkbox"
               checked={vibes.includes(opt)}
               onChange={() => toggle(opt, vibes, setVibes)}
-            />{" "}
-            {opt}
+            /> {opt}
           </label>
         ))}
       </div>
@@ -132,8 +136,7 @@ export default function TripPlanner() {
               type="checkbox"
               checked={mobility.includes(opt)}
               onChange={() => toggle(opt, mobility, setMobility)}
-            />{" "}
-            {opt}
+            /> {opt}
           </label>
         ))}
       </div>
@@ -147,8 +150,7 @@ export default function TripPlanner() {
               type="checkbox"
               checked={travelPace.includes(opt)}
               onChange={() => toggle(opt, travelPace, setTravelPace)}
-            />{" "}
-            {opt}
+            /> {opt}
           </label>
         ))}
       </div>
