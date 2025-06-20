@@ -72,17 +72,17 @@ export default function TripPlanner() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          userId,            // ✅ Firebase UID
+          userId,
           priorities,
           vibes,
           mobility,
           budget,
-          // 🔄 NOTE: backend doesn't support travelPace yet — keep it for now if planning to add
+          travelPace,
         }),
       });
 
       console.log("Trip intent saved!");
-      // 👉 you can add a navigate("/somewhere") here if desired
+      navigate(`/tripwell/${trip._id}/anchors`);
 
     } catch (err) {
       console.error("Intent save failed", err);

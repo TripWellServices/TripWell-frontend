@@ -12,10 +12,9 @@ import TripJoin from "./pages/TripJoin";
 import ProfileSetup from "./pages/ProfileSetup";
 import TripPlannerAI from "./pages/TripPlannerAI";
 import TripCreated from "./pages/TripCreated";
-
-// 🆕 New Pages
 import TripPlanner from "./pages/TripPlanner";
 import AnchorSelectPage from "./pages/AnchorSelectPage";
+// import TripItineraryPage from "./pages/TripItineraryPage"; // 🔜 if needed
 
 // ✅ Attach Firebase token to all Axios requests
 axios.interceptors.request.use(
@@ -37,7 +36,7 @@ export default function App() {
       <Route path="/" element={<Home />} />
       <Route path="/explainer" element={<Explainer />} />
 
-      {/* Let pages handle auth/trip gating */}
+      {/* Authenticated/Flow Routes */}
       <Route path="/hub" element={<GeneralHub />} />
       <Route path="/trip-setup" element={<TripSetup />} />
       <Route path="/join-trip" element={<TripJoin />} />
@@ -46,7 +45,8 @@ export default function App() {
       <Route path="/profile" element={<ProfileSetup />} />
       <Route path="/trip-planner-ai" element={<TripPlannerAI />} />
       <Route path="/trip-planner" element={<TripPlanner />} />
-      <Route path="/anchor-select" element={<AnchorSelectPage />} />
+      <Route path="/tripwell/:tripId/anchors" element={<AnchorSelectPage />} />
+      {/* <Route path="/tripwell/:tripId/itinerary" element={<TripItineraryPage />} /> */}
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" />} />

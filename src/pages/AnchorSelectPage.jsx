@@ -1,84 +1,195 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { auth } from "../firebase";
 
-export default function AnchorSelectPage() {
+export default function TripPlanner() {
   const navigate = useNavigate();
-  const { tripId } = useParams(); // assumes route is /tripwell/:tripId/anchors
-  const [anchors, setAnchors] = useState([]);
-  const [selected, setSelected] = useState([]);
+  const [trip, setTrip] = useState(null);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // TEMP destination label
-  const destination = "your destination"; // upgrade later with `/tripwell/whoami`
+  const [priorities, setPriorities] = useState([]);
+  const [vibes, setVibes] = useState([]);
+  const [mobility, setMobility] = useState([]);
+  const [travelPace, setTravelPace] = useState([]);
+  const [budget, setBudget] = useState("");
+
+  const priorityOptions = ["Food", "Attractions", "Adventure", "Relaxation", "Culture"];
+  const vibeOptions = ["Romantic", "Chill", "High Energy", "Family-Friendly", "Surprise Me"];
+  const mobilityOptions = ["Walk", "Bike", "Public Transit", "Ride Share / Taxi"];
+  const travelPaceOptions = ["Stay in one place", "Jump around", "Take day trips"];
 
   useEffect(() => {
-    const exampleAnchors = [
-      "Eiffel Tower",
-      "Louvre Museum",
-      "Montmartre Walk",
-      "Day trip to Versailles",
-      "Seine River Cruise",
-      "Notre Dame (exterior)",
-    ];
-    setAnchors(exampleAnchors);
-  }, []);
+    const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
+      if (!firebaseUser) {
+        navigate("/explainer");
+        return;
+      }
 
-  const toggleAnchor = (anchor) => {
-    if (selected.includes(anchor)) {
-      setSelected(selected.filter((a) => a !== anchor));
-    } else if (selected.length < 3) {
-      setSelected([...selected, anchor]);
-    }
+      try {
+        const token = await firebaseUser.getIdToken(true);
+        const res = await fetch("https://gofastbackend.onrender.com/tripwell/whoami", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const { user, trip } = await res.json();
+        if (!user || !trip) {
+          navigate("/explainer");
+          return;
+        }
+
+        setUser(user);
+        setTrip(trip);
+      } catch (err) {
+        console.error("TripPlanner load failed", err);
+        navigate("/explainer");
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
+
+  const toggle = (value, list, setter) => {
+    setter(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
   };
 
   const handleNext = async () => {
     try {
-      const res = await fetch(`https://gofastbackend.onrender.com/tripwell/${tripId}/anchors`, {
+      const token = await auth.currentUser.getIdToken(true);
+      const userId = auth.currentUser.uid;
+
+      if (!trip || !trip._id || !userId) {
+        console.error("Missing trip or userId!");
+        return;
+      }
+
+      const res = await fetch(`https://gofastbackend.onrender.com/tripwell/tripplanner/${trip._id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ anchors: selected }),
+        body: JSON.stringify({
+          userId,
+          priorities,
+          vibes,
+          mobility,
+          budget,
+          travelPace,
+        }),
       });
 
-      if (!res.ok) throw new Error("Failed to save anchors");
+      const data = await res.json();
 
-      navigate(`/tripwell/${tripId}/itinerary`);
+      if (data.success) {
+        console.log("✅ Trip intent saved.");
+        navigate(`/tripwell/${trip._id}/anchors`);
+      } else {
+        console.error("❌ Save failed:", data.error);
+      }
+
     } catch (err) {
-      console.error("Failed to save anchors:", err);
+      console.error("❌ Intent save failed", err);
     }
   };
 
+  if (loading) return <div style={{ padding: "20px" }}>Loading your trip...</div>;
+
   return (
-    <div className="min-h-screen bg-white px-6 py-8 flex flex-col items-center">
-      <h1 className="text-2xl font-bold text-center text-green-700 mb-4">
-        Pick Your Must-Dos in {destination}
-      </h1>
-      <p className="text-gray-600 text-center mb-6 max-w-md">
-        We’ve pulled some highlights. Choose up to 3 and we’ll plan your trip around them.
+    <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
+      <h1 style={{ fontSize: "24px", fontWeight: "bold", marginBottom: "10px" }}>Let’s Get Started</h1>
+      <p style={{ marginBottom: "20px" }}>
+        In order to best plan your trip, we need to get a sense of what you want to do, your budget,
+        and how you like to travel.
       </p>
 
-      <div className="grid grid-cols-1 gap-3 w-full max-w-sm">
-        {anchors.map((anchor) => (
-          <button
-            key={anchor}
-            onClick={() => toggleAnchor(anchor)}
-            className={`py-2 px-4 rounded shadow ${
-              selected.includes(anchor)
-                ? "bg-green-600 text-white"
-                : "bg-gray-100 text-gray-800"
-            }`}
-          >
-            {anchor}
-          </button>
+      {/* Priorities */}
+      <div style={{ marginBottom: "24px" }}>
+        <h2 style={{ fontWeight: "bold", marginBottom: "8px" }}>What matters most on this trip?</h2>
+        {priorityOptions.map((opt) => (
+          <label key={opt} style={{ display: "block", marginBottom: "6px" }}>
+            <input
+              type="checkbox"
+              checked={priorities.includes(opt)}
+              onChange={() => toggle(opt, priorities, setPriorities)}
+            /> {opt}
+          </label>
         ))}
       </div>
 
+      {/* Vibes */}
+      <div style={{ marginBottom: "24px" }}>
+        <h2 style={{ fontWeight: "bold", marginBottom: "8px" }}>What vibe do you want?</h2>
+        {vibeOptions.map((opt) => (
+          <label key={opt} style={{ display: "block", marginBottom: "6px" }}>
+            <input
+              type="checkbox"
+              checked={vibes.includes(opt)}
+              onChange={() => toggle(opt, vibes, setVibes)}
+            /> {opt}
+          </label>
+        ))}
+      </div>
+
+      {/* Mobility */}
+      <div style={{ marginBottom: "24px" }}>
+        <h2 style={{ fontWeight: "bold", marginBottom: "8px" }}>How do you want to get around?</h2>
+        {mobilityOptions.map((opt) => (
+          <label key={opt} style={{ display: "block", marginBottom: "6px" }}>
+            <input
+              type="checkbox"
+              checked={mobility.includes(opt)}
+              onChange={() => toggle(opt, mobility, setMobility)}
+            /> {opt}
+          </label>
+        ))}
+      </div>
+
+      {/* Time/Distance Planning */}
+      <div style={{ marginBottom: "24px" }}>
+        <h2 style={{ fontWeight: "bold", marginBottom: "8px" }}>How do you want to move across locations?</h2>
+        {travelPaceOptions.map((opt) => (
+          <label key={opt} style={{ display: "block", marginBottom: "6px" }}>
+            <input
+              type="checkbox"
+              checked={travelPace.includes(opt)}
+              onChange={() => toggle(opt, travelPace, setTravelPace)}
+            /> {opt}
+          </label>
+        ))}
+      </div>
+
+      {/* Budget */}
+      <div style={{ marginBottom: "24px" }}>
+        <h2 style={{ fontWeight: "bold", marginBottom: "8px" }}>
+          Roughly, what’s your daily spend target (in USD)?
+        </h2>
+        <input
+          type="number"
+          value={budget}
+          onChange={(e) => setBudget(e.target.value)}
+          style={{ padding: "8px", width: "100%", fontSize: "16px" }}
+          placeholder="e.g. 150"
+        />
+      </div>
+
+      {/* Save Button */}
       <button
         onClick={handleNext}
-        disabled={selected.length === 0}
-        className="mt-8 bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded shadow"
+        style={{
+          width: "100%",
+          backgroundColor: "black",
+          color: "white",
+          padding: "12px",
+          fontSize: "16px",
+          fontWeight: "bold",
+          border: "none",
+          cursor: "pointer",
+        }}
       >
-        ✅ Build My Itinerary
+        Save
       </button>
     </div>
   );
