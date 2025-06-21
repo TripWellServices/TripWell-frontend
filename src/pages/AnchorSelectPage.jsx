@@ -1,195 +1,102 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { auth } from "../firebase";
+// src/pages/AnchorSelectPage.jsx
 
-export default function TripPlanner() {
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
+
+export default function AnchorSelectPage() {
+  const { tripId } = useParams();
   const navigate = useNavigate();
-  const [trip, setTrip] = useState(null);
-  const [user, setUser] = useState(null);
+
+  const [userId, setUserId] = useState(null);
+  const [anchorOptions, setAnchorOptions] = useState([]);
+  const [selected, setSelected] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const [priorities, setPriorities] = useState([]);
-  const [vibes, setVibes] = useState([]);
-  const [mobility, setMobility] = useState([]);
-  const [travelPace, setTravelPace] = useState([]);
-  const [budget, setBudget] = useState("");
-
-  const priorityOptions = ["Food", "Attractions", "Adventure", "Relaxation", "Culture"];
-  const vibeOptions = ["Romantic", "Chill", "High Energy", "Family-Friendly", "Surprise Me"];
-  const mobilityOptions = ["Walk", "Bike", "Public Transit", "Ride Share / Taxi"];
-  const travelPaceOptions = ["Stay in one place", "Jump around", "Take day trips"];
-
+  // ✅ Fetch Firebase UID from /whoami
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
-      if (!firebaseUser) {
-        navigate("/explainer");
-        return;
-      }
-
+    async function fetchUser() {
       try {
-        const token = await firebaseUser.getIdToken(true);
-        const res = await fetch("https://gofastbackend.onrender.com/tripwell/whoami", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        const { user, trip } = await res.json();
-        if (!user || !trip) {
-          navigate("/explainer");
-          return;
-        }
-
-        setUser(user);
-        setTrip(trip);
+        const { data } = await axios.get("/tripwell/whoami");
+        setUserId(data.userId);
       } catch (err) {
-        console.error("TripPlanner load failed", err);
-        navigate("/explainer");
-      } finally {
-        setLoading(false);
+        console.error("❌ Error getting userId:", err);
       }
-    });
-
-    return () => unsubscribe();
-  }, [navigate]);
-
-  const toggle = (value, list, setter) => {
-    setter(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
-  };
-
-  const handleNext = async () => {
-    try {
-      const token = await auth.currentUser.getIdToken(true);
-      const userId = auth.currentUser.uid;
-
-      if (!trip || !trip._id || !userId) {
-        console.error("Missing trip or userId!");
-        return;
-      }
-
-      const res = await fetch(`https://gofastbackend.onrender.com/tripwell/tripplanner/${trip._id}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          userId,
-          priorities,
-          vibes,
-          mobility,
-          budget,
-          travelPace,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        console.log("✅ Trip intent saved.");
-        navigate(`/tripwell/${trip._id}/anchors`);
-      } else {
-        console.error("❌ Save failed:", data.error);
-      }
-
-    } catch (err) {
-      console.error("❌ Intent save failed", err);
     }
-  };
+    fetchUser();
+  }, []);
 
-  if (loading) return <div style={{ padding: "20px" }}>Loading your trip...</div>;
+  // 🧠 Auto-hydrate anchor suggestions from GPT
+  useEffect(() => {
+    if (!userId || !tripId) return;
+    async function fetchAnchors() {
+      try {
+        const { data } = await axios.get(`/tripwell/anchorgpt/${tripId}?userId=${userId}`);
+        setAnchorOptions(data.anchors || []);
+        setLoading(false);
+      } catch (err) {
+        console.error("❌ Failed to get anchor suggestions:", err);
+      }
+    }
+    fetchAnchors();
+  }, [userId, tripId]);
+
+  // 📝 Handle checkbox toggle
+  function toggleSelect(anchorText) {
+    setSelected((prev) =>
+      prev.includes(anchorText)
+        ? prev.filter((a) => a !== anchorText)
+        : [...prev, anchorText]
+    );
+  }
+
+  // 📬 Submit selected anchors to backend
+  async function handleSubmit() {
+    try {
+      await axios.post(`/tripwell/anchorselects/${tripId}`, {
+        userId,
+        selectedAnchors: selected,
+      });
+      navigate(`/tripwell/itinerary/${tripId}`); // or whatever’s next
+    } catch (err) {
+      console.error("❌ Error saving selections:", err);
+    }
+  }
 
   return (
-    <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
-      <h1 style={{ fontSize: "24px", fontWeight: "bold", marginBottom: "10px" }}>Let’s Get Started</h1>
-      <p style={{ marginBottom: "20px" }}>
-        In order to best plan your trip, we need to get a sense of what you want to do, your budget,
-        and how you like to travel.
-      </p>
+    <div style={{ padding: "2rem" }}>
+      <h2>Thanks for submitting your preferences!</h2>
+      <p>We've selected 5 experiences you may like. Pick the ones that most appeal to you and we'll use them to shape your itinerary.</p>
 
-      {/* Priorities */}
-      <div style={{ marginBottom: "24px" }}>
-        <h2 style={{ fontWeight: "bold", marginBottom: "8px" }}>What matters most on this trip?</h2>
-        {priorityOptions.map((opt) => (
-          <label key={opt} style={{ display: "block", marginBottom: "6px" }}>
-            <input
-              type="checkbox"
-              checked={priorities.includes(opt)}
-              onChange={() => toggle(opt, priorities, setPriorities)}
-            /> {opt}
-          </label>
-        ))}
-      </div>
+      {loading ? (
+        <p>Loading suggestions...</p>
+      ) : (
+        <div>
+          {anchorOptions.map((anchor, i) => (
+            <div key={i} style={{ margin: "1rem 0", border: "1px solid #ccc", padding: "1rem" }}>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={selected.includes(anchor.title)}
+                  onChange={() => toggleSelect(anchor.title)}
+                />
+                <strong style={{ marginLeft: "0.5rem" }}>{anchor.title}</strong>
+              </label>
+              <p style={{ marginTop: "0.5rem" }}>{anchor.description}</p>
+              {anchor.followOns?.length > 0 && (
+                <ul>
+                  {anchor.followOns.map((item, j) => (
+                    <li key={j}>{item}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
-      {/* Vibes */}
-      <div style={{ marginBottom: "24px" }}>
-        <h2 style={{ fontWeight: "bold", marginBottom: "8px" }}>What vibe do you want?</h2>
-        {vibeOptions.map((opt) => (
-          <label key={opt} style={{ display: "block", marginBottom: "6px" }}>
-            <input
-              type="checkbox"
-              checked={vibes.includes(opt)}
-              onChange={() => toggle(opt, vibes, setVibes)}
-            /> {opt}
-          </label>
-        ))}
-      </div>
-
-      {/* Mobility */}
-      <div style={{ marginBottom: "24px" }}>
-        <h2 style={{ fontWeight: "bold", marginBottom: "8px" }}>How do you want to get around?</h2>
-        {mobilityOptions.map((opt) => (
-          <label key={opt} style={{ display: "block", marginBottom: "6px" }}>
-            <input
-              type="checkbox"
-              checked={mobility.includes(opt)}
-              onChange={() => toggle(opt, mobility, setMobility)}
-            /> {opt}
-          </label>
-        ))}
-      </div>
-
-      {/* Time/Distance Planning */}
-      <div style={{ marginBottom: "24px" }}>
-        <h2 style={{ fontWeight: "bold", marginBottom: "8px" }}>How do you want to move across locations?</h2>
-        {travelPaceOptions.map((opt) => (
-          <label key={opt} style={{ display: "block", marginBottom: "6px" }}>
-            <input
-              type="checkbox"
-              checked={travelPace.includes(opt)}
-              onChange={() => toggle(opt, travelPace, setTravelPace)}
-            /> {opt}
-          </label>
-        ))}
-      </div>
-
-      {/* Budget */}
-      <div style={{ marginBottom: "24px" }}>
-        <h2 style={{ fontWeight: "bold", marginBottom: "8px" }}>
-          Roughly, what’s your daily spend target (in USD)?
-        </h2>
-        <input
-          type="number"
-          value={budget}
-          onChange={(e) => setBudget(e.target.value)}
-          style={{ padding: "8px", width: "100%", fontSize: "16px" }}
-          placeholder="e.g. 150"
-        />
-      </div>
-
-      {/* Save Button */}
-      <button
-        onClick={handleNext}
-        style={{
-          width: "100%",
-          backgroundColor: "black",
-          color: "white",
-          padding: "12px",
-          fontSize: "16px",
-          fontWeight: "bold",
-          border: "none",
-          cursor: "pointer",
-        }}
-      >
-        Save
+      <button onClick={handleSubmit} disabled={selected.length === 0} style={{ marginTop: "2rem" }}>
+        Submit & Continue
       </button>
     </div>
   );
