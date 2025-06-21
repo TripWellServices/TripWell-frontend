@@ -1,4 +1,3 @@
-// src/pages/TripSetup.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -7,11 +6,10 @@ import axios from "axios";
  * TripSetup.jsx
  * MVP 1 Trip Creation Page
  *
- * 🧠 This sets up a new trip with user-defined name, purpose, dates, and join code.
- * ✅ Uses /tripwell/whoami to hydrate user context (no Firebase context used directly)
- * 🔑 Join code is user-created and used by others to join the trip later
- * 📍 City = Destination (single-city logic only for MVP 1)
- * 👨‍👩‍👧‍👦 Also includes basic party composition logic (who's coming)
+ * 🧠 Sets up a new trip with user-defined name, purpose, dates, and join code.
+ * ✅ Uses /tripwell/whoami to hydrate user context
+ * 🔑 Join code is user-created and used by others to join
+ * 📍 City = Destination (model handles fallback)
  */
 
 const BACKEND_URL = "https://gofastbackend.onrender.com";
@@ -68,12 +66,12 @@ export default function TripSetup() {
 
     try {
       const payload = {
-        userId: user.firebaseId || user._id, // 🔑 Uses firebaseId for user linkage
+        userId: user.firebaseId || user._id,
         ...tripData,
-        city: tripData.destination, // 🔁 city = destination (MVP 1 assumption)
+        partyCount: parseInt(tripData.partyCount || "1", 10),
       };
 
-      const res = await axios.post(`${BACKEND_URL}/trip`, payload, {
+      const res = await axios.post(`${BACKEND_URL}/tripbase`, payload, {
         headers: { Authorization: `Bearer ${user.firebaseToken}` },
       });
 
