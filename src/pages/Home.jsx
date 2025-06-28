@@ -18,7 +18,7 @@ export default function Home() {
       if (!user || !user._id) return navigate("/explainer");
       if (!trip || !trip._id) return navigate("/generalhub");
 
-      return navigate("/trip-planner"); // ✅ updated route
+      return navigate("/trip-planner");
     } catch (err) {
       console.error("💥 Plan Trip failed:", err);
       navigate("/explainer");
@@ -30,7 +30,7 @@ export default function Home() {
       <h1 className="text-3xl font-bold text-green-600 mt-2">TripWell</h1>
 
       <p className="text-gray-600 max-w-md mt-2">
-        We’re here to help you plan the kind of trip you actually want — built around your goals, your vibe, and what you want to see.
+        Plan the kind of trip that makes memories — not stress. TripWell helps you shape each day around what matters most to you.
       </p>
 
       <div className="flex flex-col gap-3 mt-8 w-full max-w-xs">
@@ -51,6 +51,24 @@ export default function Home() {
           className="bg-purple-600 hover:bg-purple-700 text-white py-2 rounded shadow"
         >
           🗺️ Plan My Trip
+        </button>
+        <button
+          onClick={() => navigate("/trip-modifyer")}
+          className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded shadow"
+        >
+          🛠️ Edit My Trip
+        </button>
+        <button
+          onClick={() => navigate("/tripliveday")}
+          className="bg-pink-500 hover:bg-pink-600 text-white py-2 rounded shadow"
+        >
+          🌞 Live My Trip
+        </button>
+        <button
+          onClick={() => navigate("/trip-journal")}
+          className="bg-indigo-500 hover:bg-indigo-600 text-white py-2 rounded shadow"
+        >
+          📓 Trip Journal
         </button>
         <button
           onClick={() => navigate("/explainer")}

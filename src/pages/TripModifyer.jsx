@@ -1,3 +1,4 @@
+// TripModifyer.jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
@@ -5,19 +6,32 @@ import { useParams, useNavigate } from "react-router-dom";
 const TripModifyer = () => {
   const { tripId } = useParams();
   const navigate = useNavigate();
-  const [tripDays, setTripDays] = useState([]);
+  const [dayCards, setDayCards] = useState([]);
 
   useEffect(() => {
-    const fetchDays = async () => {
+    const fetchTripBase = async () => {
       try {
-        const res = await axios.get(`/tripwell/itinerary/days/${tripId}`);
-        setTripDays(res.data);
+        const res = await axios.get(`/tripwell/tripbase/${tripId}`);
+        const { startDate, daysTotal } = res.data;
+        const baseDate = new Date(startDate);
+
+        const cards = Array.from({ length: daysTotal }, (_, i) => {
+          const date = new Date(baseDate);
+          date.setDate(baseDate.getDate() + i);
+          return {
+            dayIndex: i,
+            dayLabel: `Day ${i + 1}`,
+            dateStr: date.toDateString()
+          };
+        });
+
+        setDayCards(cards);
       } catch (err) {
-        console.error("Failed to fetch trip days", err);
+        console.error("Failed to fetch trip base info", err);
       }
     };
 
-    fetchDays();
+    fetchTripBase();
   }, [tripId]);
 
   return (
@@ -28,25 +42,20 @@ const TripModifyer = () => {
       </p>
 
       <div className="space-y-4">
-        {tripDays.map((day) => {
-          const actualDate = new Date(day.date || 0);
-          const dateStr = actualDate.toDateString(); // fallback if no date
-
-          return (
-            <div key={day._id} className="flex justify-between items-center border p-4 rounded-xl shadow">
-              <div>
-                <div className="font-semibold">Day {day.dayIndex}</div>
-                <div className="text-sm text-gray-600">{dateStr}</div>
-              </div>
-              <button
-                onClick={() => navigate(`/tripwell/modifyday/${tripId}/${day.dayIndex}`)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl"
-              >
-                Change this day
-              </button>
+        {dayCards.map((day) => (
+          <div key={day.dayIndex} className="flex justify-between items-center border p-4 rounded-xl shadow">
+            <div>
+              <div className="font-semibold">{day.dayLabel}</div>
+              <div className="text-sm text-gray-600">{day.dateStr}</div>
             </div>
-          );
-        })}
+            <button
+              onClick={() => navigate(`/tripwell/modifyday/${tripId}/${day.dayIndex}`)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl"
+            >
+              Change this day
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );
