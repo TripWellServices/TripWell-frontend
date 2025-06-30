@@ -1,40 +1,27 @@
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { auth } from "../firebase";
 import { useNavigate } from "react-router-dom";
 
 export default function Explainer() {
   const navigate = useNavigate();
 
-  const handleAuth = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-      navigate("/"); // 🎯 Back to home — user picks what to do next
-    } catch (err) {
-      console.error("Google Auth failed:", err);
-    }
-  };
-
   return (
-    <div className="p-10 text-center">
-      <h2 className="text-3xl font-semibold mb-4">Welcome to TripWell</h2>
-      <p className="mb-6">
-        We help you plan your trips and execute them with calm, clarity, and confidence.
+    <div className="min-h-screen p-10 text-center bg-white flex flex-col items-center justify-center">
+      <h2 className="text-3xl font-semibold text-green-600 mb-4">What is TripWell?</h2>
+
+      <p className="max-w-xl text-gray-700 mb-6">
+        TripWell helps you plan intentional trips — not just where you go, but how you experience each day.
+        Our AI helps you build a real itinerary around your vibe, your people, and your pace.
+      </p>
+
+      <p className="max-w-xl text-gray-700 mb-6">
+        We don’t just help you book. We help you live the trip — one thoughtful day at a time.
       </p>
 
       <button
-        onClick={handleAuth}
-        className="bg-blue-600 text-white px-6 py-2 rounded mr-4 hover:bg-blue-700 transition"
+        onClick={() => navigate("/sign-in")}
+        className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition"
       >
-        Sign Up with Google
+        🌍 Sign Up and Start Planning
       </button>
-
-      <p className="text-sm text-gray-600 mt-4">
-        Already have an account?{" "}
-        <button onClick={handleAuth} className="underline text-blue-500 hover:text-blue-700">
-          Sign In
-        </button>
-      </p>
     </div>
   );
 }

@@ -6,26 +6,53 @@ export default function TripItineraryMVP() {
   const { tripId } = useParams();
   const navigate = useNavigate();
 
-  const [itineraryText, setItineraryText] = useState("");
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [itineraryText, setItineraryText] = useState("");
+  const [readyToGenerate, setReadyToGenerate] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    async function fetchItinerary() {
+    async function checkTripAndAnchors() {
       try {
-        const res = await axios.get(`/tripwell/itinerarygpt/${tripId}`);
-        setItineraryText(res.data); // string from Angela
+        const whoami = await axios.get("/tripwell/whoami");
+        const id = whoami.data.tripId;
+        if (!id) {
+          navigate("/trip-setup");
+          return;
+        }
+
+        const anchors = await axios.get(`/tripwell/anchorselects/${id}`);
+        if (!anchors?.data?.length) {
+          navigate(`/tripwell/anchorselect/${id}`);
+          return;
+        }
+
+        setReadyToGenerate(true);
       } catch (err) {
-        console.error("Failed to load itinerary:", err);
-        setError("Could not load itinerary.");
+        console.error("Error during pre-check:", err);
+        setError("Something went wrong checking your trip setup.");
       } finally {
         setLoading(false);
       }
     }
 
-    fetchItinerary();
-  }, [tripId]);
+    checkTripAndAnchors();
+  }, [navigate]);
+
+  async function handleGenerate() {
+    try {
+      setGenerating(true);
+      const res = await axios.get(`/tripwell/itinerarygpt/${tripId}`);
+      setItineraryText(res.data);
+    } catch (err) {
+      console.error("GPT itinerary error:", err);
+      setError("Could not generate itinerary.");
+    } finally {
+      setGenerating(false);
+    }
+  }
 
   async function handleSave() {
     try {
@@ -44,33 +71,49 @@ export default function TripItineraryMVP() {
     navigate(`/tripwell/daymodifier/${tripId}`);
   }
 
-  if (loading) return <div className="p-4 text-center">Loading itinerary...</div>;
+  if (loading) return <div className="p-4 text-center animate-pulse">Checking for your itinerary... blip blip...</div>;
   if (error) return <div className="p-4 text-red-500 text-center">{error}</div>;
 
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-6">
-      <h1 className="text-3xl font-bold">Your Trip Itinerary</h1>
+    <div className="p-6 max-w-3xl mx-auto space-y-6 text-center">
+      <h1 className="text-3xl font-bold text-green-600">Your Trip Itinerary</h1>
 
-      <pre className="whitespace-pre-wrap text-gray-800 bg-white rounded-xl shadow p-4">
-        {itineraryText}
-      </pre>
+      {!itineraryText && readyToGenerate && (
+        <div className="mt-6">
+          <button
+            onClick={handleGenerate}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-2xl shadow"
+            disabled={generating}
+          >
+            {generating ? "Generating..." : "🧠 Generate My Itinerary"}
+          </button>
+        </div>
+      )}
 
-      <div className="flex gap-4 justify-center mt-6">
-        <button
-          onClick={handleSave}
-          className="bg-green-600 text-white px-6 py-2 rounded-2xl shadow hover:bg-green-700"
-          disabled={saving}
-        >
-          {saving ? "Saving..." : "✅ This looks great – Save it"}
-        </button>
+      {itineraryText && (
+        <>
+          <pre className="whitespace-pre-wrap text-left text-gray-800 bg-white rounded-xl shadow p-4">
+            {itineraryText}
+          </pre>
 
-        <button
-          onClick={handleModify}
-          className="bg-yellow-500 text-white px-6 py-2 rounded-2xl shadow hover:bg-yellow-600"
-        >
-          🛠 I want to modify
-        </button>
-      </div>
+          <div className="flex gap-4 justify-center mt-6">
+            <button
+              onClick={handleSave}
+              className="bg-green-600 text-white px-6 py-2 rounded-2xl shadow hover:bg-green-700"
+              disabled={saving}
+            >
+              {saving ? "Saving..." : "✅ This looks great – Save it"}
+            </button>
+
+            <button
+              onClick={handleModify}
+              className="bg-yellow-500 text-white px-6 py-2 rounded-2xl shadow hover:bg-yellow-600"
+            >
+              🛠 I want to modify
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
