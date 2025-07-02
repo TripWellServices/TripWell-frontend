@@ -5,11 +5,13 @@ import axios from "axios";
 export default function TripLiveDay() {
   const { tripId } = useParams();
   const navigate = useNavigate();
+
   const [today, setToday] = useState(null);
   const [loading, setLoading] = useState(true);
   const [modifyText, setModifyText] = useState("");
   const [gptResponse, setGptResponse] = useState(null);
   const [modified, setModified] = useState(false);
+  const [showNextPrompt, setShowNextPrompt] = useState(false);
 
   useEffect(() => {
     fetchLiveDay();
@@ -19,12 +21,20 @@ export default function TripLiveDay() {
     try {
       const { data } = await axios.get(`/tripwell/triplive/${tripId}`);
       setToday(data);
-      setModified(false);
-      setGptResponse(null);
+      resetPreview();
       setLoading(false);
     } catch (err) {
       console.error("❌ Failed to load today’s plan", err);
+      setToday(null);
+      setLoading(false);
     }
+  }
+
+  function resetPreview() {
+    setGptResponse(null);
+    setModifyText("");
+    setModified(false);
+    setShowNextPrompt(false);
   }
 
   const handleModify = async () => {
@@ -34,7 +44,7 @@ export default function TripLiveDay() {
         dayIndex: today.dayIndex,
         feedback: modifyText,
       });
-      setGptResponse(data); // { summary, blocks }
+      setGptResponse(data);
       setModified(true);
       setModifyText("");
     } catch (err) {
@@ -47,7 +57,8 @@ export default function TripLiveDay() {
       await axios.post(`/tripwell/parseandsave/${tripId}/${today.dayIndex}`, {
         gptOutput: gptResponse,
       });
-      fetchLiveDay(); // refresh with saved version
+      resetPreview();
+      setShowNextPrompt(true);
     } catch (err) {
       console.error("❌ Failed to save GPT-modified day", err);
     }
@@ -56,13 +67,19 @@ export default function TripLiveDay() {
   const handleMarkComplete = async () => {
     try {
       await axios.post(`/tripwell/markcomplete/${tripId}/${today.dayIndex}`);
-      fetchLiveDay();
+      resetPreview();
+      setShowNextPrompt(true);
     } catch (err) {
       console.error("❌ Error marking day complete", err);
     }
   };
 
-  if (loading) return <div className="p-6">Loading...</div>;
+  const handleShowNextDay = async () => {
+    setLoading(true);
+    await fetchLiveDay();
+  };
+
+  if (loading) return <div className="p-6">Loading today’s itinerary...</div>;
   if (!today) return <div className="p-6 text-lg">🎉 That’s it — your trip is complete!</div>;
 
   const dayLabel = `Day ${today.dayIndex + 1}`;
@@ -88,7 +105,7 @@ export default function TripLiveDay() {
         ))}
       </div>
 
-      {!modified && (
+      {!modified && !showNextPrompt && (
         <div className="mb-10 border-t pt-6">
           <h3 className="text-lg font-semibold mb-2 text-blue-800">Need to change something?</h3>
           <p className="text-sm text-blue-700 mb-2">
@@ -111,7 +128,7 @@ export default function TripLiveDay() {
         </div>
       )}
 
-      {modified && (
+      {modified && gptResponse && !showNextPrompt && (
         <div className="mb-10 flex gap-4">
           <button
             onClick={handleModify}
@@ -128,20 +145,34 @@ export default function TripLiveDay() {
         </div>
       )}
 
-      <div className="border-t pt-6 flex flex-col gap-4">
-        <button
-          onClick={handleMarkComplete}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl"
-        >
-          ✅ This Day is Complete
-        </button>
-        <button
-          onClick={() => navigate(`/tripwell/journal/${tripId}/${today.dayIndex}`)}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl"
-        >
-          📓 Journal It
-        </button>
-      </div>
+      {showNextPrompt && (
+        <div className="border-t pt-6 mt-6 text-center">
+          <p className="text-lg font-medium mb-4">✅ All set for today.</p>
+          <button
+            onClick={handleShowNextDay}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl"
+          >
+            ➡️ Show Next Day
+          </button>
+        </div>
+      )}
+
+      {!showNextPrompt && (
+        <div className="border-t pt-6 flex flex-col gap-4">
+          <button
+            onClick={handleMarkComplete}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl"
+          >
+            ✅ This Day is Complete
+          </button>
+          <button
+            onClick={() => navigate(`/tripwell/journal/${tripId}/${today.dayIndex}`)}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl"
+          >
+            📓 Journal It
+          </button>
+        </div>
+      )}
     </div>
   );
 }
