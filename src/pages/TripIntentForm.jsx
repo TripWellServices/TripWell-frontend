@@ -8,6 +8,7 @@ export default function TripIntentForm() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const [whoWith, setWhoWith] = useState(""); // 👈 Up top
   const [priorities, setPriorities] = useState([]);
   const [vibes, setVibes] = useState([]);
   const [mobility, setMobility] = useState([]);
@@ -73,6 +74,7 @@ export default function TripIntentForm() {
         },
         body: JSON.stringify({
           userId,
+          whoWith,
           priorities,
           vibes,
           mobility,
@@ -98,7 +100,19 @@ export default function TripIntentForm() {
         and how you like to travel.
       </p>
 
-      {/* Priorities */}
+      {/* 👤 Who With (Top) */}
+      <div style={{ marginBottom: "24px" }}>
+        <h2 style={{ fontWeight: "bold", marginBottom: "8px" }}>Who are you going with?</h2>
+        <input
+          type="text"
+          value={whoWith}
+          onChange={(e) => setWhoWith(e.target.value)}
+          placeholder="e.g., My daughter and parents"
+          style={{ width: "100%", padding: "8px", fontSize: "16px" }}
+        />
+      </div>
+
+      {/* 🎯 Priorities */}
       <div style={{ marginBottom: "24px" }}>
         <h2 style={{ fontWeight: "bold", marginBottom: "8px" }}>What matters most on this trip?</h2>
         {priorityOptions.map((opt) => (
@@ -113,7 +127,7 @@ export default function TripIntentForm() {
         ))}
       </div>
 
-      {/* Vibes */}
+      {/* ✨ Vibes */}
       <div style={{ marginBottom: "24px" }}>
         <h2 style={{ fontWeight: "bold", marginBottom: "8px" }}>What’s the vibe?</h2>
         {vibeOptions.map((opt) => (
@@ -128,7 +142,7 @@ export default function TripIntentForm() {
         ))}
       </div>
 
-      {/* Mobility */}
+      {/* 🚲 Mobility */}
       <div style={{ marginBottom: "24px" }}>
         <h2 style={{ fontWeight: "bold", marginBottom: "8px" }}>How do you want to get around?</h2>
         {mobilityOptions.map((opt) => (
@@ -143,7 +157,7 @@ export default function TripIntentForm() {
         ))}
       </div>
 
-      {/* Travel Pace */}
+      {/* 🕒 Travel Pace */}
       <div style={{ marginBottom: "24px" }}>
         <h2 style={{ fontWeight: "bold", marginBottom: "8px" }}>What pace do you prefer?</h2>
         {travelPaceOptions.map((opt) => (
@@ -158,7 +172,7 @@ export default function TripIntentForm() {
         ))}
       </div>
 
-      {/* Budget */}
+      {/* 💰 Budget */}
       <div style={{ marginBottom: "24px" }}>
         <h2 style={{ fontWeight: "bold", marginBottom: "8px" }}>What’s your budget per day?</h2>
         <input

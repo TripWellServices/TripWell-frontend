@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getUserAndTrip } from "../services/userService";
+import { getAuth } from "firebase/auth";
 
 const BACKEND_URL = "https://gofastbackend.onrender.com";
 
@@ -13,16 +14,15 @@ export default function ProfileParticipant() {
   const [email, setEmail] = useState("");
   const [city, setCity] = useState("");
   const [stateRegion, setStateRegion] = useState("");
-  const [familySituation, setFamilySituation] = useState([]);
   const [travelStyle, setTravelStyle] = useState([]);
   const [tripVibe, setTripVibe] = useState([]);
 
   useEffect(() => {
     const hydrate = async () => {
       try {
-        const { user } = await getUserAndTrip();
+        const { user, trip } = await getUserAndTrip();
         setUser(user);
-        setName(user.displayName || "");
+        setName(user.name || user.displayName || "");
         setEmail(user.email || "");
         setCity(user.city || "");
         setStateRegion(user.state || "");
@@ -38,8 +38,7 @@ export default function ProfileParticipant() {
 
   const handleSubmit = async () => {
     try {
-      const token =
-        user.firebaseToken || (await user.firebaseUser?.getIdToken?.());
+      const token = await getAuth().currentUser.getIdToken();
 
       const res = await fetch(`${BACKEND_URL}/tripwell/profile`, {
         method: "PUT",
@@ -53,7 +52,6 @@ export default function ProfileParticipant() {
           email,
           city,
           state: stateRegion,
-          familySituation,
           travelStyle,
           tripVibe,
         }),
@@ -61,7 +59,7 @@ export default function ProfileParticipant() {
 
       if (!res.ok) throw new Error("Profile update failed");
 
-      navigate("/"); // 🔁 Send back to Home after setup
+      navigate("/");
     } catch (err) {
       console.error("❌ Failed to save profile:", err);
       alert("Could not save your profile.");
@@ -69,15 +67,14 @@ export default function ProfileParticipant() {
   };
 
   if (loading) {
-    return <div className="p-6 text-gray-500">Loading your trip profile…</div>;
+    return <div className="p-6 text-gray-500">Loading your profile…</div>;
   }
 
   return (
     <div className="max-w-xl mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-bold">You're Almost There!</h1>
+      <h1 className="text-2xl font-bold">You're In!</h1>
       <p className="text-gray-600">
-        Tell us a bit more about you so your trip planner can get a feel for the
-        group vibe.
+        Thanks for joining your travel companion's trip. Fill this out so they know who's coming and we can shape your trip better.
       </p>
 
       <input
@@ -104,21 +101,12 @@ export default function ProfileParticipant() {
         placeholder="State/Region"
         className="w-full p-3 border rounded"
       />
-
-      <input
-        value={familySituation.join(", ")}
-        onChange={(e) =>
-          setFamilySituation(e.target.value.split(",").map((s) => s.trim()))
-        }
-        placeholder="Family Situation (e.g., Married, Kids)"
-        className="w-full p-3 border rounded"
-      />
       <input
         value={travelStyle.join(", ")}
         onChange={(e) =>
           setTravelStyle(e.target.value.split(",").map((s) => s.trim()))
         }
-        placeholder="Travel Style (e.g., Laid-back, Adventurous)"
+        placeholder="Travel Style (e.g., Chill, Adventurous)"
         className="w-full p-3 border rounded"
       />
       <input
@@ -126,7 +114,7 @@ export default function ProfileParticipant() {
         onChange={(e) =>
           setTripVibe(e.target.value.split(",").map((s) => s.trim()))
         }
-        placeholder="Trip Vibe (e.g., Chill, Party, Cultural)"
+        placeholder="Trip Vibe (e.g., Party, Culture)"
         className="w-full p-3 border rounded"
       />
 
@@ -134,7 +122,7 @@ export default function ProfileParticipant() {
         onClick={handleSubmit}
         className="bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition"
       >
-        🎉 Join the Trip
+        Save
       </button>
     </div>
   );
