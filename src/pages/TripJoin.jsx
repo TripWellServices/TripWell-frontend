@@ -4,7 +4,7 @@ import axios from "axios";
 
 export default function TripJoin() {
   const [joinCode, setJoinCode] = useState("");
-  const [tripData, setTripData] = useState(null); // ← holds tripId, tripName, etc.
+  const [tripData, setTripData] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -46,8 +46,8 @@ export default function TripJoin() {
         }
       );
 
-      // Optionally redirect to profile setup
-      navigate("/tripwell/profilesetup");
+      navigate("/tripwell/profileparticipant");
+
     } catch (err) {
       console.error("❌ Error joining trip:", err);
       alert("Could not join trip. Try signing in again.");
