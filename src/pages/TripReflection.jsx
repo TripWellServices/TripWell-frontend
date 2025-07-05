@@ -1,82 +1,52 @@
 // src/pages/TripReflection.jsx
 
-import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import axios from "axios";
 
 export default function TripReflection() {
-  const { tripId } = useParams();
-  const navigate = useNavigate();
+  const [reflectionData, setReflectionData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const [rating, setRating] = useState("");
-  const [memory, setMemory] = useState("");
-  const [delta, setDelta] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  async function handleSubmit() {
-    try {
-      setSaving(true);
-      await axios.post(`/tripwell/reflection/${tripId}`, {
-        rating,
-        memory,
-        delta,
-      });
-      navigate("/"); // or return to home/dashboard
-    } catch (err) {
-      console.error("❌ Failed to save reflection", err);
-    } finally {
-      setSaving(false);
+  useEffect(() => {
+    async function fetchReflections() {
+      try {
+        const res = await axios.get("/tripwell/reflections/latest");
+        setReflectionData(res.data);
+      } catch (err) {
+        console.error("Failed to load reflections:", err);
+      } finally {
+        setLoading(false);
+      }
     }
-  }
+
+    fetchReflections();
+  }, []);
+
+  if (loading) return <div className="p-6 text-center">Loading your trip memories...</div>;
+  if (!reflectionData) return <div className="p-6 text-center">No reflections found.</div>;
 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
-      <h2 className="text-2xl font-bold text-center">📝 Trip Reflection</h2>
+      <h1 className="text-3xl font-bold text-center">✨ Trip Reflections</h1>
+      <p className="text-center text-gray-600">
+        TripWell lives to build memories. Take a look below at what made this last trip special.
+      </p>
 
-      <div>
-        <label className="block font-medium mb-1">Overall, how was it?</label>
-        <select
-          className="w-full p-2 border rounded"
-          value={rating}
-          onChange={(e) => setRating(e.target.value)}
-        >
-          <option value="">Select an emoji</option>
-          <option value="😄">😄 Amazing</option>
-          <option value="🙂">🙂 Pretty Good</option>
-          <option value="😐">😐 Okay</option>
-          <option value="😞">😞 Not Great</option>
-        </select>
+      <div className="bg-white shadow-md rounded-xl p-4 border">
+        <p className="text-lg font-semibold">Trip: {reflectionData.tripName}</p>
+        <p className="text-sm text-gray-500 mb-4">Completed on: {new Date(reflectionData.completedDate).toLocaleDateString()}</p>
+
+        {reflectionData.reflections.map((ref, i) => (
+          <div key={i} className="mb-6 border-t pt-4">
+            <h3 className="text-lg font-bold">Day {ref.dayIndex + 1}</h3>
+            <p className="text-gray-700 italic mb-1">"{ref.summary}"</p>
+            <p className="text-sm text-gray-600 mb-1">
+              <span className="font-semibold">Mood:</span> {ref.moodTag}
+            </p>
+            <p className="text-gray-800 whitespace-pre-wrap">{ref.journalText}</p>
+          </div>
+        ))}
       </div>
-
-      <div>
-        <label className="block font-medium mb-1">Favorite memory</label>
-        <textarea
-          className="w-full p-3 border rounded resize-none"
-          rows={3}
-          value={memory}
-          onChange={(e) => setMemory(e.target.value)}
-          placeholder="The best part of the trip was..."
-        />
-      </div>
-
-      <div>
-        <label className="block font-medium mb-1">Anything you’d do differently?</label>
-        <textarea
-          className="w-full p-3 border rounded resize-none"
-          rows={3}
-          value={delta}
-          onChange={(e) => setDelta(e.target.value)}
-          placeholder="Next time, I’d probably..."
-        />
-      </div>
-
-      <button
-        onClick={handleSubmit}
-        disabled={saving}
-        className="bg-green-600 text-white px-6 py-2 rounded-xl hover:bg-green-700"
-      >
-        {saving ? "Saving..." : "Save Reflection"}
-      </button>
     </div>
   );
 }

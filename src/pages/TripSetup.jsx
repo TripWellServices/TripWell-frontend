@@ -15,23 +15,27 @@ export default function TripSetup() {
     const hydrate = async () => {
       const firebaseUser = auth.currentUser;
       if (!firebaseUser) {
-        navigate("/signup"); // 🔁 No auth, redirect to ProfileSetup
+        navigate("/access"); // 👈 redirect if not logged in
         return;
       }
 
-      const token = await firebaseUser.getIdToken(true);
+      try {
+        const token = await firebaseUser.getIdToken(true);
+        const res = await fetch("https://gofastbackend.onrender.com/tripwell/whoami", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-      const res = await fetch("https://gofastbackend.onrender.com/tripwell/whoami", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+        const { user } = await res.json();
+        if (!user || !user._id) {
+          navigate("/signup"); // 👈 not a TripWell user yet
+          return;
+        }
 
-      const { user } = await res.json();
-      if (!user || !user._id) {
-        navigate("/signup");
-        return;
+        setUser(user);
+      } catch (err) {
+        console.error("Failed to hydrate user:", err);
+        navigate("/access");
       }
-
-      setUser(user);
     };
 
     hydrate();
@@ -59,6 +63,7 @@ export default function TripSetup() {
       const { trip } = await res.json();
       if (!trip || !trip._id) throw new Error("Trip creation failed");
 
+      // 🔁 Redirect to next step (trip intent)
       navigate(`/tripwell/${trip._id}/intent`);
     } catch (err) {
       console.error("❌ Trip setup failed", err);

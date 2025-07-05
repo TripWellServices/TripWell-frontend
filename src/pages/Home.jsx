@@ -1,74 +1,69 @@
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import {
+  PlaneTakeoff,
+  Users,
+  CalendarCheck2,
+  NotebookPen,
+  UserCircle,
+  Info,
+} from "lucide-react";
 
-export default function Home() {
+export default function TripWellHome() {
   const navigate = useNavigate();
 
+  const navItems = [
+    {
+      icon: <PlaneTakeoff className="w-5 h-5 mr-2" />,
+      label: "Plan a Trip",
+      route: "/tripwell/tripsetup",
+    },
+    {
+      icon: <Users className="w-5 h-5 mr-2" />,
+      label: "Join a Trip",
+      route: "/tripwell/join",
+    },
+    {
+      icon: <CalendarCheck2 className="w-5 h-5 mr-2" />,
+      label: "Do My Trip",
+      route: "/tripwell/tripliveday",
+    },
+    {
+      icon: <NotebookPen className="w-5 h-5 mr-2" />,
+      label: "See My Trip Reflection",
+      route: "/tripwell/reflections/last",
+    },
+    {
+      icon: <UserCircle className="w-5 h-5 mr-2" />,
+      label: "Update My Profile",
+      route: "/tripwell/profile",
+    },
+    {
+      icon: <Info className="w-5 h-5 mr-2" />,
+      label: "What is TripWell?",
+      route: "/tripwell/about",
+    },
+  ];
+
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center px-6 bg-white gap-4 text-center">
-      <h1 className="text-3xl font-bold text-green-600 mt-2">TripWell</h1>
+    <div className="max-w-2xl mx-auto p-6 space-y-8">
+      <h1 className="text-3xl font-bold text-center">
+        Travel isn’t just about going — it’s about remembering.
+        <br />
+        <span className="text-blue-600">Welcome to TripWell.</span>
+      </h1>
 
-      <p className="text-gray-600 max-w-md mt-2">
-        Plan the kind of trip that makes memories — not stress. TripWell helps you shape each day around what matters most to you.
-      </p>
-
-      <div className="flex flex-col gap-3 mt-8 w-full max-w-xs">
-
-        {/* Navigates directly to trip planner — auth check happens *there* */}
-        <button
-          onClick={() => navigate("/trip-planner")}
-          className="bg-green-500 hover:bg-green-600 text-white py-2 rounded shadow"
-        >
-          ✍️ Create a New Trip
-        </button>
-
-        {/* MVP2 shared trip logic */}
-        <button
-          onClick={() => navigate("/join-trip")}
-          className="bg-blue-500 hover:bg-blue-600 text-white py-2 rounded shadow"
-        >
-          🧳 Join a Trip
-        </button>
-
-        {/* Plan trip using whoami behind the scenes */}
-        <button
-          onClick={() => navigate("/smartplanner")}
-          className="bg-purple-600 hover:bg-purple-700 text-white py-2 rounded shadow"
-        >
-          🗺️ Plan My Trip
-        </button>
-
-        {/* Modify flow */}
-        <button
-          onClick={() => navigate("/trip-modifier")}
-          className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded shadow"
-        >
-          🛠️ Edit My Trip
-        </button>
-
-        {/* Live experience */}
-        <button
-          onClick={() => navigate("/tripliveday")}
-          className="bg-pink-500 hover:bg-pink-600 text-white py-2 rounded shadow"
-        >
-          🌞 Live My Trip
-        </button>
-
-        {/* Reflection + journaling */}
-        <button
-          onClick={() => navigate("/trip-journal")}
-          className="bg-indigo-500 hover:bg-indigo-600 text-white py-2 rounded shadow"
-        >
-          📓 Trip Journal
-        </button>
-
-        {/* Info page */}
-        <button
-          onClick={() => navigate("/explainer")}
-          className="bg-gray-100 hover:bg-gray-200 py-2 rounded shadow"
-        >
-          🧠 What is TripWell?
-        </button>
-
+      <div className="grid gap-4">
+        {navItems.map((item) => (
+          <Button
+            key={item.label}
+            onClick={() => navigate(item.route)}
+            className="w-full flex items-center justify-start px-4 py-3 text-lg rounded-xl shadow-md"
+          >
+            {item.icon}
+            {item.label}
+          </Button>
+        ))}
       </div>
     </div>
   );

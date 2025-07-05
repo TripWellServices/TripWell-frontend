@@ -1,68 +1,56 @@
-// src/pages/TripJoin.jsx
-
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAuth } from "firebase/auth";
 import axios from "axios";
 
 export default function TripJoin() {
-  const navigate = useNavigate();
   const [joinCode, setJoinCode] = useState("");
+  const [tripData, setTripData] = useState(null); // ← holds tripId, tripName, etc.
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");  // Clear previous errors
-    setLoading(true);  // Start loading
-
-    const auth = getAuth();
-    const user = auth.currentUser;
-
-    // Check if user is logged in
-    if (!user) {
-      setError("You must be logged in to join a trip.");
-      setLoading(false);  // Stop loading
-      return;
-    }
+    setError("");
+    setLoading(true);
 
     try {
-      const idToken = await user.getIdToken();
-      const firebaseId = user.uid;
+      const res = await axios.post("/tripwell/validatejoincode", {
+        code: joinCode.trim(),
+      });
 
-      // Step 1: Join the trip using join code
-      const res = await axios.post(
-        "/api/trips/join",
-        { joinCode, userId: firebaseId },
+      const { tripId, tripName } = res.data;
+      setTripData({ tripId, tripName, joinCode: joinCode.trim() });
+    } catch (err) {
+      console.error("❌ Join code validation error:", err);
+      setError("Trip not found. Please check with your travel companions.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConfirmJoin = async () => {
+    try {
+      const user = window?.firebase?.auth()?.currentUser;
+      if (!user) throw new Error("User not signed in.");
+
+      const idToken = await user.getIdToken();
+
+      await axios.post(
+        "/tripwell/participantuser/create",
+        { joinCode: tripData.joinCode },
         {
           headers: {
-            Authorization: `Bearer ${idToken}`
-          }
+            Authorization: `Bearer ${idToken}`,
+          },
         }
       );
 
-      if (res.status !== 200 || !res.data.tripId) {
-        setError("Failed to join the trip.");
-        setLoading(false);  // Stop loading
-        return;
-      }
-
-      const tripId = res.data.tripId;
-
-      // ✅ Step 2: Update user with tripId
-      await axios.post("/api/usertrip/set", { tripId }, {
-        headers: {
-          Authorization: `Bearer ${idToken}`
-        }
-      });
-
-      // ✅ Step 3: Go to TripWellHub
-      navigate(`/trip/${tripId}`);
+      // Optionally redirect to profile setup
+      navigate("/tripwell/profilesetup");
     } catch (err) {
-      console.error(err);
-      setError("Trip not found or failed to join.");
-    } finally {
-      setLoading(false);  // Stop loading
+      console.error("❌ Error joining trip:", err);
+      alert("Could not join trip. Try signing in again.");
     }
   };
 
@@ -70,34 +58,50 @@ export default function TripJoin() {
     <div className="max-w-md mx-auto p-6">
       <h2 className="text-2xl font-bold text-center mb-4">Join a Trip</h2>
 
-      {error && <p className="text-red-500 text-center">{error}</p>}
+      {error && <p className="text-red-500 text-center mb-2">{error}</p>}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="joinCode" className="block text-sm font-medium">Join Code</label>
-          <input
-            id="joinCode"
-            type="text"
-            value={joinCode}
-            onChange={(e) => setJoinCode(e.target.value)}
-            required
-            className="w-full p-2 border border-gray-300 rounded-md"
-            placeholder="Enter your trip's join code"
-          />
+      {!tripData && (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="joinCode" className="block text-sm font-medium">
+              Join Code
+            </label>
+            <input
+              id="joinCode"
+              type="text"
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value)}
+              required
+              className="w-full p-2 border border-gray-300 rounded-md"
+              placeholder="Enter your trip's join code"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full py-2 rounded-lg ${
+              loading ? "bg-gray-400" : "bg-blue-600 text-white hover:bg-blue-700"
+            }`}
+          >
+            {loading ? "Checking..." : "Join Trip"}
+          </button>
+        </form>
+      )}
+
+      {tripData && (
+        <div className="mt-6 space-y-4 text-center">
+          <p className="text-lg font-medium">
+            You’re about to join: <span className="font-bold">{tripData.tripName}</span>
+          </p>
+          <button
+            onClick={handleConfirmJoin}
+            className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
+          >
+            ✅ Confirm and Join Trip
+          </button>
         </div>
-
-        <button
-          type="submit"
-          className={`w-full py-2 rounded-lg ${loading ? "bg-gray-400" : "bg-blue-600 text-white"} ${loading ? "cursor-not-allowed" : "hover:bg-blue-700"}`}
-          disabled={loading}
-        >
-          {loading ? "Joining..." : "Join Trip"}
-        </button>
-      </form>
-
-      <p className="text-center text-sm mt-4">
-        <a href="/hub" className="text-blue-600">Back to the Hub</a>
-      </p>
+      )}
     </div>
   );
 }

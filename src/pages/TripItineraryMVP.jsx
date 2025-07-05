@@ -12,14 +12,25 @@ export default function TripItineraryMVP() {
   const [readyToGenerate, setReadyToGenerate] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
-    async function checkTripAndAnchors() {
+    async function checkTripAndUser() {
       try {
         const whoami = await axios.get("/tripwell/whoami");
-        const id = whoami.data.tripId;
-        if (!id) {
+        const id = whoami.data.user?.tripId;
+        const role = whoami.data.user?.role;
+        setUserRole(role);
+
+        // 🧼 Not logged in or no trip
+        if (!id || id !== tripId) {
           navigate("/trip-setup");
+          return;
+        }
+
+        if (role === "participant") {
+          // 👥 Send to readonly or explainer
+          navigate(`/tripwell/itinerary/participant/${tripId}`);
           return;
         }
 
@@ -38,8 +49,8 @@ export default function TripItineraryMVP() {
       }
     }
 
-    checkTripAndAnchors();
-  }, [navigate]);
+    checkTripAndUser();
+  }, [navigate, tripId]);
 
   async function handleGenerate() {
     try {
@@ -71,7 +82,7 @@ export default function TripItineraryMVP() {
     navigate(`/tripwell/daymodifier/${tripId}`);
   }
 
-  if (loading) return <div className="p-4 text-center animate-pulse">Checking for your itinerary... blip blip...</div>;
+  if (loading) return <div className="p-4 text-center animate-pulse">Checking your role and setup…</div>;
   if (error) return <div className="p-4 text-red-500 text-center">{error}</div>;
 
   return (
