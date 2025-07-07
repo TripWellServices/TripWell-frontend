@@ -3,9 +3,9 @@ import { Button } from "@/components/ui/button";
 import {
   PlaneTakeoff,
   Users,
-  CalendarCheck2,
+  Hammer,
+  CalendarDays,
   NotebookPen,
-  UserCircle,
   Info,
 } from "lucide-react";
 
@@ -15,7 +15,7 @@ export default function TripWellHome() {
   const navItems = [
     {
       icon: <PlaneTakeoff className="w-5 h-5 mr-2" />,
-      label: "Plan a Trip",
+      label: "Create a Trip",
       route: "/tripwell/tripsetup",
     },
     {
@@ -24,24 +24,24 @@ export default function TripWellHome() {
       route: "/tripwell/join",
     },
     {
-      icon: <CalendarCheck2 className="w-5 h-5 mr-2" />,
-      label: "Do My Trip",
-      route: "/tripwell/tripliveday",
+      icon: <Hammer className="w-5 h-5 mr-2" />,
+      label: "Build My TripWell Experience",
+      route: "/tripwell", // This routes to the Hub
+    },
+    {
+      icon: <CalendarDays className="w-5 h-5 mr-2" />,
+      label: "I'm TripWell-ing!",
+      route: "/tripwell/prelive", // Dynamic redirect based on role
     },
     {
       icon: <NotebookPen className="w-5 h-5 mr-2" />,
-      label: "See My Trip Reflection",
-      route: "/tripwell/reflections/last",
-    },
-    {
-      icon: <UserCircle className="w-5 h-5 mr-2" />,
-      label: "Update My Profile",
-      route: "/tripwell/profile",
+      label: "Trip Reflection",
+      route: "/tripwell/reflections/last", // Hydrates most recent reflections
     },
     {
       icon: <Info className="w-5 h-5 mr-2" />,
       label: "What is TripWell?",
-      route: "/tripwell/about",
+      route: "/tripwell/explainer",
     },
   ];
 
@@ -53,7 +53,15 @@ export default function TripWellHome() {
         <span className="text-blue-600">Welcome to TripWell.</span>
       </h1>
 
-      <div className="grid gap-4">
+      <p className="text-center text-gray-600">
+        If you're here for the first time, hit <strong>Create a Trip</strong>.
+        <br />
+        If you’ve got a join code, go <strong>Join a Trip</strong>.
+        <br />
+        The rest? Go TripWell.
+      </p>
+
+      <div className="grid gap-4 mt-6">
         {navItems.map((item) => (
           <Button
             key={item.label}

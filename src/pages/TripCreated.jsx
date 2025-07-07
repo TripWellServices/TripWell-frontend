@@ -1,18 +1,7 @@
-
 import { useNavigate } from "react-router-dom";
-import { getUserAndTrip } from "../services/userService";
 
-export default function TripCreated() {
-  const { trip, loading } = useTripContext();
+export default function TripCreated({ trip }) {
   const navigate = useNavigate();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-gray-500">
-        Loading your trip...
-      </div>
-    );
-  }
 
   if (!trip) {
     return (
@@ -31,40 +20,47 @@ export default function TripCreated() {
 
   return (
     <div className="max-w-xl mx-auto p-6 space-y-6">
-      <h1 className="text-3xl font-bold text-center text-green-700">Congrats — Your Trip Has Been Created</h1>
+      <h1 className="text-3xl font-bold text-center text-green-700">
+        Congrats — Your Trip Has Been Created
+      </h1>
 
       <div className="bg-white shadow rounded-lg p-4 space-y-2 border">
-        <p><strong>Trip Name:</strong> {trip.tripName}</p>
-        <p><strong>Destination:</strong> {trip.city}</p>
-        <p><strong>Dates:</strong> {new Date(trip.startDate).toLocaleDateString()} – {new Date(trip.endDate).toLocaleDateString()}</p>
-        <p><strong>Trip Code:</strong> <span className="font-mono text-blue-600">{trip.joinCode || trip._id}</span></p>
-      </div>
-
-      <div className="space-y-4 text-gray-700">
-        <h2 className="text-xl font-semibold">What Happens Next</h2>
         <p>
-          From the <strong>General Hub</strong>, select <strong>My Trips</strong>. Find your trip: <em>{trip.tripName}</em>, then choose <strong>Add Trip Details</strong> to begin planning.
+          <strong>Trip Name:</strong> {trip.tripName}
         </p>
-        <ul className="list-disc pl-5 text-sm text-gray-600">
-          <li>Add Flights</li>
-          <li>Add Lodging</li>
-          <li>Add Food</li>
-          <li>Add Attractions</li>
-        </ul>
+        <p>
+          <strong>Destination:</strong> {trip.city}
+        </p>
+        <p>
+          <strong>Dates:</strong>{" "}
+          {new Date(trip.startDate).toLocaleDateString()} –{" "}
+          {new Date(trip.endDate).toLocaleDateString()}
+        </p>
+        <p>
+          <strong>Trip Code:</strong>{" "}
+          <span className="font-mono text-blue-600">
+            {trip.joinCode || trip._id}
+          </span>
+        </p>
       </div>
 
       <div className="space-y-4 text-gray-700">
         <h2 className="text-xl font-semibold">Want to Invite Friends?</h2>
         <p>
-          Share this trip code with them: <strong className="text-blue-600">{trip.joinCode || trip._id}</strong>
+          Share this trip code with them:{" "}
+          <strong className="text-blue-600">{trip.joinCode || trip._id}</strong>
         </p>
         <p>Ask them to:</p>
         <ol className="list-decimal pl-5 text-sm text-gray-600">
           <li>Download TripWell from the App Store</li>
           <li>Select “Join a Trip”</li>
-          <li>Enter the code: <strong>{trip.joinCode || trip._id}</strong></li>
+          <li>
+            Enter the code: <strong>{trip.joinCode || trip._id}</strong>
+          </li>
         </ol>
-        <p className="text-xs italic text-gray-500">Here's a message you can copy and paste:</p>
+        <p className="text-xs italic text-gray-500">
+          Here's a message you can copy and paste:
+        </p>
         <textarea
           value={shareMessage}
           readOnly
@@ -72,26 +68,35 @@ export default function TripCreated() {
           rows={4}
         />
 
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex gap-3">
           <button
             onClick={handleCopy}
-            className="w-full sm:w-auto bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"
+            className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"
           >
             📋 Copy Message
           </button>
           <button
             onClick={() => window.open("https://tripwell.app/download", "_blank")}
-            className="w-full sm:w-auto bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300"
+            className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300"
           >
             📱 Get TripWell App
           </button>
-          <button
-            onClick={() => navigate("/general-hub")}
-            className="w-full sm:w-auto bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700"
-          >
-            👉 Go to General Hub
-          </button>
         </div>
+      </div>
+
+      {/* Nav prompt block */}
+      <div className="mt-8 space-y-4 text-center">
+        <p className="text-lg font-semibold">
+          Ready to plan the rest of your trip?
+        </p>
+        <button
+          onClick={() => navigate(`/tripwell/tripintent/${trip._id}`)}
+          className="mx-2 bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition"
+        >
+          Yes! Let’s Go
+        </button>
+
+        <p>Or come back later — just hit “Build My TripWell Experience” from home.</p>
       </div>
     </div>
   );
