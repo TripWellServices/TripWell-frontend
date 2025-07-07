@@ -26,7 +26,7 @@ export default function TripWellHome() {
     {
       icon: <Hammer className="w-5 h-5 mr-2" />,
       label: "Build My TripWell Experience",
-      route: "/tripwell", // This routes to the Hub
+      route: "/tripwell/tripwellhub", // ✅ Canonical trip planner UX
     },
     {
       icon: <CalendarDays className="w-5 h-5 mr-2" />,
