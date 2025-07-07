@@ -30,7 +30,7 @@ export default function TripNotCreated() {
         </button>
 
         <button
-          onClick={() => navigate("/tripwell/createtrip")}
+          onClick={() => navigate("/tripwell/tripsetup")}
           style={{
             padding: "12px 20px",
             fontSize: "16px",
