@@ -1,5 +1,3 @@
-// AnchorSelect.jsx
-
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -14,18 +12,38 @@ const AnchorSelect = () => {
   useEffect(() => {
     const fetchUserAndAnchors = async () => {
       try {
-        const whoami = await axios.get("/tripwell/whoami");
-        setUserId(whoami.data.userId);
+        const whoami = await axios.get("https://gofastbackend.onrender.com/tripwell/whoami", {
+          withCredentials: true,
+        });
 
-        const res = await axios.get(`/tripwell/anchorgpt/${tripId}?userId=${whoami.data.userId}`);
+        const { user, trip } = whoami.data;
+
+        // 🛑 Fallback if no trip or user
+        if (!trip || !trip._id || !user || !user._id) {
+          return navigate("/tripwell/tripnotcreated");
+        }
+
+        setUserId(user._id);
+
+        // 🧠 Fallback if tripIntent not completed
+        if (!user.tripIntentId) {
+          return navigate("/tripwell/intentrequired");
+        }
+
+        // 🎯 Fetch anchors
+        const res = await axios.get(
+          `https://gofastbackend.onrender.com/tripwell/anchorgpt/${trip._id}?userId=${user._id}`
+        );
+
         setAnchors(res.data);
       } catch (err) {
         console.error("Error fetching anchor data:", err);
+        navigate("/tripwell/tripnotcreated"); // soft fallback
       }
     };
 
     fetchUserAndAnchors();
-  }, [tripId]);
+  }, [tripId, navigate]);
 
   const toggleSelection = (title) => {
     setSelected((prev) =>
@@ -35,10 +53,13 @@ const AnchorSelect = () => {
 
   const handleSubmit = async () => {
     try {
-      await axios.post(`/tripwell/anchorselect/save/${tripId}`, {
-        userId,
-        anchorTitles: selected,
-      });
+      await axios.post(
+        `https://gofastbackend.onrender.com/tripwell/anchorselect/save/${tripId}`,
+        {
+          userId,
+          anchorTitles: selected,
+        }
+      );
       navigate(`/tripwell/itinerary/${tripId}`);
     } catch (err) {
       console.error("Error submitting anchor selections:", err);
