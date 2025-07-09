@@ -1,129 +1,62 @@
-// TripModifyDay.jsx
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
-const TripModifyDay = () => {
-  const { tripId, dayIndex } = useParams();
+export default function TripModify() {
+  const { tripId } = useParams();
   const navigate = useNavigate();
-  const [tripDay, setTripDay] = useState(null);
-  const [feedback, setFeedback] = useState("");
-  const [revisedDay, setRevisedDay] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const textareaRef = useRef(null);
+  const [days, setDays] = useState([]);
 
   useEffect(() => {
-    const fetchTripDay = async () => {
+    const fetchTripDays = async () => {
       try {
-        const res = await axios.get(`/tripwell/itinerary/day/${tripId}/${dayIndex}`);
-        setTripDay(res.data);
+        const res = await axios.get(`/tripwell/itinerary/${tripId}/days`);
+        setDays(res.data);
       } catch (err) {
-        console.error("Failed to load trip day", err);
+        console.error("Failed to load trip days", err);
       }
     };
 
-    fetchTripDay();
-  }, [tripId, dayIndex]);
+    fetchTripDays();
+  }, [tripId]);
 
-  const handleSubmit = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.post(`/tripwell/modifyday/${tripId}/${dayIndex}`, {
-        feedback,
-      });
-      setRevisedDay(res.data);
-      setLoading(false);
-    } catch (err) {
-      console.error("GPT failed to revise", err);
-      setLoading(false);
-    }
-  };
-
-  const handleSave = async () => {
-    try {
-      await axios.post(`/tripwell/itinerary/finalize/${tripId}/${dayIndex}`);
-      alert("Day saved!");
-      navigate(`/tripwell/modify`);
-    } catch (err) {
-      console.error("Save failed", err);
-      alert("Error saving. Try again.");
-    }
-  };
-
-  const handleModifyAgain = () => {
-    setFeedback("");
-    setRevisedDay(null);
-    textareaRef.current?.focus();
-  };
-
-  if (!tripDay) return <div className="p-6">Loading current day data...</div>;
+  if (!tripId) {
+    return (
+      <div className="p-6 text-center text-red-600 font-semibold">
+        🚫 Missing tripId. Please return to home.
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <h2 className="text-xl font-bold mb-4">🛠 Modify Day {parseInt(dayIndex) + 1}</h2>
+    <div className="max-w-3xl mx-auto p-6 space-y-6">
+      <h1 className="text-2xl font-bold text-center mb-4">✏️ Modify Your Trip</h1>
 
-      <div className="mb-6">
-        <p className="text-gray-700 font-semibold mb-1">Current Summary:</p>
-        <p className="text-gray-600 mb-4">{tripDay.summary}</p>
+      {days.map((day, idx) => (
+        <div
+          key={idx}
+          className="border rounded-xl p-4 shadow hover:shadow-lg transition-all"
+        >
+          <h2 className="text-lg font-semibold mb-2">Day {day.dayIndex + 1}</h2>
+          <p className="text-gray-700 italic mb-2">{day.summary}</p>
 
-        {["morning", "afternoon", "evening"].map((block) => (
-          <div key={block} className="mb-3">
-            <p className="font-semibold capitalize">{block}:</p>
-            <p className="text-gray-600 italic">{tripDay.blocks?.[block]?.title}</p>
-            <p className="text-gray-500 text-sm">{tripDay.blocks?.[block]?.desc}</p>
+          <div className="text-sm space-y-1 text-gray-600">
+            {["morning", "afternoon", "evening"].map((block) => (
+              <div key={block}>
+                <span className="font-semibold capitalize">{block}: </span>
+                {day.blocks?.[block]?.title || "–"}
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      <textarea
-        ref={textareaRef}
-        className="w-full border rounded-lg p-3 mb-4"
-        rows={4}
-        placeholder="What would you like to change about this day?"
-        value={feedback}
-        onChange={(e) => setFeedback(e.target.value)}
-      />
-
-      <button
-        onClick={handleSubmit}
-        className="bg-blue-600 text-white px-4 py-2 rounded-xl"
-        disabled={loading || !feedback.trim()}
-      >
-        {loading ? "Submitting..." : "Update My Itinerary"}
-      </button>
-
-      {revisedDay && (
-        <div className="mt-8 border-t pt-4">
-          <h3 className="text-lg font-bold mb-2">✨ Revised Itinerary Preview</h3>
-          <p className="text-gray-700 mb-2">{revisedDay.summary}</p>
-
-          {["morning", "afternoon", "evening"].map((block) => (
-            <div key={block} className="mb-3">
-              <p className="font-semibold capitalize">{block}:</p>
-              <p className="text-gray-600 italic">{revisedDay.blocks?.[block]?.title}</p>
-              <p className="text-gray-500 text-sm">{revisedDay.blocks?.[block]?.desc}</p>
-            </div>
-          ))}
-
-          <div className="flex gap-4 mt-4">
-            <button
-              onClick={handleModifyAgain}
-              className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-xl"
-            >
-              Modify Again
-            </button>
-
-            <button
-              onClick={handleSave}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl"
-            >
-              Save This Version
-            </button>
-          </div>
+          <button
+            onClick={() => navigate(`/tripwell/modifyday/${tripId}/${day.dayIndex}`)}
+            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+          >
+            ✏️ Modify This Day
+          </button>
         </div>
-      )}
+      ))}
     </div>
   );
-};
-
-export default TripModifyDay;
+}
