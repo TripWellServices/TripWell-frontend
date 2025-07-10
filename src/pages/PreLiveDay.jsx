@@ -1,14 +1,38 @@
 import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 import axios from "axios";
 
 export default function PreLiveDay() {
   const { tripId } = useParams();
   const navigate = useNavigate();
 
+  const [role, setRole] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const hydrate = async () => {
+      try {
+        const { data } = await axios.get("/tripwell/whoami");
+        setRole(data.role);
+        setLoading(false);
+      } catch (err) {
+        console.error("❌ Failed to hydrate user role", err);
+        setLoading(false);
+      }
+    };
+
+    hydrate();
+  }, []);
+
   const handleStart = async () => {
     try {
-      await axios.post(`/tripwell/starttrip/${tripId}`);
-      navigate(`/tripwell/live/${tripId}`);
+      await axios.patch(`/tripwell/starttrip/${tripId}`);
+
+      if (role === "originator") {
+        navigate(`/tripwell/live/${tripId}`);
+      } else {
+        navigate(`/tripwell/participant/live/${tripId}`);
+      }
     } catch (err) {
       console.error("❌ Failed to start trip", err);
     }
@@ -17,6 +41,8 @@ export default function PreLiveDay() {
   const handleReview = () => {
     navigate(`/tripwell/view-itinerary/${tripId}`);
   };
+
+  if (loading) return <div className="p-6 text-center">Loading your trip info...</div>;
 
   return (
     <div className="p-6 max-w-xl mx-auto text-center">
