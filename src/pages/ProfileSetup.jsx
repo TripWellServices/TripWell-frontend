@@ -59,7 +59,8 @@ export default function ProfileSetup() {
 
       if (!res.ok) throw new Error("Profile update failed");
 
-      navigate("/"); // ✅ Return to homepage
+      // ✅ Canonical TripWell redirect: straight into trip creation
+      navigate("/tripwell/tripsetup");
     } catch (err) {
       console.error("❌ Failed to save profile:", err);
       alert("Could not save profile.");
@@ -120,7 +121,7 @@ export default function ProfileSetup() {
         onClick={handleSubmit}
         className="bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition"
       >
-        Save Profile
+        Save and Start Planning
       </button>
     </div>
   );

@@ -10,12 +10,24 @@ export default function TripSetup() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [joinCode, setJoinCode] = useState("");
+  const [partyCount, setPartyCount] = useState(1);
+  const [whoWith, setWhoWith] = useState([]);
+
+  const WHO_OPTIONS = [
+    { label: "Spouse / Partner", value: "spouse" },
+    { label: "Kids", value: "kids" },
+    { label: "Friends", value: "friends" },
+    { label: "Parents / Elders", value: "parents" },
+    { label: "Multigenerational", value: "multigen" },
+    { label: "Solo", value: "solo" },
+    { label: "Other", value: "other" },
+  ];
 
   useEffect(() => {
     const hydrate = async () => {
       const firebaseUser = auth.currentUser;
       if (!firebaseUser) {
-        navigate("/access"); // 👈 redirect if not logged in
+        navigate("/access");
         return;
       }
 
@@ -27,7 +39,7 @@ export default function TripSetup() {
 
         const { user } = await res.json();
         if (!user || !user._id) {
-          navigate("/signup"); // 👈 not a TripWell user yet
+          navigate("/signup");
           return;
         }
 
@@ -57,14 +69,15 @@ export default function TripSetup() {
           startDate,
           endDate,
           joinCode,
+          whoWith,
+          partyCount,
         }),
       });
 
-      const { trip } = await res.json();
-      if (!trip || !trip._id) throw new Error("Trip creation failed");
+      const { tripId } = await res.json();
+      if (!tripId) throw new Error("Trip creation failed");
 
-      // 🔁 Redirect to next step (trip intent)
-      navigate(`/tripwell/${trip._id}/intent`);
+      navigate(`/tripwell/${tripId}/intent`);
     } catch (err) {
       console.error("❌ Trip setup failed", err);
       alert("Could not save your trip. Try again.");
@@ -105,6 +118,38 @@ export default function TripSetup() {
         placeholder="Join Code (optional)"
         className="w-full p-3 border rounded"
       />
+
+      <div className="space-y-2">
+        <label className="font-semibold">Party Count</label>
+        <input
+          type="number"
+          min={1}
+          value={partyCount}
+          onChange={(e) => setPartyCount(parseInt(e.target.value))}
+          className="w-full p-3 border rounded"
+        />
+      </div>
+
+      <fieldset className="space-y-2">
+        <legend className="font-semibold">Who are you traveling with?</legend>
+        {WHO_OPTIONS.map((opt) => (
+          <label key={opt.value} className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              value={opt.value}
+              checked={whoWith.includes(opt.value)}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setWhoWith([...whoWith, opt.value]);
+                } else {
+                  setWhoWith(whoWith.filter((w) => w !== opt.value));
+                }
+              }}
+            />
+            <span>{opt.label}</span>
+          </label>
+        ))}
+      </fieldset>
 
       <button
         onClick={handleSubmit}
