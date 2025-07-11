@@ -2,48 +2,54 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const AnchorSelect = () => {
+export default function AnchorSelect() {
   const { tripId } = useParams();
-  const [userId, setUserId] = useState(null);
-  const [anchors, setAnchors] = useState([]);
-  const [selected, setSelected] = useState([]);
   const navigate = useNavigate();
 
+  const [user, setUser] = useState(null);
+  const [tripStatus, setTripStatus] = useState(null);
+  const [anchors, setAnchors] = useState([]);
+  const [selected, setSelected] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    const fetchUserAndAnchors = async () => {
-      try {
-        const whoami = await axios.get("https://gofastbackend.onrender.com/tripwell/whoami", {
-          withCredentials: true,
-        });
+    hydratePage();
+  }, [tripId]);
 
-        const { user, trip } = whoami.data;
+  const hydratePage = async () => {
+    try {
+      const whoRes = await axios.get("/tripwell/whoami", { withCredentials: true });
+      const statusRes = await axios.get("/tripwell/tripstatus", { withCredentials: true });
 
-        // 🛑 Fallback if no trip or user
-        if (!trip || !trip._id || !user || !user._id) {
-          return navigate("/tripwell/tripnotcreated");
-        }
+      const user = whoRes.data.user;
+      const status = statusRes.data.tripStatus;
 
-        setUserId(user._id);
-
-        // 🧠 Fallback if tripIntent not completed
-        if (!user.tripIntentId) {
-          return navigate("/tripwell/intentrequired");
-        }
-
-        // 🎯 Fetch anchors
-        const res = await axios.get(
-          `https://gofastbackend.onrender.com/tripwell/anchorgpt/${trip._id}?userId=${user._id}`
-        );
-
-        setAnchors(res.data);
-      } catch (err) {
-        console.error("Error fetching anchor data:", err);
-        navigate("/tripwell/tripnotcreated"); // soft fallback
+      if (!status.tripId || !user || user.role !== "originator") {
+        return navigate("/tripwell/tripitineraryrequired");
       }
-    };
 
-    fetchUserAndAnchors();
-  }, [tripId, navigate]);
+      if (!status.intentExists) {
+        return navigate("/tripwell/tripintentrequired");
+      }
+
+      setUser(user);
+      setTripStatus(status);
+
+      // 💡 Try to hydrate saved selections (if any)
+      const anchorLogicRes = await axios.get(`/tripwell/anchorlogic/${status.tripId}`);
+      if (anchorLogicRes.data?.anchorTitles) {
+        setSelected(anchorLogicRes.data.anchorTitles);
+      }
+
+      // 🎯 Fetch anchor options
+      const anchorGPTRes = await axios.get(`/tripwell/anchorgpt/${status.tripId}?userId=${user._id}`);
+      setAnchors(anchorGPTRes.data);
+      setLoading(false);
+    } catch (err) {
+      console.error("❌ Anchor Select Load Error", err);
+      navigate("/tripwell/tripitineraryrequired");
+    }
+  };
 
   const toggleSelection = (title) => {
     setSelected((prev) =>
@@ -54,17 +60,20 @@ const AnchorSelect = () => {
   const handleSubmit = async () => {
     try {
       await axios.post(
-        `https://gofastbackend.onrender.com/tripwell/anchorselect/save/${tripId}`,
+        `/tripwell/anchorselect/save/${tripId}`,
         {
-          userId,
+          userId: user._id,
           anchorTitles: selected,
-        }
+        },
+        { withCredentials: true }
       );
       navigate(`/tripwell/itinerary/${tripId}`);
     } catch (err) {
-      console.error("Error submitting anchor selections:", err);
+      console.error("❌ Submit Anchor Logic Failed", err);
     }
   };
+
+  if (loading) return <div className="p-6">Loading anchors...</div>;
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
@@ -100,6 +109,4 @@ const AnchorSelect = () => {
       </button>
     </div>
   );
-};
-
-export default AnchorSelect;
+}
