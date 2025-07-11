@@ -35,13 +35,12 @@ export default function AnchorSelect() {
       setUser(user);
       setTripStatus(status);
 
-      // 💡 Try to hydrate saved selections (if any)
+      // Hydrate saved selections (if any)
       const anchorLogicRes = await axios.get(`/tripwell/anchorlogic/${status.tripId}`);
       if (anchorLogicRes.data?.anchorTitles) {
         setSelected(anchorLogicRes.data.anchorTitles);
       }
 
-      // 🎯 Fetch anchor options
       const anchorGPTRes = await axios.get(`/tripwell/anchorgpt/${status.tripId}?userId=${user._id}`);
       setAnchors(anchorGPTRes.data);
       setLoading(false);
@@ -79,28 +78,44 @@ export default function AnchorSelect() {
     <div className="p-6 max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Pick Your Anchors 🧭</h1>
       <p className="mb-6">
-        These are curated experience ideas based on your trip. Tap the ones that speak to you.
+        These are curated experience ideas based on your trip. Check the ones that speak to you.
         Think of them as the main characters of your journey.
       </p>
+
       <div className="space-y-4">
         {anchors.map((anchor, idx) => (
           <div
             key={idx}
-            className={`border rounded-xl p-4 cursor-pointer transition-all duration-200 ${
-              selected.includes(anchor.title)
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-300"
-            }`}
-            onClick={() => toggleSelection(anchor.title)}
+            className="border rounded-xl p-4 transition-all duration-200 bg-white"
           >
-            <div className="text-lg font-semibold flex items-center justify-between">
-              <span>{anchor.title}</span>
-              <span className="text-2xl">{selected.includes(anchor.title) ? "✅" : "🤔"}</span>
+            <div className="text-lg font-semibold mb-2">{anchor.title}</div>
+            <p className="text-sm text-gray-600 mb-4">{anchor.description}</p>
+
+            <div className="flex items-center gap-6">
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={selected.includes(anchor.title)}
+                  onChange={() => toggleSelection(anchor.title)}
+                  className="w-5 h-5 text-blue-600 border-gray-300 rounded"
+                />
+                <span>❤️ Love this!</span>
+              </label>
+
+              <label className="flex items-center space-x-2 text-gray-400">
+                <input
+                  type="checkbox"
+                  checked={!selected.includes(anchor.title)}
+                  disabled
+                  className="w-5 h-5 border-gray-300 rounded"
+                />
+                <span>⭕ Not a Fan</span>
+              </label>
             </div>
-            <p className="text-sm text-gray-600 mt-1">{anchor.description}</p>
           </div>
         ))}
       </div>
+
       <button
         onClick={handleSubmit}
         className="mt-6 w-full bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition-all"
