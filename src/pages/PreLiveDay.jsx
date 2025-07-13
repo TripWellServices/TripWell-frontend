@@ -1,5 +1,5 @@
-import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 export default function PreLiveDay() {
@@ -7,32 +7,50 @@ export default function PreLiveDay() {
   const navigate = useNavigate();
 
   const [role, setRole] = useState(null);
+  const [tripStarted, setTripStarted] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const hydrate = async () => {
       try {
-        const { data } = await axios.get("/tripwell/whoami");
-        setRole(data.role);
-        setLoading(false);
+        const whoamiRes = await axios.get("/tripwell/whoami");
+        const tripStatusRes = await axios.get("/tripwell/tripstatus");
+
+        const role = whoamiRes.data.role;
+        const status = tripStatusRes.data;
+
+        setRole(role);
+
+        const alreadyStarted =
+          (role === "originator" && status.tripStartedByOriginator) ||
+          (role === "participant" && status.tripStartedByParticipant);
+
+        if (alreadyStarted) {
+          const path =
+            role === "originator"
+              ? `/tripwell/live/${tripId}`
+              : `/tripwell/participant/live/${tripId}`;
+          navigate(path);
+        } else {
+          setTripStarted(false);
+          setLoading(false);
+        }
       } catch (err) {
-        console.error("❌ Failed to hydrate user role", err);
+        console.error("❌ Failed to hydrate trip info", err);
         setLoading(false);
       }
     };
 
     hydrate();
-  }, []);
+  }, [tripId, navigate]);
 
   const handleStart = async () => {
     try {
       await axios.patch(`/tripwell/starttrip/${tripId}`);
-
-      if (role === "originator") {
-        navigate(`/tripwell/live/${tripId}`);
-      } else {
-        navigate(`/tripwell/participant/live/${tripId}`);
-      }
+      const target = role === "originator"
+        ? `/tripwell/live/${tripId}`
+        : `/tripwell/participant/live/${tripId}`;
+      navigate(target);
     } catch (err) {
       console.error("❌ Failed to start trip", err);
     }
@@ -42,7 +60,9 @@ export default function PreLiveDay() {
     navigate(`/tripwell/view-itinerary/${tripId}`);
   };
 
-  if (loading) return <div className="p-6 text-center">Loading your trip info...</div>;
+  if (loading) {
+    return <div className="p-6 text-center">Loading your trip info...</div>;
+  }
 
   return (
     <div className="p-6 max-w-xl mx-auto text-center">
