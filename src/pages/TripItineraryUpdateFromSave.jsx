@@ -9,7 +9,7 @@ export default function TripItineraryUpdateFromSave() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    async function fetchDays() {
+    async function fetchItinerary() {
       try {
         const statusRes = await axios.get("/tripwell/tripstatus");
         const { tripId } = statusRes.data;
@@ -20,68 +20,70 @@ export default function TripItineraryUpdateFromSave() {
         }
 
         const res = await axios.get(`/tripwell/itinerary/days/${tripId}`);
-        setDays(res.data || []);
+        const tripDays = res.data;
+
+        if (!tripDays || tripDays.length === 0) {
+          navigate("/tripwell/prepbuild");
+          return;
+        }
+
+        setDays(tripDays);
       } catch (err) {
-        console.error("Failed to fetch saved itinerary:", err);
+        console.error("Itinerary load error:", err);
         setError("Could not load your saved itinerary.");
       } finally {
         setLoading(false);
       }
     }
 
-    fetchDays();
+    fetchItinerary();
   }, [navigate]);
 
-  if (loading) return <p className="p-4">Loading itinerary...</p>;
-  if (error) return <p className="p-4 text-red-500">{error}</p>;
+  if (loading) return <div className="p-6 text-center">Loading your itinerary...</div>;
+  if (error) return <div className="p-6 text-center text-red-500">{error}</div>;
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold mb-2">Your Saved Itinerary</h2>
-      <p className="mb-4 text-sm text-gray-600">
-        Review your generated itinerary below. Want to make changes? You can edit any day.
+    <div className="p-6 max-w-3xl mx-auto space-y-6">
+      <h1 className="text-2xl font-bold">Your Trip — Built for Experience</h1>
+      <p className="text-gray-600 text-sm">
+        This is your saved itinerary. Review the days below or modify your trip as needed.
       </p>
 
       <div className="space-y-4">
         {days.map((day) => (
           <div key={day.dayIndex} className="border rounded-xl p-4 shadow">
-            <h3 className="font-semibold mb-1">Day {day.dayIndex}</h3>
-            <p className="italic mb-2">{day.summary}</p>
+            <h2 className="font-semibold mb-2">Day {day.dayIndex}</h2>
+            <p className="italic text-sm mb-2">{day.summary}</p>
 
             {["morning", "afternoon", "evening"].map((part) => {
               const block = day.blocks?.[part];
               return block ? (
-                <div key={part} className="mb-2">
-                  <strong className="capitalize">{part}:</strong>{" "}
-                  <span>{block.title}</span>
+                <div key={part} className="mb-1">
+                  <strong className="capitalize">{part}:</strong> {block.title}
                 </div>
               ) : null;
             })}
-
-            <button
-              onClick={() => {
-                localStorage.setItem("modifyDayIndex", day.dayIndex);
-                navigate("/tripwell/modify/day");
-              }}
-              className="mt-2 text-sm text-blue-600 underline"
-            >
-              Modify this day
-            </button>
           </div>
         ))}
       </div>
 
-      <div className="mt-8 flex flex-col gap-2">
+      <div className="mt-10 flex flex-col gap-3">
         <button
-          className="bg-green-600 text-white rounded-lg px-4 py-2"
+          onClick={() => navigate("/tripwell/itinerary/modify")}
+          className="bg-yellow-500 text-white px-5 py-2 rounded-lg hover:bg-yellow-600"
+        >
+          🛠 Modify My Itinerary
+        </button>
+
+        <button
           onClick={() => navigate("/tripwell/home")}
+          className="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700"
         >
           ✅ Return Home
         </button>
 
-        <p className="text-xs text-gray-500 text-center">
-          To begin your trip, go to the Home page and click{" "}
-          <strong>“Start My Trip”</strong>.
+        <p className="text-center text-xs text-gray-500">
+          To begin your trip, go to <strong>Home</strong> and click <em>“Start My Trip”</em>.
         </p>
       </div>
     </div>

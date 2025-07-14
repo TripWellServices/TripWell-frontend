@@ -21,9 +21,9 @@ export default function TripPreBuild() {
 
         setTripId(tripId);
 
-        // Soft-forward if already done
+        // ✅ Canonical fall-forward: all steps complete → go to saved itinerary
         if (intentExists && anchorsExist && daysExist) {
-          navigate("/itinerarybuild");
+          navigate("/itinerary/update");
           return;
         }
 
