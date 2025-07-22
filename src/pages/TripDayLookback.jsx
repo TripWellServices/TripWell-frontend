@@ -3,9 +3,11 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 export default function TripDayLookback() {
+  const [userId, setUserId] = useState(null);
   const [tripId, setTripId] = useState(null);
   const [dayIndex, setDayIndex] = useState(null);
   const [tripComplete, setTripComplete] = useState(false);
+  const [city, setCity] = useState("");
   const [moodTag, setMoodTag] = useState("");
   const [journalText, setJournalText] = useState("");
   const navigate = useNavigate();
@@ -25,14 +27,18 @@ export default function TripDayLookback() {
   useEffect(() => {
     const hydrate = async () => {
       try {
-        const res = await axios.get("/tripwell/livestatus");
-        const { tripId, lastCompletedDayIndex, tripComplete } = res.data;
+        const whoRes = await axios.get("/tripwell/whoami");
+        setUserId(whoRes.data.userId);
+
+        const tripStatus = await axios.get(`/tripwell/lookback/${whoRes.data.userId}`);
+        const { tripId, dayIndex, tripComplete, city } = tripStatus.data;
 
         setTripId(tripId);
-        setDayIndex(lastCompletedDayIndex);
+        setDayIndex(dayIndex);
         setTripComplete(tripComplete);
+        setCity(city || "your destination");
       } catch (err) {
-        console.error("Error hydrating TripDayLookback:", err);
+        console.error("Lookback hydration error:", err);
       }
     };
 
@@ -43,7 +49,7 @@ export default function TripDayLookback() {
     try {
       await axios.post(`/tripwell/reflection/${tripId}/${dayIndex}`, {
         moodTag,
-        journalText,
+        journalText
       });
 
       if (tripComplete) {
@@ -52,7 +58,7 @@ export default function TripDayLookback() {
         navigate("/previewliveday");
       }
     } catch (err) {
-      console.error("Error saving reflection:", err);
+      console.error("Reflection save failed:", err);
       alert("Could not save your reflection.");
     }
   };
@@ -60,14 +66,14 @@ export default function TripDayLookback() {
   return (
     <div className="p-6 max-w-2xl mx-auto space-y-6">
       <h1 className="text-3xl font-bold text-center text-green-700">
-        🎉 Congrats on finishing Day {dayIndex}!
+        🎉 You just finished another day in {city}!
       </h1>
       <p className="text-center text-gray-600">
-        We hope you enjoyed your day. Take a moment to reflect.
+        Take a moment to reflect on what made today special.
       </p>
 
       <div className="bg-white p-4 rounded-xl shadow space-y-4">
-        <h2 className="text-lg font-semibold">How did it feel?</h2>
+        <h2 className="text-lg font-semibold">What vibe captures today?</h2>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {moodOptions.map((mood) => (
@@ -92,13 +98,15 @@ export default function TripDayLookback() {
           ))}
         </div>
 
-        <textarea
-          value={journalText}
-          onChange={(e) => setJournalText(e.target.value)}
-          placeholder="What moments made today unforgettable?"
-          className="w-full border rounded-lg p-3"
-          rows={6}
-        />
+        <div>
+          <textarea
+            value={journalText}
+            onChange={(e) => setJournalText(e.target.value)}
+            placeholder="Write down your thoughts, highlights, or any funny moments..."
+            className="w-full border rounded-lg p-3 mt-4"
+            rows={6}
+          />
+        </div>
 
         <button
           onClick={handleSave}
