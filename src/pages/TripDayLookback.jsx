@@ -2,11 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-export default function TripDayComplete() {
-  const [userId, setUserId] = useState(null);
+export default function TripDayLookback() {
   const [tripId, setTripId] = useState(null);
   const [dayIndex, setDayIndex] = useState(null);
-  const [summary, setSummary] = useState("");
+  const [tripComplete, setTripComplete] = useState(false);
   const [moodTag, setMoodTag] = useState("");
   const [journalText, setJournalText] = useState("");
   const navigate = useNavigate();
@@ -26,16 +25,14 @@ export default function TripDayComplete() {
   useEffect(() => {
     const hydrate = async () => {
       try {
-        const who = await axios.get("/tripwell/whoami");
-        const { tripId, userId, dayIndex } = who.data;
-        setTripId(tripId);
-        setUserId(userId);
-        setDayIndex(dayIndex);
+        const res = await axios.get("/tripwell/livestatus");
+        const { tripId, lastCompletedDayIndex, tripComplete } = res.data;
 
-        const dayRes = await axios.get(`/tripwell/itinerary/day/${tripId}/${dayIndex}`);
-        setSummary(dayRes.data.summary || "");
+        setTripId(tripId);
+        setDayIndex(lastCompletedDayIndex);
+        setTripComplete(tripComplete);
       } catch (err) {
-        console.error("Hydration error in TripDayComplete:", err);
+        console.error("Error hydrating TripDayLookback:", err);
       }
     };
 
@@ -45,26 +42,32 @@ export default function TripDayComplete() {
   const handleSave = async () => {
     try {
       await axios.post(`/tripwell/reflection/${tripId}/${dayIndex}`, {
-        summary,
         moodTag,
-        journalText
+        journalText,
       });
-      navigate("/previewliveday");
+
+      if (tripComplete) {
+        navigate("/tripcomplete");
+      } else {
+        navigate("/previewliveday");
+      }
     } catch (err) {
       console.error("Error saving reflection:", err);
-      alert("Failed to save reflection. Try again.");
+      alert("Could not save your reflection.");
     }
   };
 
   return (
     <div className="p-6 max-w-2xl mx-auto space-y-6">
       <h1 className="text-3xl font-bold text-center text-green-700">
-        🎉 You completed Day {dayIndex} in style!
+        🎉 Congrats on finishing Day {dayIndex}!
       </h1>
-      <p className="text-center text-gray-600">Glad you made it through another day.</p>
+      <p className="text-center text-gray-600">
+        We hope you enjoyed your day. Take a moment to reflect.
+      </p>
 
       <div className="bg-white p-4 rounded-xl shadow space-y-4">
-        <h2 className="text-lg font-semibold">How did it go?</h2>
+        <h2 className="text-lg font-semibold">How did it feel?</h2>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {moodOptions.map((mood) => (
@@ -89,21 +92,19 @@ export default function TripDayComplete() {
           ))}
         </div>
 
-        <div>
-          <textarea
-            value={journalText}
-            onChange={(e) => setJournalText(e.target.value)}
-            placeholder="Write any thoughts or reflections that come to mind..."
-            className="w-full border rounded-lg p-3 mt-4"
-            rows={6}
-          />
-        </div>
+        <textarea
+          value={journalText}
+          onChange={(e) => setJournalText(e.target.value)}
+          placeholder="What moments made today unforgettable?"
+          className="w-full border rounded-lg p-3"
+          rows={6}
+        />
 
         <button
           onClick={handleSave}
           className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl text-lg"
         >
-          ✅ Save Reflection & Preview Tomorrow
+          ✅ Save Reflection
         </button>
       </div>
     </div>

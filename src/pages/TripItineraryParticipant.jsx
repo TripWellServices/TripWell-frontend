@@ -39,10 +39,10 @@ export default function TripItineraryParticipant() {
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
       <h1 className="text-3xl font-bold mb-2 text-center text-blue-600">
-        {trip?.tripName} — Your Trip Plan
+        ✈️ Here's Your Upcoming Trip!
       </h1>
-      <p className="text-center text-gray-500 mb-6">
-        You’re viewing this trip as a participant. Your trip organizer is managing the plan.
+      <p className="text-center text-gray-600 mb-4">
+        Your trip planner has been working behind the scenes. Take a look at what’s coming up — and don’t forget to let them know what you’re excited about (or not so much).
       </p>
 
       {tripDays.length === 0 ? (
@@ -79,6 +79,13 @@ export default function TripItineraryParticipant() {
           className="mt-4 bg-gray-200 hover:bg-gray-300 text-black px-6 py-2 rounded transition"
         >
           ⬅️ Back to Home
+        </button>
+
+        <button
+          onClick={() => navigate("/tripwell/plannerparticipanthub")}
+          className="mt-4 ml-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded transition"
+        >
+          🔁 Return to Your TripWell Planning Home
         </button>
       </div>
     </div>

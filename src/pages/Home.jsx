@@ -7,6 +7,7 @@ import {
   CalendarDays,
   NotebookPen,
   Info,
+  RefreshCcw,
 } from "lucide-react";
 
 export default function TripWellHome() {
@@ -16,32 +17,44 @@ export default function TripWellHome() {
     {
       icon: <PlaneTakeoff className="w-5 h-5 mr-2" />,
       label: "Create a Trip",
-      route: "/tripwell/tripsetup",
+      description: "Start from scratch and build your own adventure",
+      route: "/tripsetup",
     },
     {
       icon: <Users className="w-5 h-5 mr-2" />,
       label: "Join a Trip",
-      route: "/tripwell/join",
+      description: "Got a join code? Hop into someone else’s journey",
+      route: "/join",
     },
     {
       icon: <Hammer className="w-5 h-5 mr-2" />,
       label: "Build My TripWell Experience",
-      route: "/tripwell/tripwellhub", // ✅ Canonical trip planner UX
+      description: "Craft the details before you hit the road",
+      route: "/tripwellhub",
     },
     {
       icon: <CalendarDays className="w-5 h-5 mr-2" />,
       label: "I'm TripWell-ing!",
-      route: "/tripwell/prelive", // Dynamic redirect based on role
+      description: "Begin your trip now — we’ll guide the way",
+      route: "/prelive",
+    },
+    {
+      icon: <RefreshCcw className="w-5 h-5 mr-2" />,
+      label: "Resume My Trip",
+      description: "Pick up where you left off — right into the moment",
+      route: "/tripliveblock",
     },
     {
       icon: <NotebookPen className="w-5 h-5 mr-2" />,
       label: "Trip Reflection",
-      route: "/tripwell/reflections/last", // Hydrates most recent reflections
+      description: "Look back, write, and remember the moments",
+      route: "/reflections/last",
     },
     {
       icon: <Info className="w-5 h-5 mr-2" />,
       label: "What is TripWell?",
-      route: "/tripwell/explainer",
+      description: "Learn how it all works",
+      route: "/explainer",
     },
   ];
 
@@ -53,24 +66,18 @@ export default function TripWellHome() {
         <span className="text-blue-600">Welcome to TripWell.</span>
       </h1>
 
-      <p className="text-center text-gray-600">
-        If you're here for the first time, hit <strong>Create a Trip</strong>.
-        <br />
-        If you’ve got a join code, go <strong>Join a Trip</strong>.
-        <br />
-        The rest? Go TripWell.
-      </p>
-
       <div className="grid gap-4 mt-6">
         {navItems.map((item) => (
-          <Button
-            key={item.label}
-            onClick={() => navigate(item.route)}
-            className="w-full flex items-center justify-start px-4 py-3 text-lg rounded-xl shadow-md"
-          >
-            {item.icon}
-            {item.label}
-          </Button>
+          <div key={item.label}>
+            <Button
+              onClick={() => navigate(item.route)}
+              className="w-full flex items-center justify-start px-4 py-3 text-lg rounded-xl shadow-md"
+            >
+              {item.icon}
+              {item.label}
+            </Button>
+            <p className="text-sm text-gray-500 ml-2 mt-1">{item.description}</p>
+          </div>
         ))}
       </div>
     </div>

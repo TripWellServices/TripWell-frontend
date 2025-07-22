@@ -1,31 +1,29 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 export default function TripLiveDay() {
+  const { tripId } = useParams();
   const navigate = useNavigate();
 
-  const [tripId, setTripId] = useState(null);
-  const [today, setToday] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [dayData, setDayData] = useState(null);
+  const [currentBlock, setCurrentBlock] = useState(null);
+  const [currentDayIndex, setCurrentDayIndex] = useState(null);
 
   useEffect(() => {
-    const hydrateDay = async () => {
+    const hydrate = async () => {
       try {
-        const { data: status } = await axios.get("/tripwell/tripstatus");
+        const { data } = await axios.get(`/tripwell/livestatus/${tripId}`);
 
-        if (!status.tripId) {
-          console.error("❌ No tripId found in tripstatus");
+        if (data.tripComplete) {
+          navigate("/tripcomplete");
           return;
         }
 
-        setTripId(status.tripId);
-
-        const { data: dayData } = await axios.get(
-          `/tripwell/itinerary/day/${status.tripId}/1`
-        ); // Assumes Day 1 is always the live day start
-
-        setToday(dayData);
+        setCurrentDayIndex(data.currentDayIndex);
+        setCurrentBlock(data.currentBlock);
+        setDayData(data.dayData);
         setLoading(false);
       } catch (err) {
         console.error("❌ Failed to load live trip day", err);
@@ -33,23 +31,23 @@ export default function TripLiveDay() {
       }
     };
 
-    hydrateDay();
-  }, []);
+    hydrate();
+  }, [tripId, navigate]);
 
   if (loading) {
     return <div className="p-6 text-center">Loading today’s plan...</div>;
   }
 
-  if (!today) {
+  if (!dayData) {
     return <div className="p-6 text-center">Couldn’t load today’s itinerary.</div>;
   }
 
-  const { city, dateStr, dayIndex, summary, blocks } = today;
+  const { city, dateStr, summary, blocks } = dayData;
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
       <div className="text-sm text-gray-500 mb-2">
-        📍 {city} • {dateStr || "Unknown date"} • Day {dayIndex}
+        📍 {city} • {dateStr || "Unknown date"} • Day {currentDayIndex}
       </div>
 
       <h1 className="text-2xl font-bold mb-4">Here’s today’s plan — ready to begin?</h1>
@@ -67,7 +65,15 @@ export default function TripLiveDay() {
 
       <div className="text-center">
         <button
-          onClick={() => navigate(`/tripwell/live/${tripId}/morning`)}
+          onClick={() => {
+            navigate("/tripliveblock", {
+              state: {
+                blockName: currentBlock,
+                dayIndex: currentDayIndex,
+                blockData: blocks?.[currentBlock]
+              }
+            });
+          }}
           className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl text-lg"
         >
           ✅ Let’s Go

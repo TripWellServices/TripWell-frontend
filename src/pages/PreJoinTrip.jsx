@@ -1,69 +1,63 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth, provider } from "../firebase";
+import { auth } from "../firebase";
 
 export default function PreJoinTrip() {
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const checkStatus = async () => {
-      const firebaseUser = auth.currentUser;
-
-      if (firebaseUser) {
-        const token = await firebaseUser.getIdToken(true);
-        const res = await fetch("https://gofastbackend.onrender.com/tripwell/whoami", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const data = await res.json();
-        const user = data?.user;
-        const trip = data?.trip;
-
-        if (user && trip) {
-          navigate("/tripwell/alreadyjoined");
-        } else if (user && !trip) {
-          navigate("/tripwell/join");
-        } else {
-          setLoading(false);
-        }
-      } else {
-        setLoading(false);
-      }
-    };
-
-    checkStatus();
-  }, [navigate]);
-
-  const handleGoogleSignIn = async () => {
+  const handleJoinClick = async () => {
     try {
-      await auth.signInWithPopup(provider);
-      navigate("/tripwell/join");
+      const user = auth.currentUser;
+
+      // Not signed in yet? → route to access explanation
+      if (!user) {
+        navigate("/joinaccess");
+        return;
+      }
+
+      // Signed in → check user + trip
+      const token = await user.getIdToken(true);
+      const res = await fetch("https://gofastbackend.onrender.com/tripwell/whoami", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const { user: whoUser, trip } = await res.json();
+
+      if (whoUser && trip) {
+        navigate("/alreadyjoined"); // Or future /choosejoin
+      } else if (whoUser && !trip) {
+        navigate("/join");
+      } else {
+        alert("Couldn’t verify your account. Try again.");
+      }
     } catch (err) {
-      console.error("❌ Google sign-in failed", err);
-      alert("Sign-in failed. Try again.");
+      console.error("Join error:", err);
+      alert("Something went wrong. Please try again.");
     }
   };
-
-  if (loading) {
-    return <div className="p-6 text-center text-gray-600">Checking your trip status…</div>;
-  }
 
   return (
     <div className="max-w-xl mx-auto p-8 space-y-6 text-center">
       <h1 className="text-3xl font-bold text-blue-700">Join a Trip</h1>
-      <p className="text-gray-700 text-lg">
-        Sign in to get connected with your trip crew.
+      <p className="text-lg text-gray-700">
+        You’ve been invited to a TripWell experience. To continue, you’ll need to sign in
+        so we can connect you to your trip.
       </p>
-
-      <button
-        onClick={handleGoogleSignIn}
-        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl text-lg"
-      >
-        🔐 Sign In with Google
-      </button>
+      <div className="space-y-4">
+        <button
+          onClick={handleJoinClick}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl text-lg"
+        >
+          ✅ Yes, I want to join a trip
+        </button>
+        <button
+          onClick={() => navigate("/home")}
+          className="text-blue-700 underline text-sm"
+        >
+          ❌ Take me back home
+        </button>
+      </div>
     </div>
   );
 }
