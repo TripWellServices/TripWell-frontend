@@ -12,31 +12,23 @@ export default function Access() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // 🔁 Hit backend to create or find user
+      // 🔥 Canonical TripWell backend user createOrFind
       const res = await fetch("/tripwell/user/createOrFind", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firebaseUID: user.uid,
-          email: user.email,
-        }),
+        body: JSON.stringify({ firebaseUID: user.uid, email: user.email }),
       });
 
       const data = await res.json();
 
-      if (!data || !data._id) {
-        throw new Error("User creation failed");
-      }
-
-      // 🧭 Navigate based on profile completeness
-      if (!data.name) {
+      if (!data.name || data.name.trim() === "") {
         navigate("/profilesetup");
       } else {
-        navigate("/"); // ✅ Canon: always go home after login
+        navigate("/"); // Canonical post-login landing for MVP1
       }
     } catch (err) {
-      console.error("❌ Auth failed:", err);
-      alert("Authentication error. Please try again.");
+      console.error("❌ Auth failed", err);
+      alert("Authentication error — please try again.");
     }
   };
 
@@ -53,7 +45,7 @@ export default function Access() {
           onClick={handleAuth}
           className="bg-blue-600 text-white py-3 px-6 rounded hover:bg-blue-700 transition"
         >
-          🔐 Sign In
+          🔐 Sign Up
         </button>
 
         <button
