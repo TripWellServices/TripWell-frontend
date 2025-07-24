@@ -1,5 +1,6 @@
-import { useNavigate } from "react-router-dom";
 import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 export default function Access() {
   const navigate = useNavigate();
@@ -11,26 +12,31 @@ export default function Access() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // Step 1: create or find the user in backend
-      await fetch("/tripwell/user/createOrFind", {
+      // 🔁 Hit backend to create or find user
+      const res = await fetch("/tripwell/user/createOrFind", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ firebaseUID: user.uid, email: user.email }),
+        body: JSON.stringify({
+          firebaseUID: user.uid,
+          email: user.email,
+        }),
       });
 
-      // Step 2: get full profile
-      const res = await fetch("/tripwell/whoami");
       const data = await res.json();
 
-      if (!data?.user?._id || !data?.user?.name) {
-        navigate("/profilesetup");
-      } else {
-        navigate("/");
+      if (!data || !data._id) {
+        throw new Error("User creation failed");
       }
 
+      // 🧭 Navigate based on profile completeness
+      if (!data.name) {
+        navigate("/profilesetup");
+      } else {
+        navigate("/"); // ✅ Canon: always go home after login
+      }
     } catch (err) {
-      console.error("Authentication failed:", err);
-      alert("Something went wrong signing you in. Please try again.");
+      console.error("❌ Auth failed:", err);
+      alert("Authentication error. Please try again.");
     }
   };
 
@@ -50,15 +56,12 @@ export default function Access() {
           🔐 Sign In
         </button>
 
-        <p className="text-sm text-gray-500 mt-4 text-center">
-          Want to learn more?{" "}
-          <span
-            onClick={() => navigate("/explainer")}
-            className="text-blue-600 underline cursor-pointer hover:text-blue-800"
-          >
-            What is TripWell?
-          </span>
-        </p>
+        <button
+          onClick={() => navigate("/explainer")}
+          className="text-sm text-blue-600 underline hover:text-blue-800 mt-2"
+        >
+           What is TripWell?
+        </button>
       </div>
     </div>
   );
