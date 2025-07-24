@@ -1,6 +1,5 @@
-import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 
 export default function Access() {
   const navigate = useNavigate();
@@ -12,22 +11,26 @@ export default function Access() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // Optional: Call your backend to upsert user and fetch full profile
-      const res = await fetch("/tripwell/user/createOrFind", {
+      // Step 1: create or find the user in backend
+      await fetch("/tripwell/user/createOrFind", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ firebaseUID: user.uid, email: user.email }),
       });
+
+      // Step 2: get full profile
+      const res = await fetch("/tripwell/whoami");
       const data = await res.json();
 
-      // Now check if profile is incomplete
-      if (!data.name) {
+      if (!data?.user?._id || !data?.user?.name) {
         navigate("/profilesetup");
       } else {
-        navigate("/tripwellhub"); // or wherever makes sense
+        navigate("/");
       }
+
     } catch (err) {
-      console.error("Auth failed", err);
+      console.error("Authentication failed:", err);
+      alert("Something went wrong signing you in. Please try again.");
     }
   };
 
@@ -44,15 +47,18 @@ export default function Access() {
           onClick={handleAuth}
           className="bg-blue-600 text-white py-3 px-6 rounded hover:bg-blue-700 transition"
         >
-          🔐 Sign In with Google
+          🔐 Sign In
         </button>
 
-        <button
-          onClick={() => navigate("/explainer")}
-          className="text-sm text-blue-600 underline hover:text-blue-800 mt-2"
-        >
-          ❓ What is TripWell?
-        </button>
+        <p className="text-sm text-gray-500 mt-4 text-center">
+          Want to learn more?{" "}
+          <span
+            onClick={() => navigate("/explainer")}
+            className="text-blue-600 underline cursor-pointer hover:text-blue-800"
+          >
+            What is TripWell?
+          </span>
+        </p>
       </div>
     </div>
   );

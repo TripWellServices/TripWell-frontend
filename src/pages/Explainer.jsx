@@ -17,10 +17,10 @@ export default function Explainer() {
       </p>
 
       <button
-        onClick={() => navigate("/sign-in")}
+        onClick={() => navigate("/access")}
         className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition"
       >
-        🌍 Sign Up and Start Planning
+        🌍 Sign Up to Start Your TripWell Experience
       </button>
     </div>
   );

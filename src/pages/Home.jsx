@@ -10,7 +10,7 @@ import {
   RefreshCcw,
 } from "lucide-react";
 
-export default function TripWellHome() {
+export default function Home() {
   const navigate = useNavigate();
 
   const navItems = [
@@ -30,7 +30,7 @@ export default function TripWellHome() {
       icon: <Hammer className="w-5 h-5 mr-2" />,
       label: "Build My TripWell Experience",
       description: "Craft the details before you hit the road",
-      route: "/tripwellhub",
+      route: "/tripplannerlaunch",
     },
     {
       icon: <CalendarDays className="w-5 h-5 mr-2" />,
@@ -61,9 +61,7 @@ export default function TripWellHome() {
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-8">
       <h1 className="text-3xl font-bold text-center">
-        Travel isn’t just about going — it’s about remembering.
-        <br />
-        <span className="text-blue-600">Welcome to TripWell.</span>
+        Travel isn’t about going — it’s about building core memories with the ones you love.
       </h1>
 
       <div className="grid gap-4 mt-6">
