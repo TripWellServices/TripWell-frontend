@@ -21,20 +21,36 @@ export default function TripPreBuild() {
 
         setTripId(tripId);
 
-        // ✅ Canonical fall-forward: all steps complete → go to saved itinerary
-        if (intentExists && anchorsExist && daysExist) {
-          navigate("/itinerary/update");
+        // Fallbacks in canonical order:
+        if (!intentExists) {
+          navigate(`/tripintent/${tripId}`);
           return;
         }
 
-        const whoamiRes = await axios.get("/tripwell/whoami");
-        if (whoamiRes.data?.trip) {
-          setTripData(whoamiRes.data.trip);
+        if (!anchorsExist) {
+          navigate("/anchorselect");
+          return;
         }
+
+        if (!daysExist) {
+          navigate("/tripwell/itinerarybuild");
+          return;
+        }
+
+        // ✅ All steps complete → go to saved itinerary
+        navigate("/tripwell/itineraryupdate");
       } catch (err) {
-        console.error("Failed to load trip:", err);
+        console.error("❌ Failed to load trip:", err);
         navigate("/tripnotcreated");
       } finally {
+        try {
+          const whoamiRes = await axios.get("/tripwell/whoami");
+          if (whoamiRes.data?.trip) {
+            setTripData(whoamiRes.data.trip);
+          }
+        } catch (err) {
+          console.warn("⚠️ Could not hydrate user trip data.");
+        }
         setLoading(false);
       }
     }

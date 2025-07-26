@@ -9,6 +9,7 @@ export default function TripSetup() {
   const [purpose, setPurpose] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [city, setCity] = useState("");
   const [joinCode, setJoinCode] = useState("");
   const [partyCount, setPartyCount] = useState(1);
   const [whoWith, setWhoWith] = useState([]);
@@ -37,13 +38,13 @@ export default function TripSetup() {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        const { user } = await res.json();
-        if (!user || !user._id) {
-          navigate("/signup");
+        const data = await res.json();
+        if (!data?.userId) {
+          navigate("/access");
           return;
         }
 
-        setUser(user);
+        setUser(data);
       } catch (err) {
         console.error("Failed to hydrate user:", err);
         navigate("/access");
@@ -63,11 +64,12 @@ export default function TripSetup() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          userId: user._id,
+          userId: user.userId,
           tripName,
           purpose,
           startDate,
           endDate,
+          city,
           joinCode,
           whoWith,
           partyCount,
@@ -77,7 +79,7 @@ export default function TripSetup() {
       const { tripId } = await res.json();
       if (!tripId) throw new Error("Trip creation failed");
 
-      navigate(`/tripwell/${tripId}/intent`);
+      navigate("/tripcreated/" + tripId);
     } catch (err) {
       console.error("❌ Trip setup failed", err);
       alert("Could not save your trip. Try again.");
@@ -110,6 +112,12 @@ export default function TripSetup() {
         type="date"
         value={endDate}
         onChange={(e) => setEndDate(e.target.value)}
+        className="w-full p-3 border rounded"
+      />
+      <input
+        value={city}
+        onChange={(e) => setCity(e.target.value)}
+        placeholder="City or Destination"
         className="w-full p-3 border rounded"
       />
       <input

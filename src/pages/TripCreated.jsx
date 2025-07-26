@@ -10,7 +10,7 @@ export default function TripCreateSuccess() {
   useEffect(() => {
     async function fetchTrip() {
       try {
-        const res = await fetch(`/tripwell/tripcreated/${tripId}`);
+        const res = await fetch(`/tripwell/tripbase/${tripId}`); // ✅ Clean canonical route
         const data = await res.json();
         if (data?.trip) {
           setTrip(data.trip);
@@ -19,7 +19,7 @@ export default function TripCreateSuccess() {
         }
       } catch (err) {
         console.error("❌ Failed to load trip:", err);
-        navigate("/tripwell/tripitineraryrequired");
+        navigate("/tripitineraryrequired");
       } finally {
         setLoading(false);
       }
@@ -90,14 +90,14 @@ export default function TripCreateSuccess() {
         </p>
 
         <button
-          onClick={() => navigate("/tripwell/prepbuild")}
+          onClick={() => navigate("/prepbuild")}
           className="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition"
         >
           Yes! Let’s Plan It
         </button>
 
         <button
-          onClick={() => navigate("/tripwell/home")}
+          onClick={() => navigate("/")}
           className="w-full bg-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-400 transition"
         >
           🏠 Head Home
