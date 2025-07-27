@@ -17,43 +17,43 @@ export default function Home() {
     {
       icon: <PlaneTakeoff className="w-5 h-5 mr-2" />,
       label: "Create a Trip",
-      description: "Start from scratch and build your own adventure",
+      description: "Start from scratch and build something unforgettable.",
       route: "/tripsetup",
     },
     {
       icon: <Users className="w-5 h-5 mr-2" />,
       label: "Join a Trip",
-      description: "Got a join code? Hop into someone else’s journey",
+      description: "Enter a join code and sync up with your crew.",
       route: "/join",
     },
     {
       icon: <Hammer className="w-5 h-5 mr-2" />,
       label: "Build My TripWell Experience",
-      description: "Craft the details before you hit the road",
-      route: "/tripplannerlaunch",
+      description: "Plan your itinerary, edit blocks, or restart your vibe.",
+      route: "/tripplannerreturn", // ✅ canonical route
     },
     {
       icon: <CalendarDays className="w-5 h-5 mr-2" />,
-      label: "I'm TripWell-ing!",
-      description: "Begin your trip now — we’ll guide the way",
-      route: "/prelive",
+      label: "I'm TripWelling!",
+      description: "Start your adventure. We’ll guide you block by block.",
+      route: "/prelive", // ✅ launches TripLiveDay sequence
     },
     {
       icon: <RefreshCcw className="w-5 h-5 mr-2" />,
       label: "Resume My Trip",
-      description: "Pick up where you left off — right into the moment",
-      route: "/tripliveblock",
+      description: "Jump back in exactly where you left off.",
+      route: "/tripliveblock", // ✅ fallback-safe re-entry
     },
     {
       icon: <NotebookPen className="w-5 h-5 mr-2" />,
       label: "Trip Reflection",
-      description: "Look back, write, and remember the moments",
-      route: "/reflections/last",
+      description: "See what you captured, what made you laugh, and what you’ll never forget.",
+      route: "/reflections/last", // ✅ last completed trip
     },
     {
       icon: <Info className="w-5 h-5 mr-2" />,
       label: "What is TripWell?",
-      description: "Learn how it all works",
+      description: "Learn how we turn travel into lasting memories.",
       route: "/explainer",
     },
   ];

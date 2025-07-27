@@ -4,35 +4,49 @@ import { auth, provider } from "../firebase";
 export default function JoinAccess() {
   const navigate = useNavigate();
 
-  const handleGoogleAuth = async () => {
+  const handleGoogleSignIn = async () => {
     try {
       await auth.signInWithPopup(provider);
-      navigate("/join");
+      navigate("/join"); // ✅ Go straight into join flow
     } catch (err) {
-      console.error("Google auth failed", err);
+      console.error("Google sign-in failed", err);
       alert("Sign-in failed. Please try again.");
     }
   };
 
   return (
     <div className="max-w-xl mx-auto p-8 space-y-6 text-center">
-      <h1 className="text-3xl font-bold text-blue-700">Join Your Trip</h1>
+      <h1 className="text-3xl font-bold text-blue-700">Sign In to Join Your Trip</h1>
+
       <p className="text-lg text-gray-700">
-        To continue, please sign up or sign in.
+        To join your TripWell experience, please sign in with Google.
+        This helps us securely connect you to your crew and your shared itinerary.
       </p>
 
-      <div className="flex flex-col space-y-4">
+      <button
+        onClick={handleGoogleSignIn}
+        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl text-lg"
+      >
+        🔐 Sign in with Google
+      </button>
+
+      <div className="pt-4 text-sm text-gray-600 space-y-2">
+        <p>Think you’re already signed up?</p>
         <button
-          onClick={handleGoogleAuth}
-          className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl text-lg"
+          onClick={handleGoogleSignIn}
+          className="text-blue-700 underline"
         >
-          Sign Up
+          🔁 Just click here to verify
         </button>
+
+        <p className="mt-4 text-gray-500">
+          Decided you want to plan the trip instead?
+        </p>
         <button
-          onClick={handleGoogleAuth}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl text-lg"
+          onClick={() => navigate("/")}
+          className="text-blue-700 underline"
         >
-          Sign In
+          🏠 Head back home
         </button>
       </div>
     </div>

@@ -12,13 +12,13 @@ export default function PlannerParticipantHub() {
       try {
         const { user, trip } = await getUserAndTrip();
         if (!trip || !trip._id) {
-          navigate("/tripwell/tripnotcreated");
+          navigate("/tripnotcreated");
           return;
         }
         setTrip(trip);
       } catch (err) {
         console.error("❌ Failed to hydrate participant hub", err);
-        navigate("/tripwell/tripnotcreated");
+        navigate("/tripnotcreated");
       } finally {
         setLoading(false);
       }
@@ -27,39 +27,37 @@ export default function PlannerParticipantHub() {
     hydrate();
   }, [navigate]);
 
-  if (loading) return <div className="p-6 text-gray-600">Loading your trip info…</div>;
+  if (loading) {
+    return <div className="p-6 text-gray-600">Loading your trip info…</div>;
+  }
 
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
       <h1 className="text-3xl font-bold text-center text-blue-700">
-        👋 Welcome to Your TripWell Planning Hub
+        👋 Welcome to Your TripWell Hub
       </h1>
 
       <p className="text-gray-700 text-center">
         You're on this journey as a participant. Your trip organizer is building the experience — but you can explore what’s taking shape.
       </p>
 
-      <p className="text-center text-gray-500 italic">
-        When your trip begins, just hit the <strong>"I'm TripWell-ing!"</strong> button on the home screen to step into your live experience.
-      </p>
-
       <div className="mt-8 space-y-4 text-center">
         <button
-          onClick={() => navigate("/tripwell/curatedhighlights")}
+          onClick={() => navigate("/curatedhighlights")}
           className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg text-lg"
         >
-          🌟 See Curated Highlights
+          🌟 View Curated Highlights
         </button>
 
         <button
-          onClick={() => navigate("/tripwell/participantitinerary")}
+          onClick={() => navigate("/tripwell/itinerary")}
           className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg text-lg"
         >
-          📋 View Your Trip Itinerary
+          📋 View Trip Itinerary
         </button>
       </div>
 
-      <div className="mt-8 text-center">
+      <div className="mt-10 text-center">
         <button
           onClick={() => navigate("/")}
           className="text-sm text-gray-500 underline"
