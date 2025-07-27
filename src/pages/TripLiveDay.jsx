@@ -12,35 +12,31 @@ export default function TripLiveDay() {
   const [currentDayIndex, setCurrentDayIndex] = useState(null);
 
   useEffect(() => {
-    const hydrate = async () => {
+    async function hydrate() {
       try {
-        const { data } = await axios.get(`/tripwell/livestatus/${tripId}`);
+        const res = await axios.get(`/tripwell/livestatus/${tripId}`);
+        const { currentDayIndex, currentBlock, dayData, tripComplete } = res.data;
 
-        if (data.tripComplete) {
+        if (tripComplete) {
           navigate("/tripcomplete");
           return;
         }
 
-        setCurrentDayIndex(data.currentDayIndex);
-        setCurrentBlock(data.currentBlock);
-        setDayData(data.dayData);
-        setLoading(false);
+        setCurrentDayIndex(currentDayIndex);
+        setCurrentBlock(currentBlock);
+        setDayData(dayData);
       } catch (err) {
-        console.error("❌ Failed to load live trip day", err);
+        console.error("❌ Live day hydration failed:", err);
+      } finally {
         setLoading(false);
       }
-    };
+    }
 
     hydrate();
   }, [tripId, navigate]);
 
-  if (loading) {
-    return <div className="p-6 text-center">Loading today’s plan...</div>;
-  }
-
-  if (!dayData) {
-    return <div className="p-6 text-center">Couldn’t load today’s itinerary.</div>;
-  }
+  if (loading) return <div className="p-6 text-center">Loading today’s plan...</div>;
+  if (!dayData) return <div className="p-6 text-center">Couldn’t load today’s itinerary.</div>;
 
   const { city, dateStr, summary, blocks } = dayData;
 
@@ -65,15 +61,15 @@ export default function TripLiveDay() {
 
       <div className="text-center">
         <button
-          onClick={() => {
+          onClick={() =>
             navigate("/tripliveblock", {
               state: {
                 blockName: currentBlock,
                 dayIndex: currentDayIndex,
-                blockData: blocks?.[currentBlock]
-              }
-            });
-          }}
+                blockData: blocks?.[currentBlock],
+              },
+            })
+          }
           className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl text-lg"
         >
           ✅ Let’s Go

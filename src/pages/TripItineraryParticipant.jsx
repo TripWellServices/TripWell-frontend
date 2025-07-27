@@ -82,7 +82,7 @@ export default function TripItineraryParticipant() {
         </button>
 
         <button
-          onClick={() => navigate("/tripwell/plannerparticipanthub")}
+          onClick={() => navigate("/plannerparticipanthub")}
           className="mt-4 ml-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded transition"
         >
           🔁 Return to Your TripWell Planning Home

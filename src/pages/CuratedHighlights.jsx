@@ -5,34 +5,47 @@ const BACKEND_URL = "https://gofastbackend.onrender.com";
 
 export default function CuratedHighlights() {
   const [highlights, setHighlights] = useState([]);
+  const [city, setCity] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchHighlights = async () => {
+    const fetchHighlightsAndCity = async () => {
       try {
         const token = await getAuth().currentUser.getIdToken();
-        const res = await fetch(`${BACKEND_URL}/tripwell/participant/highlights`, {
+
+        // Fetch GPT highlights
+        const highlightRes = await fetch(`${BACKEND_URL}/tripwell/participant/highlights`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        const highlightData = await highlightRes.json();
+        setHighlights(highlightData || []);
 
-        const data = await res.json();
-        setHighlights(data || []);
+        // Fetch trip meta
+        const tripMetaRes = await fetch(`${BACKEND_URL}/tripwell/tripmeta`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const tripMeta = await tripMetaRes.json();
+        setCity(tripMeta.city || null);
       } catch (err) {
-        console.error("❌ Failed to fetch highlights", err);
+        console.error("❌ Failed to fetch highlights or city", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchHighlights();
+    fetchHighlightsAndCity();
   }, []);
 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
       <h1 className="text-2xl font-bold text-blue-700 text-center">✨ Curated Highlights for Your Trip</h1>
-      <p className="text-gray-600 text-center">
-        Based on your travel vibes, here are a few inspiring ideas. See something you love? Tell your trip planner!
-      </p>
+
+      {city && (
+        <p className="text-center text-gray-600">
+          Looks like you're headed to <span className="font-semibold">{city}</span>.
+          Here are 5 things you and your traveling companion(s) may want to think about.
+        </p>
+      )}
 
       {loading ? (
         <p className="text-center mt-6">Loading highlights...</p>
@@ -49,14 +62,11 @@ export default function CuratedHighlights() {
         <p className="text-center text-gray-500 mt-6">No highlights yet. Try again later.</p>
       )}
 
-      <div className="text-center mt-10">
-        <button
-          onClick={() => (window.location.href = "/tripwell/plannerparticipanthub")}
-          className="bg-gray-200 hover:bg-gray-300 text-black px-6 py-2 rounded"
-        >
-          ⬅️ Return to Your TripWell Planning Home
-        </button>
-      </div>
+      <p className="text-center text-sm text-gray-500 mt-10">
+        <a href="/plannerparticipanthub" className="text-blue-600 hover:underline">
+          ← Back to TripWell Planning Hub
+        </a>
+      </p>
     </div>
   );
 }

@@ -3,28 +3,41 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 export default function TripLiveDayBlock() {
-  const tripId = localStorage.getItem("tripId");
-  const dayIndex = Number(localStorage.getItem("dayIndex"));
-  const blockName = localStorage.getItem("liveBlock"); // "morning", "afternoon", "evening"
-
+  const navigate = useNavigate();
+  const [tripId, setTripId] = useState(null);
+  const [dayIndex, setDayIndex] = useState(null);
+  const [blockName, setBlockName] = useState(null);
   const [blockData, setBlockData] = useState(null);
   const [feedback, setFeedback] = useState("");
   const [ask, setAsk] = useState("");
   const [answer, setAnswer] = useState("");
-  const navigate = useNavigate();
 
   useEffect(() => {
-    const hydrate = async () => {
+    const hydrateLiveStatus = async () => {
       try {
-        const res = await axios.get(`/tripwell/itinerary/day/${tripId}/${dayIndex}`);
-        const block = res.data?.blocks?.[blockName];
+        const res = await axios.get(`/tripwell/livestatus`);
+        const { tripId, dayIndex, blockInProgress } = res.data;
+        if (!tripId || dayIndex == null || !blockInProgress) {
+          navigate("/access");
+          return;
+        }
+
+        setTripId(tripId);
+        setDayIndex(dayIndex);
+        setBlockName(blockInProgress);
+
+        // hydrate itinerary block data
+        const itinRes = await axios.get(`/tripwell/itinerary/day/${tripId}/${dayIndex}`);
+        const block = itinRes.data?.blocks?.[blockInProgress];
         setBlockData(block);
       } catch (err) {
-        console.error("Hydration error:", err);
+        console.error("LiveDayBlock hydration error:", err);
+        navigate("/access");
       }
     };
-    hydrate();
-  }, [tripId, dayIndex, blockName]);
+
+    hydrateLiveStatus();
+  }, [navigate]);
 
   const handleSubmitFeedback = async () => {
     try {
@@ -32,11 +45,11 @@ export default function TripLiveDayBlock() {
         tripId,
         dayIndex,
         block: blockName,
-        feedback
+        feedback,
       });
       setBlockData(res.data.updatedBlock);
     } catch (err) {
-      console.error("GPT block feedback error:", err);
+      console.error("GPT feedback error:", err);
     }
   };
 
@@ -46,7 +59,7 @@ export default function TripLiveDayBlock() {
         tripId,
         dayIndex,
         blockName,
-        question: ask
+        question: ask,
       });
       setAnswer(res.data.answer);
     } catch (err) {
@@ -56,35 +69,24 @@ export default function TripLiveDayBlock() {
 
   const handleMarkComplete = async () => {
     try {
-      await axios.post(`/tripwell/markblockcomplete/${tripId}/${dayIndex}/${blockName}`);
+      const res = await axios.post(`/tripwell/doallcomplete`, {
+        tripId,
+        dayIndex,
+        blockName,
+      });
 
-      if (blockName === "evening") {
-        await axios.post(`/tripwell/markdaycomplete/${tripId}/${dayIndex}`);
-
-        // Canonical trip completion check
-        const res = await axios.get(`/tripwell/livestatus/${tripId}`);
-        if (res.data.tripComplete) {
-          await axios.post(`/tripwell/marktripcomplete/${tripId}`);
-          navigate("/tripcomplete");
-        } else {
-          navigate("/livedaycomplete");
-        }
+      if (res.data.next === "lookback") {
+        navigate("/daylookback");
       } else {
-        // Move to next block
-        const order = ["morning", "afternoon", "evening"];
-        const nextBlock = order[order.indexOf(blockName) + 1];
-        if (nextBlock) {
-          localStorage.setItem("liveBlock", nextBlock);
-          navigate("/tripliveblock");
-        }
+        navigate("/tripliveblock"); // reloads the next block
       }
     } catch (err) {
       console.error("Mark complete error:", err);
-      alert("Could not complete block.");
+      alert("Unable to complete this block.");
     }
   };
 
-  if (!blockData) return <div className="p-6">Loading...</div>;
+  if (!blockData) return <div className="p-6">Loading your day...</div>;
 
   return (
     <div className="p-6 max-w-2xl mx-auto space-y-6">
@@ -95,7 +97,7 @@ export default function TripLiveDayBlock() {
         <p className="text-gray-700 mt-2">{blockData.desc}</p>
       </div>
 
-      {/* Feedback Section */}
+      {/* Feedback / GPT block fix */}
       <div>
         <h3 className="font-semibold">Want to change something?</h3>
         <textarea
