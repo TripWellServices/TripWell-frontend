@@ -1,13 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import { auth, provider } from "../firebase";
+import { signInWithPopup } from "firebase/auth"; // ✅ this is needed
 
 export default function JoinAccess() {
   const navigate = useNavigate();
 
   const handleGoogleSignIn = async () => {
     try {
-      await auth.signInWithPopup(provider);
-      navigate("/join"); // Will trigger whoami check inside Join flow
+      await signInWithPopup(auth, provider); // ✅ correct usage
+      navigate("/join");
     } catch (err) {
       console.error("Sign-in failed", err);
       alert("Google sign-in failed. Please try again.");

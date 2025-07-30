@@ -1,12 +1,10 @@
 // src/firebase.js
-
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
-// ✅ Real TripWell Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCjpoH763y2GH4VDc181IUBaZHqE_ryZ1c",
-  authDomain: "gofast-a5f94.firebaseapp.com",
+  apiKey: "",
+  AIzaSyCjpoH763y2GH4VDc181IUBaZHqE_ryZ1cauthDomain: "gofast-a5f94.firebaseapp.com",
   projectId: "gofast-a5f94",
   storageBucket: "gofast-a5f94.firebasestorage.app",
   messagingSenderId: "500941094498",
@@ -14,8 +12,8 @@ const firebaseConfig = {
   measurementId: "G-L0NGHRBSDE"
 };
 
-// ✅ Initialize Firebase app and export auth
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const provider = new GoogleAuthProvider(); // ✅ Add this line
 
-export { app, auth };
+export { app, auth, provider };
