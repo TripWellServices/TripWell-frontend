@@ -1,14 +1,24 @@
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-import { auth, provider } from "../firebase";
-import { signInWithPopup } from "firebase/auth"; // ✅ this is needed
+import { auth } from "../firebase";
+import axios from "axios";
 
 export default function JoinAccess() {
   const navigate = useNavigate();
 
   const handleGoogleSignIn = async () => {
     try {
-      await signInWithPopup(auth, provider); // ✅ correct usage
-      navigate("/join");
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      // Post to backend to create or find user
+      const res = await axios.post("/tripwell/user/createOrFind", {
+        firebaseUID: user.uid,
+        email: user.email,
+      });
+
+      navigate("/join"); // Continue to join code entry
     } catch (err) {
       console.error("Sign-in failed", err);
       alert("Google sign-in failed. Please try again.");
@@ -31,9 +41,9 @@ export default function JoinAccess() {
       </button>
 
       <div className="pt-4 text-sm text-gray-600">
-        <p>Already signed up and landed here by mistake?</p>
+        <p>Decided you want to plan the trip instead?</p>
         <button
-          onClick={() => navigate("/home")}
+          onClick={() => navigate("/")}
           className="text-blue-700 underline mt-1"
         >
           🔁 Go Back Home
