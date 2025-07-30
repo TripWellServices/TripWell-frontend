@@ -12,7 +12,7 @@ axios.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // ✅ Canonical Pages
@@ -26,13 +26,13 @@ import ProfileSetup from "./pages/ProfileSetup";
 import ProfileParticipant from "./pages/ProfileParticipant";
 import TripSetup from "./pages/TripSetup";
 import TripCreated from "./pages/TripCreated";
-import PrepBuild from "./pages/PrepBuild";
+import PrepBuild from "./pages/TripPreBuild";
 import TripIntentForm from "./pages/TripIntentForm";
-import AnchorSelectPage from "./pages/AnchorSelectPage";
-import TripItineraryBuild from "./pages/TripItineraryBuild";
-import TripDayOverview from "./pages/TripDayOverview";
-import ModifyDay from "./pages/ModifyDay";
-import ModifyBlock from "./pages/ModifyBlock";
+import AnchorSelectPage from "./pages/AnchorSelect";
+import TripItineraryBuild from "./pages/TripItineraryBuilder";
+import TripDayOverview from "./pages/TripDaysOverview";
+import ModifyDay from "./pages/TripModifyDay";
+import ModifyBlock from "./pages/TripModifyBlock";
 import TripPlannerReturn from "./pages/TripPlannerReturn";
 import PlannerParticipantHub from "./pages/PlannerParticipantHub";
 import CuratedHighlights from "./pages/CuratedHighlights";
@@ -41,7 +41,7 @@ import TripLiveDay from "./pages/TripLiveDay";
 import TripLiveDayBlock from "./pages/TripLiveDayBlock";
 import TripLiveDayParticipant from "./pages/TripLiveDayParticipant";
 import TripDayLookback from "./pages/TripDayLookback";
-import PreviewLiveDay from "./pages/PreviewLiveDay";
+import PreviewLiveDay from "./pages/TripLiveDay";
 import TripComplete from "./pages/TripComplete";
 import CurrentTripReflection from "./pages/CurrentTripReflection";
 import TripReflectionsHub from "./pages/TripReflectionsHub";
@@ -49,7 +49,7 @@ import TripReflectionsHub from "./pages/TripReflectionsHub";
 // 🔜 Future Pages (import to avoid breakage if used anywhere)
 import TripWellHub from "./pages/TripWellHub"; // breadcrumb only
 import TripPlannerAI from "./pages/TripPlannerAI"; // possibly legacy
-import GeneralHub from "./pages/GeneralHub"; // deprecated but safe
+// import GeneralHub from "./pages/GeneralHub"; // deprecated but safe
 // import TripItineraryPage from "./pages/TripItineraryPage"; // possible fallback or future use
 
 export default function App() {
@@ -65,8 +65,14 @@ export default function App() {
       <Route path="/prejointrip" element={<PreJoinTrip />} />
       <Route path="/join" element={<TripJoin />} />
       <Route path="/profileparticipant" element={<ProfileParticipant />} />
-      <Route path="/plannerparticipanthub" element={<PlannerParticipantHub />} />
-      <Route path="/triplivedayparticipant" element={<TripLiveDayParticipant />} />
+      <Route
+        path="/plannerparticipanthub"
+        element={<PlannerParticipantHub />}
+      />
+      <Route
+        path="/triplivedayparticipant"
+        element={<TripLiveDayParticipant />}
+      />
       <Route path="/daylookback" element={<TripDayLookback />} />
 
       {/* ✅ Originator Flow */}
@@ -79,7 +85,10 @@ export default function App() {
       <Route path="/tripwell/itinerarybuild" element={<TripItineraryBuild />} />
       <Route path="/tripwell/itineraryupdate" element={<TripDayOverview />} />
       <Route path="/modify/day" element={<ModifyDay />} />
-      <Route path="/modifyblock/:tripId/:dayIndex/:blockName" element={<ModifyBlock />} />
+      <Route
+        path="/modifyblock/:tripId/:dayIndex/:blockName"
+        element={<ModifyBlock />}
+      />
       <Route path="/tripplannerreturn" element={<TripPlannerReturn />} />
 
       {/* ✅ Execution Phase (Shared) */}
@@ -96,7 +105,7 @@ export default function App() {
       {/* 🔜 Future Pages (leave safe to avoid breakage) */}
       <Route path="/tripwellhub" element={<TripWellHub />} />
       <Route path="/trip-planner-ai" element={<TripPlannerAI />} />
-      <Route path="/hub" element={<GeneralHub />} />
+      {/* <Route path="/hub" element={<GeneralHub />} /> */}
       {/* <Route path="/tripwell/:tripId/itinerary" element={<TripItineraryPage />} /> */}
 
       {/* ✅ Fallback */}

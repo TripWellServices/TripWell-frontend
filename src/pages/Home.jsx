@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+// import { Button } from "../components/Button"; // ✅ fixed import path
 import {
   PlaneTakeoff,
   Users,
@@ -9,6 +9,17 @@ import {
   Info,
   RefreshCcw,
 } from "lucide-react";
+
+export function Button({ children, className = "", ...props }) {
+  return (
+    <button
+      className={`bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-all ${className}`}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
 
 export default function Home() {
   const navigate = useNavigate();
@@ -30,25 +41,26 @@ export default function Home() {
       icon: <Hammer className="w-5 h-5 mr-2" />,
       label: "Build My TripWell Experience",
       description: "Plan your itinerary, edit blocks, or restart your vibe.",
-      route: "/tripplannerreturn", // ✅ canonical route
+      route: "/tripplannerreturn",
     },
     {
       icon: <CalendarDays className="w-5 h-5 mr-2" />,
       label: "I'm TripWelling!",
       description: "Start your adventure. We’ll guide you block by block.",
-      route: "/prelive", // ✅ launches TripLiveDay sequence
+      route: "/prelive",
     },
     {
       icon: <RefreshCcw className="w-5 h-5 mr-2" />,
       label: "Resume My Trip",
       description: "Jump back in exactly where you left off.",
-      route: "/tripliveblock", // ✅ fallback-safe re-entry
+      route: "/tripliveblock",
     },
     {
       icon: <NotebookPen className="w-5 h-5 mr-2" />,
       label: "Trip Reflection",
-      description: "See what you captured, what made you laugh, and what you’ll never forget.",
-      route: "/reflections/last", // ✅ last completed trip
+      description:
+        "See what you captured, what made you laugh, and what you’ll never forget.",
+      route: "/reflections/last",
     },
     {
       icon: <Info className="w-5 h-5 mr-2" />,
@@ -61,7 +73,8 @@ export default function Home() {
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-8">
       <h1 className="text-3xl font-bold text-center">
-        Travel isn’t about going — it’s about building core memories with the ones you love.
+        Travel isn’t about going — it’s about building core memories with the
+        ones you love.
       </h1>
 
       <div className="grid gap-4 mt-6">
@@ -74,7 +87,9 @@ export default function Home() {
               {item.icon}
               {item.label}
             </Button>
-            <p className="text-sm text-gray-500 ml-2 mt-1">{item.description}</p>
+            <p className="text-sm text-gray-500 ml-2 mt-1">
+              {item.description}
+            </p>
           </div>
         ))}
       </div>
