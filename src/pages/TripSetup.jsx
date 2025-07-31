@@ -38,15 +38,22 @@ export default function TripSetup() {
           headers: { Authorization: `Bearer ${token}` },
         });
 
+        if (!res.ok) {
+          console.error("❌ Failed whoami fetch", res.status);
+          navigate("/access");
+          return;
+        }
+
         const data = await res.json();
-        if (!data?.userId) {
+        if (!data?._id && !data?.userId) {
+          console.error("❌ User ID missing in whoami response");
           navigate("/access");
           return;
         }
 
         setUser(data);
       } catch (err) {
-        console.error("Failed to hydrate user:", err);
+        console.error("❌ Failed to hydrate user:", err);
         navigate("/access");
       }
     };
@@ -64,7 +71,7 @@ export default function TripSetup() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          userId: user.userId,
+          userId: user._id || user.userId,
           tripName,
           purpose,
           startDate,
@@ -76,13 +83,16 @@ export default function TripSetup() {
         }),
       });
 
-      const { tripId } = await res.json();
-      if (!tripId) throw new Error("Trip creation failed");
+      const json = await res.json();
+      if (!res.ok || !json?.tripId) {
+        console.error("❌ Trip creation failed", json);
+        throw new Error("Trip creation failed");
+      }
 
-      navigate("/tripcreated/" + tripId);
+      navigate(`/tripcreated/${json.tripId}`);
     } catch (err) {
       console.error("❌ Trip setup failed", err);
-      alert("Could not save your trip. Try again.");
+      alert("Could not save your trip. Please try again.");
     }
   };
 

@@ -5,7 +5,7 @@ entrypoint = "index.html"
 
 [nix]
 channel = "stable-24_05"
-packages = ["run"]
+packages = ["run", "git-doc"]
 
 [unitTest]
 language = "nodejs"
