@@ -1,6 +1,5 @@
 import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
 
 export default function Access() {
   const navigate = useNavigate();
@@ -12,11 +11,13 @@ export default function Access() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       console.log("✅ Authenticated user:", user);
-      // 🔥 Canonical TripWell backend user createOrFind
-      const res = await fetch("https://gofastbackend.onrender.com/tripwell/user/createOrFind", {
+
+      const backendUrl = process.env.REACT_APP_BACKEND_URL;
+
+      const res = await fetch(`${backendUrl}/tripwell/user/createOrFind`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ firebaseUID: user.uid, email: user.email }),
+        body: JSON.stringify({ firebaseId: user.uid, email: user.email }),
       });
 
       const data = await res.json();
@@ -24,7 +25,7 @@ export default function Access() {
       if (!data.name || data.name.trim() === "") {
         navigate("/profilesetup");
       } else {
-        navigate("/"); // Canonical post-login landing for MVP1
+        navigate("/");
       }
     } catch (err) {
       console.error("❌ Auth failed", err);
@@ -34,9 +35,7 @@ export default function Access() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center p-10 text-center">
-      <h1 className="text-3xl font-bold text-green-700 mb-6">
-        Welcome to TripWell
-      </h1>
+      <h1 className="text-3xl font-bold text-green-700 mb-6">Welcome to TripWell</h1>
 
       <p className="max-w-md text-gray-600 mb-8">
         Before we go any further, we just need to know who you are.
