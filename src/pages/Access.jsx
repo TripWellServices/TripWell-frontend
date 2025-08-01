@@ -11,9 +11,9 @@ export default function Access() {
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-
+      console.log("✅ Authenticated user:", user);
       // 🔥 Canonical TripWell backend user createOrFind
-      const res = await fetch("/tripwell/user/createOrFind", {
+      const res = await fetch("https://gofastbackend.onrender.com/tripwell/user/createOrFind", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ firebaseUID: user.uid, email: user.email }),
@@ -34,7 +34,9 @@ export default function Access() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center p-10 text-center">
-      <h1 className="text-3xl font-bold text-green-700 mb-6">Welcome to TripWell</h1>
+      <h1 className="text-3xl font-bold text-green-700 mb-6">
+        Welcome to TripWell
+      </h1>
 
       <p className="max-w-md text-gray-600 mb-8">
         Before we go any further, we just need to know who you are.
@@ -52,7 +54,7 @@ export default function Access() {
           onClick={() => navigate("/explainer")}
           className="text-sm text-blue-600 underline hover:text-blue-800 mt-2"
         >
-           What is TripWell?
+          What is TripWell?
         </button>
       </div>
     </div>
