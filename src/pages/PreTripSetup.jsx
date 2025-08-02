@@ -12,7 +12,7 @@ export default function PreTripSetup() {
       </p>
 
       <button
-        onClick={() => navigate("/access")}
+        onClick={() => navigate("/tripsetup")}
         className="bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition"
       >
         Start my journey
