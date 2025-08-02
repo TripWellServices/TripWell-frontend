@@ -39,14 +39,12 @@ export default function TripSetup() {
         });
 
         if (!res.ok) {
-          console.error("❌ Failed whoami fetch", res.status);
           navigate("/access");
           return;
         }
 
         const data = await res.json();
         if (!data?._id && !data?.userId) {
-          console.error("❌ User ID missing in whoami response");
           navigate("/access");
           return;
         }
@@ -76,7 +74,7 @@ export default function TripSetup() {
           purpose,
           startDate,
           endDate,
-          city,
+          city, // ✅ Canon patch
           joinCode,
           whoWith,
           partyCount,
@@ -85,7 +83,6 @@ export default function TripSetup() {
 
       const json = await res.json();
       if (!res.ok || !json?.tripId) {
-        console.error("❌ Trip creation failed", json);
         throw new Error("Trip creation failed");
       }
 
@@ -98,54 +95,33 @@ export default function TripSetup() {
 
   return (
     <div className="max-w-xl mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Set Up Your Trip</h1>
+      {/* ✅ Canon UX Explainer */}
+      <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-6">
+        <h2 className="text-lg font-semibold text-blue-800">Log Your Trip</h2>
+        <p className="text-sm text-blue-700 mt-1">
+          This is your trip’s starting point — not the plan, just the framework.
+          You’re telling TripWell: “Hey, I’ve got something coming up.”
+        </p>
+        <p className="text-sm text-blue-700 mt-1">
+          From here, you’ll either set your travel intent or jump right into the trip preview — depending on how much you've already shared.
+        </p>
+      </div>
 
-      <input
-        value={tripName}
-        onChange={(e) => setTripName(e.target.value)}
-        placeholder="Trip Name"
-        className="w-full p-3 border rounded"
-      />
-      <input
-        value={purpose}
-        onChange={(e) => setPurpose(e.target.value)}
-        placeholder="Purpose (e.g., Vacation, Reunion)"
-        className="w-full p-3 border rounded"
-      />
-      <input
-        type="date"
-        value={startDate}
-        onChange={(e) => setStartDate(e.target.value)}
-        className="w-full p-3 border rounded"
-      />
-      <input
-        type="date"
-        value={endDate}
-        onChange={(e) => setEndDate(e.target.value)}
-        className="w-full p-3 border rounded"
-      />
-      <input
-        value={city}
-        onChange={(e) => setCity(e.target.value)}
-        placeholder="City or Destination"
-        className="w-full p-3 border rounded"
-      />
-      <input
-        value={joinCode}
-        onChange={(e) => setJoinCode(e.target.value)}
-        placeholder="Join Code (optional)"
-        className="w-full p-3 border rounded"
-      />
+      <h1 className="text-2xl font-bold">Create Your Trip</h1>
+      <p className="text-sm text-gray-600 mt-1">
+        Just a few details to get started — you’ll dive into the planning later.
+      </p>
+
+      <input value={tripName} onChange={(e) => setTripName(e.target.value)} placeholder="Trip Name" className="w-full p-3 border rounded" />
+      <input value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="Purpose (e.g., Vacation, Reunion)" className="w-full p-3 border rounded" />
+      <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full p-3 border rounded" />
+      <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full p-3 border rounded" />
+      <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City or Destination" className="w-full p-3 border rounded" />
+      <input value={joinCode} onChange={(e) => setJoinCode(e.target.value)} placeholder="Join Code (e.g., NASH25)" className="w-full p-3 border rounded" />
 
       <div className="space-y-2">
         <label className="font-semibold">Party Count</label>
-        <input
-          type="number"
-          min={1}
-          value={partyCount}
-          onChange={(e) => setPartyCount(parseInt(e.target.value))}
-          className="w-full p-3 border rounded"
-        />
+        <input type="number" min={1} value={partyCount} onChange={(e) => setPartyCount(parseInt(e.target.value))} className="w-full p-3 border rounded" />
       </div>
 
       <fieldset className="space-y-2">
