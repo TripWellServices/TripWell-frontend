@@ -11,8 +11,10 @@ export default function TripSetup() {
   const [endDate, setEndDate] = useState("");
   const [city, setCity] = useState("");
   const [joinCode, setJoinCode] = useState("");
+  const [codeStatus, setCodeStatus] = useState(null);
   const [partyCount, setPartyCount] = useState(1);
   const [whoWith, setWhoWith] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const WHO_OPTIONS = [
     { label: "Spouse / Partner", value: "spouse" },
@@ -25,39 +27,60 @@ export default function TripSetup() {
   ];
 
   useEffect(() => {
-    const hydrate = async () => {
+    async function hydrateAndCheck() {
       const firebaseUser = auth.currentUser;
-      if (!firebaseUser) {
-        navigate("/access");
-        return;
-      }
+      if (!firebaseUser) return navigate("/access");
 
       try {
         const token = await firebaseUser.getIdToken(true);
+
+        // ✅ Check trip status FIRST
+        const statusRes = await fetch("https://gofastbackend.onrender.com/tripwell/tripstatus", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const statusData = await statusRes.json();
+        if (statusData?.tripId) {
+          return navigate("/tripalreadycreated");
+        }
+
+        // ✅ Now hydrate user
         const res = await fetch("https://gofastbackend.onrender.com/tripwell/whoami", {
           headers: { Authorization: `Bearer ${token}` },
         });
-
-        if (!res.ok) {
-          navigate("/access");
-          return;
-        }
-
         const data = await res.json();
-        if (!data?._id && !data?.userId) {
-          navigate("/access");
-          return;
-        }
+        if (!data?._id && !data?.userId) return navigate("/access");
 
         setUser(data);
       } catch (err) {
-        console.error("❌ Failed to hydrate user:", err);
+        console.error("❌ Setup hydration failed", err);
         navigate("/access");
+      } finally {
+        setLoading(false);
       }
-    };
+    }
 
-    hydrate();
+    hydrateAndCheck();
   }, [navigate]);
+
+  const checkJoinCode = async () => {
+    try {
+      const res = await fetch("https://gofastbackend.onrender.com/tripwell/joincodecheck", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: joinCode }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.available) {
+        setCodeStatus("✅ Code is available!");
+      } else {
+        setCodeStatus("❌ Code already taken.");
+      }
+    } catch (err) {
+      console.error("Error checking code:", err);
+      setCodeStatus("⚠️ Error checking code.");
+    }
+  };
 
   const handleSubmit = async () => {
     try {
@@ -74,7 +97,7 @@ export default function TripSetup() {
           purpose,
           startDate,
           endDate,
-          city, // ✅ Canon patch
+          city,
           joinCode,
           whoWith,
           partyCount,
@@ -82,9 +105,7 @@ export default function TripSetup() {
       });
 
       const json = await res.json();
-      if (!res.ok || !json?.tripId) {
-        throw new Error("Trip creation failed");
-      }
+      if (!res.ok || !json?.tripId) throw new Error("Trip creation failed");
 
       navigate(`/tripcreated/${json.tripId}`);
     } catch (err) {
@@ -93,36 +114,45 @@ export default function TripSetup() {
     }
   };
 
+  if (loading) {
+    return <div className="p-6 text-center text-gray-500">Loading...</div>;
+  }
+
   return (
     <div className="max-w-xl mx-auto p-6 space-y-6">
-      {/* ✅ Canon UX Explainer */}
-      <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-6">
-        <h2 className="text-lg font-semibold text-blue-800">Log Your Trip</h2>
-        <p className="text-sm text-blue-700 mt-1">
-          This is your trip’s starting point — not the plan, just the framework.
-          You’re telling TripWell: “Hey, I’ve got something coming up.”
-        </p>
-        <p className="text-sm text-blue-700 mt-1">
-          From here, you’ll either set your travel intent or jump right into the trip preview — depending on how much you've already shared.
-        </p>
-      </div>
-
-      <h1 className="text-2xl font-bold">Create Your Trip</h1>
-      <p className="text-sm text-gray-600 mt-1">
-        Just a few details to get started — you’ll dive into the planning later.
-      </p>
+      <h1 className="text-2xl font-bold">Set Up Your Trip</h1>
 
       <input value={tripName} onChange={(e) => setTripName(e.target.value)} placeholder="Trip Name" className="w-full p-3 border rounded" />
-      <input value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="Purpose (e.g., Vacation, Reunion)" className="w-full p-3 border rounded" />
+      <input value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="Purpose (e.g. Vacation)" className="w-full p-3 border rounded" />
       <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full p-3 border rounded" />
       <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full p-3 border rounded" />
       <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City or Destination" className="w-full p-3 border rounded" />
-      <input value={joinCode} onChange={(e) => setJoinCode(e.target.value)} placeholder="Join Code (e.g., NASH25)" className="w-full p-3 border rounded" />
 
-      <div className="space-y-2">
-        <label className="font-semibold">Party Count</label>
-        <input type="number" min={1} value={partyCount} onChange={(e) => setPartyCount(parseInt(e.target.value))} className="w-full p-3 border rounded" />
+      <div className="flex items-center gap-2">
+        <input
+          value={joinCode}
+          onChange={(e) => setJoinCode(e.target.value)}
+          placeholder="Join Code (optional)"
+          className="w-full p-3 border rounded"
+        />
+        <button
+          type="button"
+          onClick={checkJoinCode}
+          className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
+        >
+          Check
+        </button>
       </div>
+      {codeStatus && <p className="text-sm text-gray-600">{codeStatus}</p>}
+
+      <label className="font-semibold">Party Count</label>
+      <input
+        type="number"
+        min={1}
+        value={partyCount}
+        onChange={(e) => setPartyCount(parseInt(e.target.value))}
+        className="w-full p-3 border rounded"
+      />
 
       <fieldset className="space-y-2">
         <legend className="font-semibold">Who are you traveling with?</legend>
