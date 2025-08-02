@@ -29,7 +29,7 @@ export default function Home() {
       icon: <PlaneTakeoff className="w-5 h-5 mr-2" />,
       label: "Create a Trip",
       description: "Start from scratch and build something unforgettable.",
-      route: "/tripsetup",
+      route: "/pretrip", // ✅ Updated from /tripsetup
     },
     {
       icon: <Users className="w-5 h-5 mr-2" />,

@@ -1,81 +1,153 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { auth } from "../firebase";
 
 export default function ProfileSetup() {
-  const [user, setUser] = useState(null);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [hometownCity, setHometownCity] = useState("");
+  const [state, setState] = useState("");
+  const [travelStyle, setTravelStyle] = useState([]);
+  const [tripVibe, setTripVibe] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [city, setCity] = useState("");
-  const [stateRegion, setStateRegion] = useState("");
-  const [travelStyle, setTravelStyle] = useState([]);
-  const [tripVibe, setTripVibe] = useState([]);
+  const states = [
+    "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA",
+    "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+    "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT",
+    "VA", "WA", "WV", "WI", "WY"
+  ];
 
   useEffect(() => {
-    const hydrate = async () => {
+    const hydrateForm = async () => {
       try {
-        const res = await fetch("/tripwell/whoami");
-        if (!res.ok) throw new Error("Failed to fetch identity");
+        const token = await auth.currentUser.getIdToken();
+        const res = await fetch("/tripwell/whoami", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
 
-        const data = await res.json();
-        setUser(data);
-        setEmail(data.email || "");
-        setName(data.name || "");
+        const user = await res.json();
+
+        setFirstName(user?.firstName || "");
+        setLastName(user?.lastName || "");
+        setEmail(user?.email || auth.currentUser?.email || "");
+        setHometownCity(user?.hometownCity || "");
+        setState(user?.state || "");
+        setTravelStyle(Array.isArray(user?.travelStyle) ? user.travelStyle : []);
+        setTripVibe(Array.isArray(user?.tripVibe) ? user.tripVibe : []);
       } catch (err) {
-        console.error("❌ Failed to load user:", err);
+        console.error("Error hydrating user:", err);
+        setEmail(auth.currentUser?.email || ""); // fallback in worst case
       } finally {
         setLoading(false);
       }
     };
 
-    hydrate();
+    hydrateForm();
   }, []);
 
-  const handleSubmit = async () => {
+  const handleCheckboxChange = (value, setFn, current) => {
+    if (current.includes(value)) {
+      setFn(current.filter((v) => v !== value));
+    } else {
+      setFn([...current, value]);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
+      const token = await auth.currentUser.getIdToken();
       const res = await fetch("/tripwell/profile", {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify({
-          userId: user.userId,
-          name,
-          email,
-          city,
-          state: stateRegion,
+          firstName,
+          lastName,
+          hometownCity,
+          state,
           travelStyle,
-          tripVibe,
-        }),
+          tripVibe
+        })
       });
 
       if (!res.ok) throw new Error("Profile update failed");
 
-      navigate("/tripsetup");
+      const updated = await res.json();
+      if (updated.role === "originator") {
+        navigate("/tripsetup");
+      } else {
+        navigate("/tripjoin");
+      }
     } catch (err) {
-      console.error("❌ Failed to save profile:", err);
-      alert("Could not save profile.");
+      console.error("Error submitting profile:", err);
     }
   };
 
-  if (loading) {
-    return <div className="p-6 text-gray-500">Loading profile setup…</div>;
-  }
+  if (loading) return <div>Loading profile...</div>;
 
   return (
-    <div className="max-w-xl mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Set Up Your Profile</h1>
+    <form onSubmit={handleSubmit}>
+      <h2>Let's finish setting up your profile</h2>
 
-      <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name" className="w-full p-3 border rounded" />
-      <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" className="w-full p-3 border rounded" />
-      <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" className="w-full p-3 border rounded" />
-      <input value={stateRegion} onChange={(e) => setStateRegion(e.target.value)} placeholder="State/Region" className="w-full p-3 border rounded" />
-      <input value={travelStyle.join(", ")} onChange={(e) => setTravelStyle(e.target.value.split(",").map(s => s.trim()))} placeholder="Travel Style (e.g., Laid-back, Adventurous)" className="w-full p-3 border rounded" />
-      <input value={tripVibe.join(", ")} onChange={(e) => setTripVibe(e.target.value.split(",").map(s => s.trim()))} placeholder="Trip Vibe (e.g., Chill, Party, Cultural)" className="w-full p-3 border rounded" />
+      <label>First Name</label>
+      <input value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
 
-      <button onClick={handleSubmit} className="bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition">
-        Save and Start Planning
-      </button>
-    </div>
+      <label>Last Name</label>
+      <input value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+
+      <label>Email</label>
+      <input value={email} disabled />
+
+      <label>City/State You Call Home (Where Launching From)</label>
+      <input
+        value={hometownCity}
+        onChange={(e) => setHometownCity(e.target.value)}
+        placeholder="City"
+        required
+      />
+
+      <select value={state} onChange={(e) => setState(e.target.value)} required>
+        <option value="">State</option>
+        {states.map((s) => (
+          <option key={s} value={s}>{s}</option>
+        ))}
+      </select>
+
+      <fieldset>
+        <legend>Travel Style</legend>
+        {["Luxury", "Budget", "Spontaneous", "Planned"].map((style) => (
+          <label key={style}>
+            <input
+              type="checkbox"
+              checked={travelStyle.includes(style)}
+              onChange={() => handleCheckboxChange(style, setTravelStyle, travelStyle)}
+            />
+            {style}
+          </label>
+        ))}
+      </fieldset>
+
+      <fieldset>
+        <legend>Trip Vibe</legend>
+        {["Chill", "Adventure", "Party", "Culture"].map((vibe) => (
+          <label key={vibe}>
+            <input
+              type="checkbox"
+              checked={tripVibe.includes(vibe)}
+              onChange={() => handleCheckboxChange(vibe, setTripVibe, tripVibe)}
+            />
+            {vibe}
+          </label>
+        ))}
+      </fieldset>
+
+      <button type="submit">Save Profile</button>
+    </form>
   );
 }
