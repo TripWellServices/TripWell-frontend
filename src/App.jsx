@@ -25,7 +25,7 @@ import TripJoin from "./pages/TripJoin";
 import ProfileSetup from "./pages/ProfileSetup";
 import ProfileParticipant from "./pages/ProfileParticipant";
 import TripSetup from "./pages/TripSetup";
-import PreTrip from "./pages/PreTrip"; // ✅ NEW: Mount /pretrip
+import PreTripSetup from "./pages/PreTripSetup"; // ✅ CORRECTED
 import TripCreated from "./pages/TripCreated";
 import PrepBuild from "./pages/TripPreBuild";
 import TripIntentForm from "./pages/TripIntentForm";
@@ -78,7 +78,7 @@ export default function App() {
 
       {/* ✅ Originator Flow */}
       <Route path="/profilesetup" element={<ProfileSetup />} />
-      <Route path="/pretrip" element={<PreTrip />} /> {/* ✅ MOUNTED HERE */}
+      <Route path="/pretrip" element={<PreTripSetup />} /> {/* ✅ MOUNTED CORRECTLY */}
       <Route path="/tripsetup" element={<TripSetup />} />
       <Route path="/tripcreated/:tripId" element={<TripCreated />} />
       <Route path="/prepbuild" element={<PrepBuild />} />
