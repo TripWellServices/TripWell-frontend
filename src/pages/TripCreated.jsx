@@ -1,50 +1,52 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { auth } from "../firebase";
 
-export default function TripCreateSuccess() {
-  const { tripId } = useParams();
+export default function TripCreated() {
   const navigate = useNavigate();
   const [trip, setTrip] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchTrip() {
+    async function hydrateTrip() {
       try {
-        const res = await fetch(`/tripwell/tripbase/${tripId}`); // ✅ Clean canonical route
+        const token = await auth.currentUser.getIdToken();
+
+        const res = await fetch("/tripwell/tripcreated", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
         const data = await res.json();
-        if (data?.trip) {
-          setTrip(data.trip);
-        } else {
-          throw new Error("Trip not found");
-        }
+
+        if (!data?.trip) throw new Error("No trip returned");
+
+        setTrip(data.trip);
       } catch (err) {
-        console.error("❌ Failed to load trip:", err);
-        navigate("/tripitineraryrequired");
+        console.error("❌ Trip hydration failed:", err);
+        navigate("/prepbuild"); // Failsafe smart fork
       } finally {
         setLoading(false);
       }
     }
 
-    fetchTrip();
-  }, [tripId, navigate]);
+    hydrateTrip();
+  }, [navigate]);
 
   if (loading) {
-    return (
-      <div className="p-6 text-center text-gray-600">
-        Loading your trip...
-      </div>
-    );
+    return <div className="p-6 text-center text-gray-600">Loading your trip...</div>;
   }
 
   if (!trip) {
     return (
       <div className="p-6 text-center text-red-600 font-semibold">
-        🚫 Could not load trip. Please try again.
+        🚫 Could not load trip.
       </div>
     );
   }
 
-  const shareMessage = `Hey! Join me on TripWell to plan our ${trip.city} trip.\n\nTrip code: ${trip.joinCode || trip._id}\nDownload: https://tripwell.app/download`;
+  const shareMessage = `Hey! Join me on TripWell to plan our ${trip.city} trip.\n\nTrip code: ${trip.joinCode || trip.tripId}\nDownload: https://tripwell.app/download`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(shareMessage);
@@ -64,7 +66,7 @@ export default function TripCreateSuccess() {
         <p><strong>Dates:</strong> {new Date(trip.startDate).toLocaleDateString()} – {new Date(trip.endDate).toLocaleDateString()}</p>
         <p><strong>Party Count:</strong> {trip.partyCount}</p>
         <p><strong>With:</strong> {(trip.whoWith || []).join(", ") || "—"}</p>
-        <p><strong>Trip Code:</strong> <span className="font-mono text-blue-600">{trip.joinCode || trip._id}</span></p>
+        <p><strong>Trip Code:</strong> <span className="font-mono text-blue-600">{trip.joinCode || trip.tripId}</span></p>
       </div>
 
       <div className="space-y-4 text-gray-700">
@@ -75,7 +77,6 @@ export default function TripCreateSuccess() {
           className="w-full border rounded p-2 bg-gray-50 font-mono text-sm"
           rows={4}
         />
-
         <button
           onClick={handleCopy}
           className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"
@@ -88,14 +89,12 @@ export default function TripCreateSuccess() {
         <p className="text-lg font-semibold text-gray-800">
           Ready to plan the rest of your trip?
         </p>
-
         <button
           onClick={() => navigate("/prepbuild")}
           className="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition"
         >
           Yes! Let’s Plan It
         </button>
-
         <button
           onClick={() => navigate("/")}
           className="w-full bg-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-400 transition"
