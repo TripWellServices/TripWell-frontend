@@ -6,21 +6,26 @@ export default function Access() {
   const auth = getAuth();
   const provider = new GoogleAuthProvider();
 
+  // 🚨 Hardcoded backend URL
+  const backendUrl = "https://gofastbackend.onrender.com";
+
   const handleAuth = async () => {
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       console.log("✅ Authenticated user:", user);
 
-      const backendUrl = process.env.REACT_APP_BACKEND_URL;
-
       const res = await fetch(`${backendUrl}/tripwell/user/createOrFind`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ firebaseId: user.uid, email: user.email }),
+        body: JSON.stringify({
+          firebaseId: user.uid,
+          email: user.email,
+        }),
       });
 
       const data = await res.json();
+      console.log("✅ Backend user response:", data);
 
       if (!data.name || data.name.trim() === "") {
         navigate("/profilesetup");
