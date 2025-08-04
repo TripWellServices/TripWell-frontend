@@ -25,6 +25,7 @@ import TripJoin from "./pages/TripJoin";
 import ProfileSetup from "./pages/ProfileSetup";
 import ProfileParticipant from "./pages/ProfileParticipant";
 import TripSetup from "./pages/TripSetup";
+import PreTrip from "./pages/PreTrip"; // ✅ NEW: Mount /pretrip
 import TripCreated from "./pages/TripCreated";
 import PrepBuild from "./pages/TripPreBuild";
 import TripIntentForm from "./pages/TripIntentForm";
@@ -47,10 +48,10 @@ import CurrentTripReflection from "./pages/CurrentTripReflection";
 import TripReflectionsHub from "./pages/TripReflectionsHub";
 
 // 🔜 Future Pages (import to avoid breakage if used anywhere)
-import TripWellHub from "./pages/TripWellHub"; // breadcrumb only
-import TripPlannerAI from "./pages/TripPlannerAI"; // possibly legacy
-// import GeneralHub from "./pages/GeneralHub"; // deprecated but safe
-// import TripItineraryPage from "./pages/TripItineraryPage"; // possible fallback or future use
+import TripWellHub from "./pages/TripWellHub";
+import TripPlannerAI from "./pages/TripPlannerAI";
+// import GeneralHub from "./pages/GeneralHub";
+// import TripItineraryPage from "./pages/TripItineraryPage";
 
 export default function App() {
   return (
@@ -77,6 +78,7 @@ export default function App() {
 
       {/* ✅ Originator Flow */}
       <Route path="/profilesetup" element={<ProfileSetup />} />
+      <Route path="/pretrip" element={<PreTrip />} /> {/* ✅ MOUNTED HERE */}
       <Route path="/tripsetup" element={<TripSetup />} />
       <Route path="/tripcreated/:tripId" element={<TripCreated />} />
       <Route path="/prepbuild" element={<PrepBuild />} />
@@ -102,7 +104,7 @@ export default function App() {
       <Route path="/reflections/:tripId" element={<CurrentTripReflection />} />
       <Route path="/reflections" element={<TripReflectionsHub />} />
 
-      {/* 🔜 Future Pages (leave safe to avoid breakage) */}
+      {/* 🔜 Future Pages */}
       <Route path="/tripwellhub" element={<TripWellHub />} />
       <Route path="/trip-planner-ai" element={<TripPlannerAI />} />
       {/* <Route path="/hub" element={<GeneralHub />} /> */}
