@@ -20,6 +20,8 @@ export default function ProfileSetup() {
     "VA", "WA", "WV", "WI", "WY"
   ];
 
+  const backendUrl = "https://gofastbackend.onrender.com";
+
   useEffect(() => {
     const hydrateForm = async () => {
       try {
@@ -60,7 +62,7 @@ export default function ProfileSetup() {
     e.preventDefault();
     try {
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch("/tripwell/profile", {
+      const res = await                     fetch(`${backendUrl}/tripwell/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
