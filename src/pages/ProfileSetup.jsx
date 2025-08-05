@@ -17,10 +17,56 @@ export default function ProfileSetup() {
   const navigate = useNavigate();
 
   const states = [
-    "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA",
-    "KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
-    "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT",
-    "VA","WA","WV","WI","WY"
+    "AL",
+    "AK",
+    "AZ",
+    "AR",
+    "CA",
+    "CO",
+    "CT",
+    "DE",
+    "FL",
+    "GA",
+    "HI",
+    "ID",
+    "IL",
+    "IN",
+    "IA",
+    "KS",
+    "KY",
+    "LA",
+    "ME",
+    "MD",
+    "MA",
+    "MI",
+    "MN",
+    "MS",
+    "MO",
+    "MT",
+    "NE",
+    "NV",
+    "NH",
+    "NJ",
+    "NM",
+    "NY",
+    "NC",
+    "ND",
+    "OH",
+    "OK",
+    "OR",
+    "PA",
+    "RI",
+    "SC",
+    "SD",
+    "TN",
+    "TX",
+    "UT",
+    "VT",
+    "VA",
+    "WA",
+    "WV",
+    "WI",
+    "WY",
   ];
 
   useEffect(() => {
@@ -28,7 +74,7 @@ export default function ProfileSetup() {
       try {
         const token = await auth.currentUser.getIdToken();
         const res = await fetch(`${API_BASE}/tripwell/whoami`, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (!res.ok) throw new Error(`Hydration failed: ${res.status}`);
@@ -39,7 +85,9 @@ export default function ProfileSetup() {
         setEmail(user?.email || auth.currentUser?.email || "");
         setHometownCity(user?.hometownCity || "");
         setState(user?.state || "");
-        setTravelStyle(Array.isArray(user?.travelStyle) ? user.travelStyle : []);
+        setTravelStyle(
+          Array.isArray(user?.travelStyle) ? user.travelStyle : [],
+        );
         setTripVibe(Array.isArray(user?.tripVibe) ? user.tripVibe : []);
       } catch (err) {
         console.error("Error hydrating user:", err);
@@ -68,7 +116,7 @@ export default function ProfileSetup() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           firstName,
@@ -76,8 +124,8 @@ export default function ProfileSetup() {
           hometownCity,
           state,
           travelStyle,
-          tripVibe
-        })
+          tripVibe,
+        }),
       });
 
       if (!res.ok) throw new Error(`Profile update failed: ${res.status}`);
@@ -86,7 +134,7 @@ export default function ProfileSetup() {
       if (updated.role === "originator") {
         navigate("/tripsetup");
       } else {
-        navigate("/pretrip"); {/* ✅ Changed to pretrip route because ro */}
+        navigate("/tripjoin");
       }
     } catch (err) {
       console.error("Error submitting profile:", err);
@@ -100,10 +148,18 @@ export default function ProfileSetup() {
       <h2>Let's finish setting up your profile</h2>
 
       <label>First Name</label>
-      <input value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+      <input
+        value={firstName}
+        onChange={(e) => setFirstName(e.target.value)}
+        required
+      />
 
       <label>Last Name</label>
-      <input value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+      <input
+        value={lastName}
+        onChange={(e) => setLastName(e.target.value)}
+        required
+      />
 
       <label>Email</label>
       <input value={email} disabled />
@@ -119,7 +175,9 @@ export default function ProfileSetup() {
       <select value={state} onChange={(e) => setState(e.target.value)} required>
         <option value="">State</option>
         {states.map((s) => (
-          <option key={s} value={s}>{s}</option>
+          <option key={s} value={s}>
+            {s}
+          </option>
         ))}
       </select>
 
@@ -130,7 +188,9 @@ export default function ProfileSetup() {
             <input
               type="checkbox"
               checked={travelStyle.includes(style)}
-              onChange={() => handleCheckboxChange(style, setTravelStyle, travelStyle)}
+              onChange={() =>
+                handleCheckboxChange(style, setTravelStyle, travelStyle)
+              }
             />
             {style}
           </label>
