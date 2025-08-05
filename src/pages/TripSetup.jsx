@@ -12,6 +12,7 @@ export default function TripSetup() {
   const [city, setCity] = useState("");
   const [joinCode, setJoinCode] = useState("");
   const [codeStatus, setCodeStatus] = useState(null);
+  const [codeValid, setCodeValid] = useState(false); // ✅ controls Create Trip button
   const [partyCount, setPartyCount] = useState(1);
   const [whoWith, setWhoWith] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -63,26 +64,40 @@ export default function TripSetup() {
   }, [navigate]);
 
   const checkJoinCode = async () => {
+    if (!joinCode || joinCode.trim().length < 3) {
+      setCodeStatus({ msg: "⚠️ Please enter at least 3 characters.", color: "text-yellow-600" });
+      setCodeValid(false);
+      return;
+    }
+
     try {
       const res = await fetch("https://gofastbackend.onrender.com/tripwell/joincodecheck", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: joinCode }),
+        body: JSON.stringify({ joinCode: joinCode.trim() }), // ✅ fixed key
       });
 
       const data = await res.json();
       if (res.ok && data.available) {
-        setCodeStatus("✅ Code is available!");
+        setCodeStatus({ msg: "✅ Code is available!", color: "text-green-600" });
+        setCodeValid(true);
       } else {
-        setCodeStatus("❌ Code already taken.");
+        setCodeStatus({ msg: "❌ Code already taken.", color: "text-red-600" });
+        setCodeValid(false);
       }
     } catch (err) {
       console.error("Error checking code:", err);
-      setCodeStatus("⚠️ Error checking code.");
+      setCodeStatus({ msg: "⚠️ Error checking code.", color: "text-yellow-600" });
+      setCodeValid(false);
     }
   };
 
   const handleSubmit = async () => {
+    if (!codeValid) {
+      alert("Please pick a valid, available join code before creating your trip.");
+      return;
+    }
+
     try {
       const token = await auth.currentUser.getIdToken(true);
       const res = await fetch("https://gofastbackend.onrender.com/tripwell/tripbase", {
@@ -122,17 +137,46 @@ export default function TripSetup() {
     <div className="max-w-xl mx-auto p-6 space-y-6">
       <h1 className="text-2xl font-bold">Set Up Your Trip</h1>
 
-      <input value={tripName} onChange={(e) => setTripName(e.target.value)} placeholder="Trip Name" className="w-full p-3 border rounded" />
-      <input value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="Purpose (e.g. Vacation)" className="w-full p-3 border rounded" />
-      <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full p-3 border rounded" />
-      <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full p-3 border rounded" />
-      <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City or Destination" className="w-full p-3 border rounded" />
+      <input
+        value={tripName}
+        onChange={(e) => setTripName(e.target.value)}
+        placeholder="Trip Name"
+        className="w-full p-3 border rounded"
+      />
+      <input
+        value={purpose}
+        onChange={(e) => setPurpose(e.target.value)}
+        placeholder="Purpose (e.g. Vacation)"
+        className="w-full p-3 border rounded"
+      />
+      <input
+        type="date"
+        value={startDate}
+        onChange={(e) => setStartDate(e.target.value)}
+        className="w-full p-3 border rounded"
+      />
+      <input
+        type="date"
+        value={endDate}
+        onChange={(e) => setEndDate(e.target.value)}
+        className="w-full p-3 border rounded"
+      />
+      <input
+        value={city}
+        onChange={(e) => setCity(e.target.value)}
+        placeholder="City or Destination"
+        className="w-full p-3 border rounded"
+      />
 
       <div className="flex items-center gap-2">
         <input
           value={joinCode}
-          onChange={(e) => setJoinCode(e.target.value)}
-          placeholder="Join Code (optional)"
+          onChange={(e) => {
+            setJoinCode(e.target.value);
+            setCodeValid(false); // reset validity if user edits
+            setCodeStatus(null);
+          }}
+          placeholder="Join Code (required — like a username)"
           className="w-full p-3 border rounded"
         />
         <button
@@ -143,7 +187,7 @@ export default function TripSetup() {
           Check
         </button>
       </div>
-      {codeStatus && <p className="text-sm text-gray-600">{codeStatus}</p>}
+      {codeStatus && <p className={`text-sm ${codeStatus.color}`}>{codeStatus.msg}</p>}
 
       <label className="font-semibold">Party Count</label>
       <input
@@ -177,7 +221,10 @@ export default function TripSetup() {
 
       <button
         onClick={handleSubmit}
-        className="bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition"
+        disabled={!codeValid} // ✅ prevents submit until join code passes
+        className={`py-3 px-6 rounded-lg transition ${
+          codeValid ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-gray-300 text-gray-500 cursor-not-allowed"
+        }`}
       >
         Create Trip
       </button>
