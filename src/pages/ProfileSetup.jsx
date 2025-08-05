@@ -86,7 +86,7 @@ export default function ProfileSetup() {
       if (updated.role === "originator") {
         navigate("/tripsetup");
       } else {
-        navigate("/tripjoin");
+        navigate("/pretrip"); {/* ✅ Changed to pretrip route cuz role isnt applied */}
       }
     } catch (err) {
       console.error("Error submitting profile:", err);
