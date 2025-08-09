@@ -1,66 +1,79 @@
-import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { auth, googleProvider } from "../firebase";
+import { signInWithPopup } from "firebase/auth";
 
 export default function Access() {
   const navigate = useNavigate();
-  const auth = getAuth();
-  const provider = new GoogleAuthProvider();
 
-  // 🚨 Hardcoded backend URL
-  const backendUrl = "https://gofastbackend.onrender.com";
+  // Run auth flow on mount
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
+      if (!firebaseUser) return; // Stay on page if no auth yet
 
-  const handleAuth = async () => {
-    try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      console.log("✅ Authenticated user:", user);
+      try {
+        const token = await firebaseUser.getIdToken();
 
-      const res = await fetch(`${backendUrl}/tripwell/user/createOrFind`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firebaseId: user.uid,
-          email: user.email,
-        }),
-      });
+        // Step 1: Create or find backend user (unprotected route)
+        const createRes = await fetch(
+          "https://gofastbackend.onrender.com/tripwell/user/createOrFind",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              firebaseId: firebaseUser.uid,
+              email: firebaseUser.email,
+            }),
+          }
+        );
+        if (!createRes.ok) throw new Error("Failed to create/find user");
 
-      const data = await res.json();
-      console.log("✅ Backend user response:", data);
+        // Step 2: Hydrate user via whoami (protected route)
+        const whoamiRes = await fetch(
+          "https://gofastbackend.onrender.com/tripwell/whoami",
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (!whoamiRes.ok) throw new Error("Failed to hydrate user");
 
-      if (!data.name || data.name.trim() === "") {
-        navigate("/profilesetup");
-      } else {
-        navigate("/");
+        const userData = await whoamiRes.json();
+
+        // Step 3: Routing decisions
+        if (!userData.firstName || !userData.lastName || !userData.hometownCity) {
+          navigate("/profilesetup");
+        } else if (!userData.tripId) {
+          navigate("/tripsetup");
+        } else {
+          navigate("/tripalreadycreated");
+        }
+      } catch (err) {
+        console.error("❌ Access flow failed:", err);
       }
+    });
+
+    return unsubscribe;
+  }, [navigate]);
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
     } catch (err) {
-      console.error("❌ Auth failed", err);
-      alert("Authentication error — please try again.");
+      console.error("Google sign-in failed:", err);
     }
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-10 text-center">
-      <h1 className="text-3xl font-bold text-green-700 mb-6">Welcome to TripWell</h1>
-
-      <p className="max-w-md text-gray-600 mb-8">
-        Before we go any further, we just need to know who you are.
+    <div className="max-w-md mx-auto p-6 space-y-6 text-center">
+      <h1 className="text-2xl font-bold">Sign Up or Sign In</h1>
+      <p className="text-gray-600">
+        Use your email to create a new account or log into your existing TripWell profile.
       </p>
 
-      <div className="flex flex-col gap-4 w-full max-w-xs">
-        <button
-          onClick={handleAuth}
-          className="bg-blue-600 text-white py-3 px-6 rounded hover:bg-blue-700 transition"
-        >
-          🔐 Sign Up
-        </button>
-
-        <button
-          onClick={() => navigate("/explainer")}
-          className="text-sm text-blue-600 underline hover:text-blue-800 mt-2"
-        >
-          What is TripWell?
-        </button>
-      </div>
+      <button
+        onClick={handleGoogleSignIn}
+        className="w-full py-3 bg-blue-600 text-white rounded hover:bg-blue-700"
+      >
+        Continue with Google
+      </button>
     </div>
   );
 }
