@@ -38,20 +38,22 @@ export default function TripSetup() {
         const token = await firebaseUser.getIdToken();
         const headers = { Authorization: `Bearer ${token}` };
 
-        // ✅ Step 1: Hydrate user
+        // Step 1: Hydrate via WHOAMI
         const userRes = await fetch("https://gofastbackend.onrender.com/tripwell/whoami", { headers });
         if (!userRes.ok) {
+          console.warn("WHOAMI failed:", userRes.status);
           navigate("/access");
           return;
         }
         const userData = await userRes.json();
-        if (!userData?._id && !userData?.userId) {
+        if (!userData?._id) {
+          console.warn("WHOAMI returned no _id, redirecting to /access");
           navigate("/access");
           return;
         }
         setUser(userData);
 
-        // ✅ Step 2: Check trip status
+        // Step 2: Check trip status
         const statusRes = await fetch("https://gofastbackend.onrender.com/tripwell/tripstatus", { headers });
         const statusData = await statusRes.json();
         if (statusData?.tripId) {
@@ -60,7 +62,7 @@ export default function TripSetup() {
         }
 
       } catch (err) {
-        console.error("❌ Setup hydration failed", err);
+        console.error("❌ TripSetup hydration failed", err);
         navigate("/access");
       } finally {
         setLoading(false);
@@ -114,7 +116,7 @@ export default function TripSetup() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          userId: user._id || user.userId,
+          userId: user._id,
           tripName,
           purpose,
           startDate,
