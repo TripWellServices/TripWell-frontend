@@ -2,11 +2,11 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import BACKEND_URL from "../config";
 
 export default function Access() {
   const navigate = useNavigate();
 
-  // ✅ Inline provider creation so we don't depend on firebase.js export
   const googleProvider = new GoogleAuthProvider();
 
   useEffect(() => {
@@ -14,7 +14,7 @@ export default function Access() {
       if (firebaseUser) {
         try {
           // Step 1: Create or find user in backend
-          await fetch("https://gofastbackend.onrender.com/tripwell/user/createOrFind", {
+          await fetch(`${BACKEND_URL}/tripwell/user/createOrFind`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -25,7 +25,7 @@ export default function Access() {
 
           // Step 2: Hydrate user from backend
           const token = await firebaseUser.getIdToken();
-          const whoamiRes = await fetch("https://gofastbackend.onrender.com/tripwell/whoami", {
+          const whoamiRes = await fetch(`${BACKEND_URL}/tripwell/whoami`, {
             headers: { Authorization: `Bearer ${token}` },
           });
 
@@ -33,9 +33,7 @@ export default function Access() {
           const data = await whoamiRes.json();
 
           // Step 3: Route logic
-          if (!data.firstName || !data.lastName || !data.hometownCity) {
-            navigate("/profilesetup");
-          } else if (!data.tripId) {
+          if (!data.tripId) {
             navigate("/tripsetup");
           } else {
             navigate("/tripalreadycreated");
