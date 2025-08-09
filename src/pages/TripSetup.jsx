@@ -12,7 +12,7 @@ export default function TripSetup() {
   const [city, setCity] = useState("");
   const [joinCode, setJoinCode] = useState("");
   const [codeStatus, setCodeStatus] = useState(null);
-  const [codeValid, setCodeValid] = useState(false); // ✅ controls Create Trip button
+  const [codeValid, setCodeValid] = useState(false);
   const [partyCount, setPartyCount] = useState(1);
   const [whoWith, setWhoWith] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,39 +28,46 @@ export default function TripSetup() {
   ];
 
   useEffect(() => {
-    async function hydrateAndCheck() {
-      const firebaseUser = auth.currentUser;
-      if (!firebaseUser) return navigate("/access");
+    const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
+      if (!firebaseUser) {
+        navigate("/access");
+        return;
+      }
 
       try {
-        const token = await firebaseUser.getIdToken(true);
+        const token = await firebaseUser.getIdToken();
+        const headers = { Authorization: `Bearer ${token}` };
 
-        // ✅ Check trip status FIRST
-        const statusRes = await fetch("https://gofastbackend.onrender.com/tripwell/tripstatus", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // ✅ Step 1: Hydrate user
+        const userRes = await fetch("https://gofastbackend.onrender.com/tripwell/whoami", { headers });
+        if (!userRes.ok) {
+          navigate("/access");
+          return;
+        }
+        const userData = await userRes.json();
+        if (!userData?._id && !userData?.userId) {
+          navigate("/access");
+          return;
+        }
+        setUser(userData);
+
+        // ✅ Step 2: Check trip status
+        const statusRes = await fetch("https://gofastbackend.onrender.com/tripwell/tripstatus", { headers });
         const statusData = await statusRes.json();
         if (statusData?.tripId) {
-          return navigate("/tripalreadycreated");
+          navigate("/tripalreadycreated");
+          return;
         }
 
-        // ✅ Now hydrate user
-        const res = await fetch("https://gofastbackend.onrender.com/tripwell/whoami", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        if (!data?._id && !data?.userId) return navigate("/access");
-
-        setUser(data);
       } catch (err) {
         console.error("❌ Setup hydration failed", err);
         navigate("/access");
       } finally {
         setLoading(false);
       }
-    }
+    });
 
-    hydrateAndCheck();
+    return unsubscribe;
   }, [navigate]);
 
   const checkJoinCode = async () => {
@@ -74,7 +81,7 @@ export default function TripSetup() {
       const res = await fetch("https://gofastbackend.onrender.com/tripwell/joincodecheck", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ joinCode: joinCode.trim() }), // ✅ fixed key
+        body: JSON.stringify({ joinCode: joinCode.trim() }),
       });
 
       const data = await res.json();
@@ -99,7 +106,7 @@ export default function TripSetup() {
     }
 
     try {
-      const token = await auth.currentUser.getIdToken(true);
+      const token = await auth.currentUser.getIdToken();
       const res = await fetch("https://gofastbackend.onrender.com/tripwell/tripbase", {
         method: "POST",
         headers: {
@@ -173,7 +180,7 @@ export default function TripSetup() {
           value={joinCode}
           onChange={(e) => {
             setJoinCode(e.target.value);
-            setCodeValid(false); // reset validity if user edits
+            setCodeValid(false);
             setCodeStatus(null);
           }}
           placeholder="Join Code (required — like a username)"
@@ -221,9 +228,11 @@ export default function TripSetup() {
 
       <button
         onClick={handleSubmit}
-        disabled={!codeValid} // ✅ prevents submit until join code passes
+        disabled={!codeValid}
         className={`py-3 px-6 rounded-lg transition ${
-          codeValid ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-gray-300 text-gray-500 cursor-not-allowed"
+          codeValid
+            ? "bg-blue-600 text-white hover:bg-blue-700"
+            : "bg-gray-300 text-gray-500 cursor-not-allowed"
         }`}
       >
         Create Trip
