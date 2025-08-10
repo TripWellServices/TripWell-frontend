@@ -1,0 +1,5 @@
+[33mb5a657f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m Fix /whoami hydration and TripSetup save functionality - Backend: Return complete TripWellUser model via user.toObject() - Frontend: Use React state instead of refs, fix destructuring - Backend: Use userId from frontend instead of firebaseId lookup
+[33mef64168[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m pre trip
+[33m91a67b6[m backend URL env for frontend
+[33m173cb83[m access fix
+[33mb1b478a[m access with .env call
