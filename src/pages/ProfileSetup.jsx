@@ -30,7 +30,7 @@ export default function ProfileSetup() {
         });
 
         if (!res.ok) throw new Error(`Hydration failed: ${res.status}`);
-        const user = await res.json();
+        const { user } = await res.json();
 
         setFirstName(user?.firstName || "");
         setLastName(user?.lastName || "");
@@ -71,6 +71,7 @@ export default function ProfileSetup() {
         body: JSON.stringify({
           firstName,
           lastName,
+          email,
           hometownCity,
           state,
           travelStyle,

@@ -37,31 +37,26 @@ export default function TripSetup() {
 
       try {
         const token = await firebaseUser.getIdToken();
-        const headers = { Authorization: `Bearer ${token}` };
-
-        // Step 1: Hydrate via WHOAMI
-        const userRes = await fetch(`${BACKEND_URL}/tripwell/whoami`, { headers });
-        if (!userRes.ok) {
-          console.warn("WHOAMI failed:", userRes.status);
+        const userRes = await fetch(`${BACKEND_URL}/tripwell/whoami`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        const { user } = await userRes.json();
+        
+        // Does user exist? If not, redirect to access
+        if (!user?._id) {
           navigate("/access");
           return;
         }
-        const userData = await userRes.json();
-        if (!userData?._id) {
-          console.warn("WHOAMI returned no _id, redirecting to /access");
-          navigate("/access");
-          return;
-        }
-        setUser(userData);
-
-        // Step 2: Check trip status
-        const statusRes = await fetch(`${BACKEND_URL}/tripwell/tripstatus`, { headers });
-        const statusData = await statusRes.json();
-        if (statusData?.tripId) {
+        
+        // Does user have tripId? If yes, kick to tripalreadycreated
+        if (user?.tripId) {
           navigate("/tripalreadycreated");
           return;
         }
-
+        
+        // User exists, no tripId - stay on page
+        setUser(user);
       } catch (err) {
         console.error("❌ TripSetup hydration failed", err);
         navigate("/access");
