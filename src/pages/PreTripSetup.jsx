@@ -5,10 +5,10 @@ export default function PreTripSetup() {
 
   return (
     <div className="max-w-md mx-auto p-6 text-center space-y-6">
-      <h1 className="text-2xl font-bold">Hi there!</h1>
+      <h1 className="text-2xl font-bold">Let’s get your trip started</h1>
       <p>
-        We’re about to launch you on your planning journey.
-        If you don’t have a user login yet, no worries — it won’t take long, and then you’ll be on your way.
+        We’ll walk you through the setup step-by-step. 
+        If you’re new to TripWell, we’ll create your account along the way — quick and easy.
       </p>
 
       <button
@@ -19,14 +19,13 @@ export default function PreTripSetup() {
       </button>
 
       <p className="text-gray-600 mt-4">
-        Not ready yet or want to explore other options?{" "}
+        Not ready yet?{" "}
         <button
           onClick={() => navigate("/")}
           className="underline text-gray-700"
         >
           Return home
-        </button>{" "}
-        to make a different selection.
+        </button>
       </p>
     </div>
   );
