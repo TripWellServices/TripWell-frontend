@@ -118,7 +118,7 @@ export default function TripSetup() {
       };
 
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${BACKEND_URL}/tripwell/tripbase`, {
+      const res = await fetch(`${BACKEND_URL}/tripwell/trip-setup`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -134,11 +134,9 @@ export default function TripSetup() {
         alert(data.error || `Create failed (${res.status})`);
         return;
       }
-      if (!data.tripId) {
-        alert("Server did not return tripId");
-        return;
-      }
-      navigate(`/tripcreated/${data.tripId}`);
+
+      // Navigate to simple success page
+      navigate("/tripcreated");
     } catch (err) {
       console.error("❌ Trip setup failed", err);
       alert("Could not save your trip. Please try again.");
