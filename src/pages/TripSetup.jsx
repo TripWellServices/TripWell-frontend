@@ -14,7 +14,7 @@ export default function TripSetup() {
   const [joinCode, setJoinCode] = useState("");
   const [codeStatus, setCodeStatus] = useState(null);
   const [codeValid, setCodeValid] = useState(false);
-  const [partyCount, setPartyCount] = useState(1);
+  const [partyCount, setPartyCount] = useState("");
   const [whoWith, setWhoWith] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -103,31 +103,42 @@ export default function TripSetup() {
       return;
     }
 
+    // Validate partyCount
+    if (!partyCount || isNaN(Number(partyCount)) || Number(partyCount) < 1) {
+      alert("Please enter a valid party count (minimum 1).");
+      return;
+    }
+
     try {
+      const payload = {
+        tripName, purpose, city, joinCode,
+        whoWith, // array
+        startDate, endDate,                 // "YYYY-MM-DD" strings
+        partyCount: partyCount ? Number(partyCount) : null,
+      };
+
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${BACKEND_URL}/tripwell/tripbase`, {
         method: "POST",
-        headers: {
+        headers: { 
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({
-          userId: user._id,
-          tripName,
-          purpose,
-          startDate,
-          endDate,
-          city,
-          joinCode,
-          whoWith,
-          partyCount,
-        }),
+        body: JSON.stringify(payload),
       });
+      
+      const data = await res.json().catch(() => ({}));
+      console.log("create trip resp", res.status, data);
 
-      const json = await res.json();
-      if (!res.ok || !json?.tripId) throw new Error("Trip creation failed");
-
-      navigate(`/tripcreated/${json.tripId}`);
+      if (!res.ok) {
+        alert(data.error || `Create failed (${res.status})`);
+        return;
+      }
+      if (!data.tripId) {
+        alert("Server did not return tripId");
+        return;
+      }
+      navigate(`/tripcreated/${data.tripId}`);
     } catch (err) {
       console.error("❌ Trip setup failed", err);
       alert("Could not save your trip. Please try again.");
@@ -156,13 +167,13 @@ export default function TripSetup() {
       />
       <input
         type="date"
-        value={startDate}
+        value={startDate || ""}
         onChange={(e) => setStartDate(e.target.value)}
         className="w-full p-3 border rounded"
       />
       <input
         type="date"
-        value={endDate}
+        value={endDate || ""}
         onChange={(e) => setEndDate(e.target.value)}
         className="w-full p-3 border rounded"
       />
@@ -198,8 +209,8 @@ export default function TripSetup() {
       <input
         type="number"
         min={1}
-        value={partyCount}
-        onChange={(e) => setPartyCount(parseInt(e.target.value))}
+        value={partyCount || ""}
+        onChange={(e) => setPartyCount(e.target.value)}
         className="w-full p-3 border rounded"
       />
 

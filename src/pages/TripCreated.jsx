@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { auth } from "../firebase";
 
 export default function TripCreated() {
   const navigate = useNavigate();
+  const { tripId } = useParams();
   const [trip, setTrip] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -12,7 +13,7 @@ export default function TripCreated() {
       try {
         const token = await auth.currentUser.getIdToken();
 
-        const res = await fetch("/tripwell/tripcreated", {
+        const res = await fetch(`/tripwell/tripcreated/${tripId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
