@@ -1,5 +1,6 @@
 import { auth } from "../firebase";
 import { getIdToken } from "firebase/auth";
+import BACKEND_URL from "../config";
 
 export const getUserAndTrip = async () => {
   const currentUser = auth.currentUser;
@@ -7,7 +8,7 @@ export const getUserAndTrip = async () => {
 
   try {
     const token = await getIdToken(currentUser, true);
-    const res = await fetch("https://gofastbackend.onrender.com/tripwell/whoami", {
+    const res = await fetch(`${BACKEND_URL}/tripwell/whoami`, {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },
     });

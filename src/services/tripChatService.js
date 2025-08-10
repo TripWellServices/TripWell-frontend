@@ -1,8 +1,9 @@
 // src/services/tripChatService.js
+import BACKEND_URL from "../config";
 
 export async function submitTripPrompt({ tripId, userInput, tripData, userData }) {
   try {
-    const res = await fetch(`https://gofastbackend.onrender.com/tripwell/${tripId}/chat`, {
+    const res = await fetch(`${BACKEND_URL}/tripwell/${tripId}/chat`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

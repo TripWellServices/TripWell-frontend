@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getUserAndTrip } from "../services/userService";
-
-const BACKEND_URL = "https://gofastbackend.onrender.com";
+import BACKEND_URL from "../config";
 
 export default function TripItineraryParticipant() {
   const [tripDays, setTripDays] = useState([]);

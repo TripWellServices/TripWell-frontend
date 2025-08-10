@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
+import BACKEND_URL from "../config";
 
 export default function PreJoinTrip() {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ export default function PreJoinTrip() {
 
       // Signed in → check user + trip
       const token = await user.getIdToken(true);
-      const res = await fetch("https://gofastbackend.onrender.com/tripwell/whoami", {
+      const res = await fetch(`${BACKEND_URL}/tripwell/whoami`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

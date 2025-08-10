@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
+import BACKEND_URL from "../config";
 
 export default function TripPlannerAI() {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ export default function TripPlannerAI() {
         if (!firebaseUser) return navigate("/explainer");
 
         const token = await firebaseUser.getIdToken(true);
-        const res = await fetch("https://gofastbackend.onrender.com/tripwell/whoami", {
+        const res = await fetch(`${BACKEND_URL}/tripwell/whoami`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -53,7 +54,7 @@ export default function TripPlannerAI() {
       const firebaseUser = auth.currentUser;
       const token = await firebaseUser.getIdToken(true);
 
-      const askRes = await fetch(`https://gofastbackend.onrender.com/tripwell/${trip._id}/chat`, {
+      const askRes = await fetch(`${BACKEND_URL}/tripwell/${trip._id}/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -87,7 +88,7 @@ export default function TripPlannerAI() {
 
       await new Promise((r) => setTimeout(r, 250)); // debounce for write safety
 
-      const gptRes = await fetch(`https://gofastbackend.onrender.com/tripwell/${trip._id}/gpt`, {
+      const gptRes = await fetch(`${BACKEND_URL}/tripwell/${trip._id}/gpt`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

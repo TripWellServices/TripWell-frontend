@@ -26,19 +26,26 @@ export default function Access() {
         });
 
         // 2) Hydrate (protected)
-        const token = await firebaseUser.getIdToken();
+        const token = await firebaseUser.getIdToken(true);
         const whoRes = await fetch(`${BACKEND_URL}/tripwell/whoami`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (!whoRes.ok) throw new Error("WhoAmI failed");
-        const data = await whoRes.json();
+        if (!whoRes.ok) throw new Error(`WhoAmI failed: ${whoRes.status}`);
+        const { user, trip } = await whoRes.json();
 
-        // 3) Route: no trip -> setup, else already created
-        if (!data.tripId) {
-          navigate("/tripsetup");
-        } else {
-          navigate("/tripalreadycreated");
+        // 3) Route: profile completeness -> trip presence -> already created
+        const missingProfile = !user?.firstName || !user?.lastName || !user?.hometownCity;
+        if (missingProfile) {
+          navigate("/profilesetup");
+          return;
         }
+
+        if (!trip?._id) {
+          navigate("/tripsetup");
+          return;
+        }
+
+        navigate("/tripalreadycreated");
       } catch (err) {
         console.error("❌ Access flow error", err);
       }

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { getAuth } from "firebase/auth";
-
-const BACKEND_URL = "https://gofastbackend.onrender.com";
+import BACKEND_URL from "../config";
 
 export default function CuratedHighlights() {
   const [highlights, setHighlights] = useState([]);

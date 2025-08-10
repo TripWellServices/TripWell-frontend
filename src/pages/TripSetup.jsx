@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
+import BACKEND_URL from "../config";
 
 export default function TripSetup() {
   const navigate = useNavigate();
@@ -39,7 +40,7 @@ export default function TripSetup() {
         const headers = { Authorization: `Bearer ${token}` };
 
         // Step 1: Hydrate via WHOAMI
-        const userRes = await fetch("https://gofastbackend.onrender.com/tripwell/whoami", { headers });
+        const userRes = await fetch(`${BACKEND_URL}/tripwell/whoami`, { headers });
         if (!userRes.ok) {
           console.warn("WHOAMI failed:", userRes.status);
           navigate("/access");
@@ -54,7 +55,7 @@ export default function TripSetup() {
         setUser(userData);
 
         // Step 2: Check trip status
-        const statusRes = await fetch("https://gofastbackend.onrender.com/tripwell/tripstatus", { headers });
+        const statusRes = await fetch(`${BACKEND_URL}/tripwell/tripstatus`, { headers });
         const statusData = await statusRes.json();
         if (statusData?.tripId) {
           navigate("/tripalreadycreated");
@@ -80,7 +81,7 @@ export default function TripSetup() {
     }
 
     try {
-      const res = await fetch("https://gofastbackend.onrender.com/tripwell/joincodecheck", {
+      const res = await fetch(`${BACKEND_URL}/tripwell/joincodecheck`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ joinCode: joinCode.trim() }),
@@ -109,7 +110,7 @@ export default function TripSetup() {
 
     try {
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch("https://gofastbackend.onrender.com/tripwell/tripbase", {
+      const res = await fetch(`${BACKEND_URL}/tripwell/tripbase`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

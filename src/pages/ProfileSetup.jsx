@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
-
-// Hardcoded backend URL so we bypass the frontend domain
-const API_BASE = "https://gofastbackend.onrender.com";
+import BACKEND_URL from "../config";
 
 export default function ProfileSetup() {
   const [firstName, setFirstName] = useState("");
@@ -27,7 +25,7 @@ export default function ProfileSetup() {
     const hydrateForm = async () => {
       try {
         const token = await auth.currentUser.getIdToken();
-        const res = await fetch(`${API_BASE}/tripwell/whoami`, {
+        const res = await fetch(`${BACKEND_URL}/tripwell/whoami`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -64,7 +62,7 @@ export default function ProfileSetup() {
     e.preventDefault();
     try {
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${API_BASE}/tripwell/profile`, {
+      const res = await fetch(`${BACKEND_URL}/tripwell/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

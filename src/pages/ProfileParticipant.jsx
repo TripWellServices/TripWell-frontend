@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getUserAndTrip } from "../services/userService";
 import { getAuth } from "firebase/auth";
-
-const BACKEND_URL = "https://gofastbackend.onrender.com";
+import BACKEND_URL from "../config";
 
 export default function ProfileParticipant() {
   const [user, setUser] = useState(null);
