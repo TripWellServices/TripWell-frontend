@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { auth } from "../firebase";
+import { getUserAndTrip } from "../services/userService";
 
 export default function TripCreated() {
   const navigate = useNavigate();
@@ -11,29 +11,46 @@ export default function TripCreated() {
   useEffect(() => {
     async function hydrateTrip() {
       try {
-        const token = await auth.currentUser.getIdToken();
+        // First verify user identity
+        const { user } = await getUserAndTrip();
 
+        // If no user, redirect to home
+        if (!user) {
+          console.error("❌ No user found");
+          navigate("/");
+          return;
+        }
+
+        // Now fetch the specific trip data using the existing tripCreated route
+        const { auth } = await import("../firebase");
+        const token = await auth.currentUser.getIdToken();
+        
         const res = await fetch(`/tripwell/tripcreated/${tripId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        const data = await res.json();
+        if (!res.ok) {
+          throw new Error("Failed to fetch trip data");
+        }
 
-        if (!data?.trip) throw new Error("No trip returned");
+        const data = await res.json();
+        if (!data?.trip) {
+          throw new Error("No trip returned");
+        }
 
         setTrip(data.trip);
       } catch (err) {
         console.error("❌ Trip hydration failed:", err);
-        navigate("/prepbuild"); // Failsafe smart fork
+        navigate("/");
       } finally {
         setLoading(false);
       }
     }
 
     hydrateTrip();
-  }, [navigate]);
+  }, [navigate, tripId]);
 
   if (loading) {
     return <div className="p-6 text-center text-gray-600">Loading your trip...</div>;
@@ -94,7 +111,7 @@ export default function TripCreated() {
           onClick={() => navigate("/prepbuild")}
           className="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition"
         >
-          Yes! Let’s Plan It
+          Yes! Let's Plan It
         </button>
         <button
           onClick={() => navigate("/")}

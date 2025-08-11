@@ -135,8 +135,13 @@ export default function TripSetup() {
         return;
       }
 
-      // Navigate to simple success page
-      navigate("/tripcreated");
+      if (!data.tripId) {
+        alert("Server did not return tripId");
+        return;
+      }
+
+      // Navigate to trip created page with tripId
+      navigate(`/tripcreated/${data.tripId}`);
     } catch (err) {
       console.error("❌ Trip setup failed", err);
       alert("Could not save your trip. Please try again.");
