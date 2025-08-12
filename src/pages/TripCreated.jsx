@@ -1,46 +1,64 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { getUserAndTrip } from "../services/userService";
+import { useNavigate } from "react-router-dom";
+import { auth } from "../firebase";
+import { BACKEND_URL } from "../config";
+import { fetchJSON } from "../utils/fetchJSON";
 
 export default function TripCreated() {
   const navigate = useNavigate();
-  const { tripId } = useParams();
+  const [user, setUser] = useState(null);
   const [trip, setTrip] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function hydrateTrip() {
       try {
-        // First verify user identity
-        const { user } = await getUserAndTrip();
+        // Get Firebase token for auth
+        const firebaseUser = auth.currentUser;
+        if (!firebaseUser) {
+          console.error("❌ No Firebase user");
+          navigate("/access");
+          return;
+        }
 
-        // If no user, redirect to home
-        if (!user) {
+        const token = await firebaseUser.getIdToken();
+        
+        // First get user data from /whoami
+        const userData = await fetchJSON(`${BACKEND_URL}/tripwell/whoami`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          cache: "no-store"
+        });
+
+        if (!userData?.user) {
           console.error("❌ No user found");
+          navigate("/access");
+          return;
+        }
+
+        setUser(userData.user);
+
+        // Use tripId from user object (NO URL PARAMS!)
+        if (!userData.user.tripId) {
+          console.error("❌ No tripId in user object");
           navigate("/");
           return;
         }
 
-        // Now fetch the specific trip data using the existing tripCreated route
-        const { auth } = await import("../firebase");
-        const token = await auth.currentUser.getIdToken();
-        
-        const res = await fetch(`/tripwell/tripcreated/${tripId}`, {
+        // Call tripcreated route with tripId from user object
+        const tripData = await fetchJSON(`${BACKEND_URL}/tripwell/tripcreated/${userData.user.tripId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          cache: "no-store"
         });
 
-        if (!res.ok) {
-          throw new Error("Failed to fetch trip data");
-        }
-
-        const data = await res.json();
-        if (!data?.trip) {
+        if (!tripData?.trip) {
           throw new Error("No trip returned");
         }
 
-        setTrip(data.trip);
+        setTrip(tripData.trip);
       } catch (err) {
         console.error("❌ Trip hydration failed:", err);
         navigate("/");
@@ -50,7 +68,7 @@ export default function TripCreated() {
     }
 
     hydrateTrip();
-  }, [navigate, tripId]);
+  }, [navigate]);
 
   if (loading) {
     return <div className="p-6 text-center text-gray-600">Loading your trip...</div>;

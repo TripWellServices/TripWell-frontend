@@ -34,7 +34,16 @@ export default function TripSetup() {
     
     const hydrateUser = async () => {
       try {
-        // Get Firebase token for auth
+        // Wait for Firebase auth to be ready
+        await new Promise(resolve => {
+          const unsubscribe = auth.onAuthStateChanged((user) => {
+            unsubscribe();
+            resolve(user);
+          });
+        });
+        
+        if (!isMounted) return;
+        
         const firebaseUser = auth.currentUser;
         if (!firebaseUser) {
           console.log("🚫 No Firebase user, navigating to /access");
