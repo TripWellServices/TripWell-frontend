@@ -13,55 +13,28 @@ export default function TripCreated() {
   useEffect(() => {
     async function hydrateTrip() {
       try {
-        // Get Firebase token for auth
         const firebaseUser = auth.currentUser;
-        if (!firebaseUser) {
-          console.error("❌ No Firebase user");
-          navigate("/access");
-          return;
-        }
-
         const token = await firebaseUser.getIdToken();
         
-        // First get user data from /whoami
+        // Get user data from /whoami
         const userData = await fetchJSON(`${BACKEND_URL}/tripwell/whoami`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
           cache: "no-store"
         });
 
-        if (!userData?.user) {
-          console.error("❌ No user found");
-          navigate("/access");
-          return;
-        }
-
+        console.log("🔍 User data:", userData);
         setUser(userData.user);
-
-        // Use tripId from user object (NO URL PARAMS!)
-        if (!userData.user.tripId) {
-          console.error("❌ No tripId in user object");
-          navigate("/");
-          return;
-        }
 
         // Call tripcreated route with tripId from user object
         const tripData = await fetchJSON(`${BACKEND_URL}/tripwell/tripcreated/${userData.user.tripId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
           cache: "no-store"
         });
 
-        if (!tripData?.trip) {
-          throw new Error("No trip returned");
-        }
-
+        console.log("🔍 Trip data:", tripData);
         setTrip(tripData.trip);
       } catch (err) {
         console.error("❌ Trip hydration failed:", err);
-        navigate("/");
       } finally {
         setLoading(false);
       }
