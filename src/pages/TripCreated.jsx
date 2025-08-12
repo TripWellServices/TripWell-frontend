@@ -13,7 +13,20 @@ export default function TripCreated() {
   useEffect(() => {
     async function hydrateTrip() {
       try {
+        // Wait for Firebase auth to be ready
+        await new Promise(resolve => {
+          const unsubscribe = auth.onAuthStateChanged((user) => {
+            unsubscribe();
+            resolve(user);
+          });
+        });
+        
         const firebaseUser = auth.currentUser;
+        if (!firebaseUser) {
+          console.error("❌ No Firebase user after waiting");
+          return;
+        }
+        
         const token = await firebaseUser.getIdToken();
         
         // Get user data from /whoami
