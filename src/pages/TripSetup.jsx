@@ -17,6 +17,7 @@ export default function TripSetup() {
   const [partyCount, setPartyCount] = useState("");
   const [whoWith, setWhoWith] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   const WHO_OPTIONS = [
     { label: "Spouse / Partner", value: "spouse" },
@@ -31,33 +32,48 @@ export default function TripSetup() {
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
       if (!firebaseUser) {
+        console.log("🚫 No Firebase user, navigating to /access");
         navigate("/access");
         return;
       }
 
       try {
+        console.log("🔐 Firebase user authenticated, calling /whoami");
         const token = await firebaseUser.getIdToken();
-        const userRes = await fetch(`${BACKEND_URL}/tripwell/whoami`, {
+        const res = await fetch(`${BACKEND_URL}/tripwell/whoami`, {
           headers: { Authorization: `Bearer ${token}` },
           cache: "no-store"
         });
         
-        const { user } = await userRes.json();
+        console.log("whoami status", res.status);
         
-        // Does user exist? If not, redirect to access
-        if (!user?._id) {
+        if (!res.ok) {
+          console.log("❌ /whoami failed with status:", res.status);
           navigate("/access");
           return;
         }
         
-        // Does user have tripId? If yes, kick to tripalreadycreated
-        if (user?.tripId) {
+        const data = await res.json();
+        console.log("whoami data", data);
+        console.log("TripSetup hasTrip?", Boolean(data?.user?.tripId));
+        
+        // If user is null, redirect to access
+        if (!data?.user) {
+          console.log("❌ No user found, navigating to /access");
+          navigate("/access");
+          return;
+        }
+        
+        // If user has tripId, redirect to trip already created
+        if (Boolean(data?.user?.tripId)) {
+          console.log("🚫 User has existing trip, navigating to /tripalreadycreated");
           navigate("/tripalreadycreated");
           return;
         }
         
-        // User exists, no tripId - stay on page
-        setUser(user);
+        // User exists, no trip - stay on page
+        console.log("✅ User authenticated, no existing trip - staying on TripSetup");
+        setUser(data.user); // React state the shit out of it!
       } catch (err) {
         console.error("❌ TripSetup hydration failed", err);
         navigate("/access");
@@ -98,7 +114,10 @@ export default function TripSetup() {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (submitting) return;
     if (!codeValid) {
       alert("Please pick a valid, available join code before creating your trip.");
       return;
@@ -109,6 +128,8 @@ export default function TripSetup() {
       alert("Please enter a valid party count (minimum 1).");
       return;
     }
+
+    setSubmitting(true);
 
     try {
       const payload = {
@@ -131,125 +152,137 @@ export default function TripSetup() {
       const data = await res.json().catch(() => ({}));
       console.log("create trip resp", res.status, data);
 
-      if (!res.ok) {
+      if (res.status === 201 && data.tripId) {
+        // Navigate to trip created page with tripId
+        navigate(`/tripcreated/${data.tripId}`);
+      } else if (res.status === 409) {
+        // Show user-visible error for conflicts
+        alert(data.error || "Join code taken or user already has a trip");
+      } else {
         alert(data.error || `Create failed (${res.status})`);
-        return;
       }
-
-      if (!data.tripId) {
-        alert("Server did not return tripId");
-        return;
-      }
-
-      // Navigate to trip created page with tripId
-      navigate(`/tripcreated/${data.tripId}`);
     } catch (err) {
       console.error("❌ Trip setup failed", err);
       alert("Could not save your trip. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   if (loading) {
-    return <div className="p-6 text-center text-gray-500">Loading...</div>;
+    return (
+      <div className="p-6 text-center">
+        <div className="text-gray-600 text-lg">We're getting your trip set up ready.</div>
+      </div>
+    );
   }
 
   return (
     <div className="max-w-xl mx-auto p-6 space-y-6">
       <h1 className="text-2xl font-bold">Set Up Your Trip</h1>
 
-      <input
-        value={tripName}
-        onChange={(e) => setTripName(e.target.value)}
-        placeholder="Trip Name"
-        className="w-full p-3 border rounded"
-      />
-      <input
-        value={purpose}
-        onChange={(e) => setPurpose(e.target.value)}
-        placeholder="Purpose (e.g. Vacation)"
-        className="w-full p-3 border rounded"
-      />
-      <input
-        type="date"
-        value={startDate || ""}
-        onChange={(e) => setStartDate(e.target.value)}
-        className="w-full p-3 border rounded"
-      />
-      <input
-        type="date"
-        value={endDate || ""}
-        onChange={(e) => setEndDate(e.target.value)}
-        className="w-full p-3 border rounded"
-      />
-      <input
-        value={city}
-        onChange={(e) => setCity(e.target.value)}
-        placeholder="City or Destination"
-        className="w-full p-3 border rounded"
-      />
-
-      <div className="flex items-center gap-2">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <input
-          value={joinCode}
-          onChange={(e) => {
-            setJoinCode(e.target.value);
-            setCodeValid(false);
-            setCodeStatus(null);
-          }}
-          placeholder="Join Code (required — like a username)"
+          value={tripName}
+          onChange={(e) => setTripName(e.target.value)}
+          placeholder="Trip Name"
           className="w-full p-3 border rounded"
+          required
         />
+        <input
+          value={purpose}
+          onChange={(e) => setPurpose(e.target.value)}
+          placeholder="Purpose (e.g. Vacation)"
+          className="w-full p-3 border rounded"
+          required
+        />
+        <input
+          type="date"
+          value={startDate || ""}
+          onChange={(e) => setStartDate(e.target.value)}
+          className="w-full p-3 border rounded"
+          required
+        />
+        <input
+          type="date"
+          value={endDate || ""}
+          onChange={(e) => setEndDate(e.target.value)}
+          className="w-full p-3 border rounded"
+          required
+        />
+        <input
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          placeholder="City or Destination"
+          className="w-full p-3 border rounded"
+          required
+        />
+
+        <div className="flex items-center gap-2">
+          <input
+            value={joinCode}
+            onChange={(e) => {
+              setJoinCode(e.target.value);
+              setCodeValid(false);
+              setCodeStatus(null);
+            }}
+            placeholder="Join Code (required — like a username)"
+            className="w-full p-3 border rounded"
+            required
+          />
+          <button
+            type="button"
+            onClick={checkJoinCode}
+            className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
+          >
+            Check
+          </button>
+        </div>
+        {codeStatus && <p className={`text-sm ${codeStatus.color}`}>{codeStatus.msg}</p>}
+
+        <label className="font-semibold">Party Count</label>
+        <input
+          type="number"
+          min={1}
+          value={partyCount || ""}
+          onChange={(e) => setPartyCount(e.target.value)}
+          className="w-full p-3 border rounded"
+          required
+        />
+
+        <fieldset className="space-y-2">
+          <legend className="font-semibold">Who are you traveling with?</legend>
+          {WHO_OPTIONS.map((opt) => (
+            <label key={opt.value} className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                value={opt.value}
+                checked={whoWith.includes(opt.value)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setWhoWith([...whoWith, opt.value]);
+                  } else {
+                    setWhoWith(whoWith.filter((w) => w !== opt.value));
+                  }
+                }}
+              />
+              <span>{opt.label}</span>
+            </label>
+          ))}
+        </fieldset>
+
         <button
-          type="button"
-          onClick={checkJoinCode}
-          className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
+          type="submit"
+          disabled={!codeValid || submitting}
+          className={`py-3 px-6 rounded-lg transition ${
+            codeValid && !submitting
+              ? "bg-blue-600 text-white hover:bg-blue-700"
+              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+          }`}
         >
-          Check
+          {submitting ? "Creating..." : "Create Trip"}
         </button>
-      </div>
-      {codeStatus && <p className={`text-sm ${codeStatus.color}`}>{codeStatus.msg}</p>}
-
-      <label className="font-semibold">Party Count</label>
-      <input
-        type="number"
-        min={1}
-        value={partyCount || ""}
-        onChange={(e) => setPartyCount(e.target.value)}
-        className="w-full p-3 border rounded"
-      />
-
-      <fieldset className="space-y-2">
-        <legend className="font-semibold">Who are you traveling with?</legend>
-        {WHO_OPTIONS.map((opt) => (
-          <label key={opt.value} className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              value={opt.value}
-              checked={whoWith.includes(opt.value)}
-              onChange={(e) => {
-                if (e.target.checked) {
-                  setWhoWith([...whoWith, opt.value]);
-                } else {
-                  setWhoWith(whoWith.filter((w) => w !== opt.value));
-                }
-              }}
-            />
-            <span>{opt.label}</span>
-          </label>
-        ))}
-      </fieldset>
-
-      <button
-        onClick={handleSubmit}
-        disabled={!codeValid}
-        className={`py-3 px-6 rounded-lg transition ${
-          codeValid
-            ? "bg-blue-600 text-white hover:bg-blue-700"
-            : "bg-gray-300 text-gray-500 cursor-not-allowed"
-        }`}
-      >
-        Create Trip
-      </button>
+      </form>
     </div>
   );
 }

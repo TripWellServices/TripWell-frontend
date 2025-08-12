@@ -58,6 +58,8 @@ import TripReflectionsHub from "./pages/TripReflectionsHub";
 // 🔜 Future Pages (import to avoid breakage if used anywhere)
 import TripWellHub from "./pages/TripWellHub";
 import TripPlannerAI from "./pages/TripPlannerAI";
+import YourStuck from "./pages/YourStuck";
+import TripAlreadyCreated from "./pages/TripAlreadyCreated";
 // import GeneralHub from "./pages/GeneralHub";
 // import TripItineraryPage from "./pages/TripItineraryPage";
 
@@ -88,6 +90,7 @@ export default function App() {
       <Route path="/profilesetup" element={<ProfileSetup />} />
       <Route path="/pretrip" element={<PreTripSetup />} /> {/* ✅ MOUNTED CORRECTLY */}
       <Route path="/tripsetup" element={<TripSetup />} />
+      <Route path="/tripalreadycreated" element={<TripAlreadyCreated />} />
       <Route path="/tripcreated/:tripId" element={<TripCreated />} />
       <Route path="/prepbuild" element={<PrepBuild />} />
       <Route path="/tripintent/:tripId" element={<TripIntentForm />} />
@@ -115,6 +118,7 @@ export default function App() {
       {/* 🔜 Future Pages */}
       <Route path="/tripwellhub" element={<TripWellHub />} />
       <Route path="/trip-planner-ai" element={<TripPlannerAI />} />
+      <Route path="/yourstuck" element={<YourStuck />} />
       {/* <Route path="/hub" element={<GeneralHub />} /> */}
       {/* <Route path="/tripwell/:tripId/itinerary" element={<TripItineraryPage />} /> */}
 
