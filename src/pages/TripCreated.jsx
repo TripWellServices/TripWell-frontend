@@ -6,55 +6,41 @@ import { fetchJSON } from "../utils/fetchJSON";
 
 export default function TripCreated() {
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
   const [trip, setTrip] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let isMounted = true;
-
     async function hydrateTrip() {
       try {
         const firebaseUser = auth.currentUser;
-        if (!firebaseUser) {
-          navigate("/access", { replace: true });
-          return;
-        }
-
         const token = await firebaseUser.getIdToken();
 
-        // 1) Hydrate user
+        // Get user data from /whoami
         const userData = await fetchJSON(`${BACKEND_URL}/tripwell/whoami`, {
           headers: { Authorization: `Bearer ${token}` },
-          cache: "no-store",
+          cache: "no-store"
         });
 
-        const user = userData?.user;
-        if (!user?.tripId) {
-          navigate("/tripnotcreated", { replace: true });
-          return;
-        }
+        console.log("🔍 User data:", userData);
+        setUser(userData.user);
 
-        // 2) Fetch trip meta
-        const tripData = await fetchJSON(`${BACKEND_URL}/tripwell/tripcreated`, {
+        // Call tripcreated route with tripId from user object
+        const tripData = await fetchJSON(`${BACKEND_URL}/tripwell/tripcreated/${userData.user.tripId}`, {
           headers: { Authorization: `Bearer ${token}` },
-          cache: "no-store",
+          cache: "no-store"
         });
 
-        if (isMounted) {
-          setTrip(tripData.trip || null);
-        }
+        console.log("🔍 Trip data:", tripData);
+        setTrip(tripData.trip);
       } catch (err) {
         console.error("❌ Trip hydration failed:", err);
-        navigate("/tripnotcreated", { replace: true });
       } finally {
-        if (isMounted) setLoading(false);
+        setLoading(false);
       }
     }
 
     hydrateTrip();
-    return () => {
-      isMounted = false;
-    };
   }, [navigate]);
 
   if (loading) {
@@ -86,18 +72,10 @@ export default function TripCreated() {
         <p><strong>Trip Name:</strong> {trip.tripName}</p>
         <p><strong>Purpose:</strong> {trip.purpose || "—"}</p>
         <p><strong>Destination:</strong> {trip.city}</p>
-        <p>
-          <strong>Dates:</strong> {new Date(trip.startDate).toLocaleDateString()} –{" "}
-          {new Date(trip.endDate).toLocaleDateString()}
-        </p>
+        <p><strong>Dates:</strong> {new Date(trip.startDate).toLocaleDateString()} – {new Date(trip.endDate).toLocaleDateString()}</p>
         <p><strong>Party Count:</strong> {trip.partyCount}</p>
         <p><strong>With:</strong> {(trip.whoWith || []).join(", ") || "—"}</p>
-        <p>
-          <strong>Trip Code:</strong>{" "}
-          <span className="font-mono text-blue-600">
-            {trip.joinCode || trip.tripId}
-          </span>
-        </p>
+        <p><strong>Trip Code:</strong> <span className="font-mono text-blue-600">{trip.joinCode || trip.tripId}</span></p>
       </div>
 
       <div className="space-y-4 text-gray-700">
@@ -121,7 +99,7 @@ export default function TripCreated() {
           Ready to plan the rest of your trip?
         </p>
         <button
-          onClick={() => navigate("/tripprebuild", { replace: true })}
+          onClick={() => navigate("/tripprebuild")}
           className="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition"
         >
           Yes! Let's Plan It
