@@ -30,26 +30,35 @@ export default function TripSetup() {
   ];
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
-      if (!firebaseUser) {
-        console.log("🚫 No Firebase user, navigating to /access");
-        navigate("/access");
-        return;
-      }
-
+    let isMounted = true;
+    
+    const hydrateUser = async () => {
       try {
-        console.log("🔐 Firebase user authenticated, calling /whoami");
+        // Get Firebase token for auth
+        const firebaseUser = auth.currentUser;
+        if (!firebaseUser) {
+          console.log("🚫 No Firebase user, navigating to /access");
+          if (isMounted) navigate("/access");
+          return;
+        }
+
+        console.log("🔐 Calling /whoami for hydration");
         const token = await firebaseUser.getIdToken();
+        
+        if (!isMounted) return;
+        
         const res = await fetch(`${BACKEND_URL}/tripwell/whoami`, {
           headers: { Authorization: `Bearer ${token}` },
           cache: "no-store"
         });
         
+        if (!isMounted) return;
+        
         console.log("whoami status", res.status);
         
         if (!res.ok) {
           console.log("❌ /whoami failed with status:", res.status);
-          navigate("/access");
+          if (isMounted) navigate("/access");
           return;
         }
         
@@ -57,32 +66,44 @@ export default function TripSetup() {
         console.log("whoami data", data);
         console.log("TripSetup hasTrip?", Boolean(data?.user?.tripId));
         
+        if (!isMounted) return;
+        
         // If user is null, redirect to access
         if (!data?.user) {
           console.log("❌ No user found, navigating to /access");
-          navigate("/access");
+          if (isMounted) navigate("/access");
           return;
         }
         
         // If user has tripId, redirect to trip already created
         if (Boolean(data?.user?.tripId)) {
           console.log("🚫 User has existing trip, navigating to /tripalreadycreated");
-          navigate("/tripalreadycreated");
+          if (isMounted) navigate("/tripalreadycreated");
           return;
         }
         
         // User exists, no trip - stay on page
         console.log("✅ User authenticated, no existing trip - staying on TripSetup");
-        setUser(data.user); // React state the shit out of it!
+        if (isMounted) {
+          setUser(data.user); // React state the shit out of it!
+          setLoading(false);
+        }
       } catch (err) {
         console.error("❌ TripSetup hydration failed", err);
-        navigate("/access");
-      } finally {
-        setLoading(false);
+        if (isMounted) {
+          navigate("/access");
+          setLoading(false);
+        }
       }
-    });
+    };
 
-    return unsubscribe;
+    // Small delay to let Firebase auth settle
+    const timer = setTimeout(hydrateUser, 100);
+    
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
   }, [navigate]);
 
   const checkJoinCode = async () => {
