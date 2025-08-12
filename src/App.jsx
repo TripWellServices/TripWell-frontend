@@ -91,7 +91,7 @@ export default function App() {
       <Route path="/pretrip" element={<PreTripSetup />} /> {/* ✅ MOUNTED CORRECTLY */}
       <Route path="/tripsetup" element={<TripSetup />} />
       <Route path="/tripalreadycreated" element={<TripAlreadyCreated />} />
-      <Route path="/tripcreated/:tripId" element={<TripCreated />} />
+      <Route path="/tripcreated" element={<TripCreated />} />
       <Route path="/prepbuild" element={<PrepBuild />} />
       <Route path="/tripintent/:tripId" element={<TripIntentForm />} />
       <Route path="/anchorselect" element={<AnchorSelectPage />} />

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
-import { BACKEND_URL } from "../config";
+import BACKEND_URL from "../config";
 import { fetchJSON } from "../utils/fetchJSON";
 
 export default function TripCreated() {

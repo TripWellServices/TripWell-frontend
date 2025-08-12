@@ -182,9 +182,9 @@ export default function TripSetup() {
       const data = await res.json().catch(() => ({}));
       console.log("create trip resp", res.status, data);
 
-      if (res.status === 201 && data.tripId) {
-        // Navigate to trip created page with tripId
-        navigate(`/tripcreated/${data.tripId}`);
+              if (res.status === 201 && data.tripId) {
+          // Navigate to trip created page (no tripId in URL)
+          navigate(`/tripcreated`);
       } else if (res.status === 409) {
         // Show user-visible error for conflicts
         alert(data.error || "Join code taken or user already has a trip");
