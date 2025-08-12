@@ -38,7 +38,8 @@ export default function TripSetup() {
       try {
         const token = await firebaseUser.getIdToken();
         const userRes = await fetch(`${BACKEND_URL}/tripwell/whoami`, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store"
         });
         
         const { user } = await userRes.json();

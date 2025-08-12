@@ -11,12 +11,13 @@ export const getUserAndTrip = async () => {
     const res = await fetch(`${BACKEND_URL}/tripwell/whoami`, {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store"
     });
 
     if (!res.ok) throw new Error("❌ whoami failed");
 
-    const { user, trip } = await res.json();
-    return { user, trip };
+    const { user } = await res.json();
+    return { user, trip: null }; // whoami only returns user
   } catch (err) {
     console.error("💥 getUserAndTrip failed:", err);
     return { user: null, trip: null };

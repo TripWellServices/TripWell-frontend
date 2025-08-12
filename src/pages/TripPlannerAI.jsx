@@ -22,6 +22,7 @@ export default function TripPlannerAI() {
         const token = await firebaseUser.getIdToken(true);
         const res = await fetch(`${BACKEND_URL}/tripwell/whoami`, {
           headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store"
         });
 
         const data = await res.json();

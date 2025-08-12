@@ -29,6 +29,7 @@ export default function Access() {
         const token = await firebaseUser.getIdToken(true);
         const whoRes = await fetch(`${BACKEND_URL}/tripwell/whoami`, {
           headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store"
         });
         if (!whoRes.ok) throw new Error(`WhoAmI failed: ${whoRes.status}`);
         const { user, trip } = await whoRes.json();

@@ -21,6 +21,7 @@ export default function PreJoinTrip() {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        cache: "no-store"
       });
 
       const { user: whoUser, trip } = await res.json();

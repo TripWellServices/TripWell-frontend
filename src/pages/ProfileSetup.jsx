@@ -26,7 +26,8 @@ export default function ProfileSetup() {
       try {
         const token = await auth.currentUser.getIdToken();
         const res = await fetch(`${BACKEND_URL}/tripwell/whoami`, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store"
         });
 
         if (!res.ok) throw new Error(`Hydration failed: ${res.status}`);
