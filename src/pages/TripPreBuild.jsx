@@ -24,17 +24,17 @@ export default function TripPrebuild() {
 
       <div className="space-y-4">
         <button
-          onClick={() => navigate("/tripintent")}
+          onClick={() => navigate("/tripidtest")}
           className="w-full bg-blue-600 text-white px-5 py-3 rounded-md hover:bg-blue-700 transition"
         >
-          🚀 Let's Plan!
+          🚀 Let's Plan! (Test TripID)
         </button>
 
         <button
-          onClick={() => navigate("/tripintent")} // always start here for test
+          onClick={() => navigate("/tripidtest")} // always start here for test
           className="w-full bg-green-600 text-white px-5 py-3 rounded-md hover:bg-green-700 transition"
         >
-          📍 Take Me Where I Left Off
+          📍 Take Me Where I Left Off (Test TripID)
         </button>
 
         <button
