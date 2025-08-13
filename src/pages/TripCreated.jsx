@@ -28,7 +28,7 @@ export default function TripCreated() {
         }
         
         const token = await firebaseUser.getIdToken();
-        
+
         // Get user data from /whoami
         const userData = await fetchJSON(`${BACKEND_URL}/tripwell/whoami`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -112,7 +112,7 @@ export default function TripCreated() {
           Ready to plan the rest of your trip?
         </p>
         <button
-          onClick={() => navigate("/prepbuild")}
+          onClick={() => navigate("/tripprebuild")}
           className="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition"
         >
           Yes! Let's Plan It
