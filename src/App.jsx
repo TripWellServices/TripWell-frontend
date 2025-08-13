@@ -13,10 +13,8 @@ axios.interceptors.request.use(
       }
     } catch (error) {
       console.warn("⚠️ Firebase auth error in interceptor:", error);
-      // Continue without auth token if Firebase fails
     }
 
-    // Add cache-busting headers for whoami and tripstatus endpoints
     if (config.url && (config.url.includes('/tripwell/whoami') || config.url.includes('/tripwell/tripstatus'))) {
       config.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
       config.headers['Pragma'] = 'no-cache';
@@ -59,14 +57,14 @@ import PreviewLiveDay from "./pages/TripLiveDay";
 import TripComplete from "./pages/TripComplete";
 import CurrentTripReflection from "./pages/CurrentTripReflection";
 import TripReflectionsHub from "./pages/TripReflectionsHub";
-
-// 🔜 Future Pages
 import TripWellHub from "./pages/TripWellHub";
 import TripPlannerAI from "./pages/TripPlannerAI";
 import YourStuck from "./pages/YourStuck";
-
 import TripNotCreated from "./pages/TripNotCreated";
 import TripItineraryRequired from "./pages/TripItineraryRequired";
+
+// ✅ Test Page
+import TripIDTest from "./pages/TripIDTest"; // 👈 new
 
 export default function App() {
   return (
@@ -97,6 +95,9 @@ export default function App() {
       {/* ✅ PrepBuild + alias */}
       <Route path="/prepbuild" element={<PrepBuild />} />
       <Route path="/tripprebuild" element={<PrepBuild />} /> {/* legacy alias */}
+
+      {/* ✅ Test route */}
+      <Route path="/tripidtest" element={<TripIDTest />} />
 
       <Route path="/tripintent" element={<TripIntentForm />} />
       <Route path="/anchorselect" element={<AnchorSelectPage />} />
