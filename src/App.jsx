@@ -5,10 +5,15 @@ import { auth } from "./firebase";
 // ✅ Axios auth interceptor
 axios.interceptors.request.use(
   async (config) => {
-    const user = auth.currentUser;
-    if (user) {
-      const token = await user.getIdToken();
-      config.headers.Authorization = `Bearer ${token}`;
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        const token = await user.getIdToken();
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (error) {
+      console.warn("⚠️ Firebase auth error in interceptor:", error);
+      // Continue without auth token if Firebase fails
     }
     
     // Add cache-busting headers for whoami and tripstatus endpoints

@@ -7,6 +7,7 @@ export default function TripIntentForm() {
   const navigate = useNavigate();
   
   const [user, setUser] = useState(null);
+  const [tripId, setTripId] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const [priorities, setPriorities] = useState("");
@@ -16,34 +17,79 @@ export default function TripIntentForm() {
   const [travelPace, setTravelPace] = useState("");
 
   useEffect(() => {
-    async function checkTripStatus() {
+    async function hydrateUser() {
       try {
-        const statusRes = await axios.get("/tripwell/tripstatus");
-        
-        // ❗ No trip created, fallback
-        if (!statusRes.data.tripStatus.tripId) {
-          navigate("/tripwell/tripitineraryrequired");
+        // Wait for Firebase auth to be ready
+        if (!auth.currentUser) {
+          console.log("⏳ Waiting for Firebase auth...");
           return;
         }
 
-        // ✅ Already did intent? Skip forward
-        if (statusRes.data.tripStatus.intentExists) {
-          navigate(`/anchorselect`);
+        // Get ID token
+        const token = await auth.currentUser.getIdToken(true);
+        
+        // Call whoami to get full user object
+        const whoamiRes = await axios.get("/tripwell/whoami", {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true
+        });
+        
+        console.log("🔍 WHOAMI RESPONSE:", whoamiRes.data);
+        
+        const userData = whoamiRes.data.user;
+        if (!userData?._id) {
+          console.error("❌ No user ID in whoami response");
+          navigate("/access");
           return;
         }
+
+        setUser(userData);
+
+        // Check if user has a trip
+        if (!userData.tripId) {
+          console.log("❌ No tripId found, routing to tripsetup");
+          navigate("/tripsetup");
+          return;
+        }
+
+        setTripId(userData.tripId);
+        console.log("✅ Hydration complete - tripId:", userData.tripId);
+
       } catch (err) {
-        console.error("❌ Failed to check trip status:", err);
-        navigate("/tripwell/tripitineraryrequired");
+        console.error("❌ WHOAMI failed:", err.response?.status, err.response?.data || err.message);
+        
+        if (err.response?.status === 401) {
+          console.log("🔒 401 Unauthorized, routing to access");
+          navigate("/access");
+        } else {
+          console.error("❌ Unexpected error during hydration:", err);
+          navigate("/access");
+        }
       } finally {
         setLoading(false);
       }
     }
 
-    checkTripStatus();
+    // Listen for auth state changes
+    const unsubscribe = auth.onAuthStateChanged((firebaseUser) => {
+      if (firebaseUser) {
+        hydrateUser();
+      } else {
+        console.log("❌ No Firebase user, routing to access");
+        navigate("/access");
+      }
+    });
+
+    return unsubscribe;
   }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!tripId) {
+      console.error("❌ No tripId available for submission");
+      return;
+    }
     
     try {
       const token = await auth.currentUser.getIdToken(true);
@@ -64,12 +110,17 @@ export default function TripIntentForm() {
 
       navigate(`/anchorselect`);
     } catch (err) {
-      console.error("❌ Failed to save trip intent", err);
+      console.error("❌ Failed to save trip intent:", err.response?.status, err.response?.data || err.message);
     }
   };
 
   if (loading) {
-    return <div className="p-6 text-center">Loading...</div>;
+    return (
+      <div className="p-6 text-center text-gray-700">
+        <h2 className="text-xl font-semibold mb-2">Just a sec...</h2>
+        <p>We're loading your trip info and getting ready to plan.</p>
+      </div>
+    );
   }
 
   return (
