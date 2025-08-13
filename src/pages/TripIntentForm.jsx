@@ -1,6 +1,8 @@
+// src/pages/TripIntentForm.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
+import { onAuthStateChanged } from "firebase/auth";
 
 const TripIntentForm = () => {
   const navigate = useNavigate();
@@ -11,14 +13,13 @@ const TripIntentForm = () => {
   const [vibe, setVibe] = useState("");
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const firebaseUser = auth.currentUser;
-        if (!firebaseUser) {
-          navigate("/access");
-          return;
-        }
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!firebaseUser) {
+        navigate("/access");
+        return;
+      }
 
+      try {
         const token = await firebaseUser.getIdToken();
         const res = await fetch(
           "https://gofastbackend.onrender.com/tripwell/whoami",
@@ -48,15 +49,12 @@ const TripIntentForm = () => {
         console.error("❌ Error fetching user:", err);
         navigate("/access");
       }
-    };
+    });
 
-    fetchUser();
+    return () => unsubscribe();
   }, [navigate]);
 
-  // 🚫 Removed the "Standby..." flash — now we render nothing until ready
-  if (loading) {
-    return null;
-  }
+  if (loading) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -89,28 +87,35 @@ const TripIntentForm = () => {
   };
 
   return (
-    <div>
-      <h1>Trip Intent</h1>
-      <form onSubmit={handleSubmit}>
-        <label>
+    <div className="p-6 max-w-xl mx-auto space-y-6">
+      <h1 className="text-2xl font-bold">Trip Intent</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <label className="block">
           Intent:
           <input
             type="text"
             value={intent}
             onChange={(e) => setIntent(e.target.value)}
             required
+            className="border p-2 rounded w-full"
           />
         </label>
-        <label>
+        <label className="block">
           Vibe:
           <input
             type="text"
             value={vibe}
             onChange={(e) => setVibe(e.target.value)}
             required
+            className="border p-2 rounded w-full"
           />
         </label>
-        <button type="submit">Save Intent</button>
+        <button
+          type="submit"
+          className="bg-blue-600 text-white px-5 py-3 rounded hover:bg-blue-700 transition"
+        >
+          Save Intent
+        </button>
       </form>
     </div>
   );
