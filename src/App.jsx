@@ -64,7 +64,7 @@ import TripReflectionsHub from "./pages/TripReflectionsHub";
 import TripWellHub from "./pages/TripWellHub";
 import TripPlannerAI from "./pages/TripPlannerAI";
 import YourStuck from "./pages/YourStuck";
-import TripAlreadyCreated from "./pages/TripAlreadyCreated";
+
 import TripNotCreated from "./pages/TripNotCreated";
 import TripItineraryRequired from "./pages/TripItineraryRequired";
 
@@ -89,7 +89,7 @@ export default function App() {
       <Route path="/profilesetup" element={<ProfileSetup />} />
       <Route path="/pretrip" element={<PreTripSetup />} />
       <Route path="/tripsetup" element={<TripSetup />} />
-      <Route path="/tripalreadycreated" element={<TripAlreadyCreated />} />
+
       <Route path="/tripcreated" element={<TripCreated />} />
       <Route path="/tripnotcreated" element={<TripNotCreated />} />
       <Route path="/tripwell/tripitineraryrequired" element={<TripItineraryRequired />} />

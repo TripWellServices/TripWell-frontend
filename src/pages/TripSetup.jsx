@@ -84,10 +84,10 @@ export default function TripSetup() {
           return;
         }
         
-        // If user has tripId, redirect to trip already created
+        // If user has tripId, redirect to home to continue their existing trip
         if (Boolean(data?.user?.tripId)) {
-          console.log("🚫 User has existing trip, navigating to /tripalreadycreated");
-          if (isMounted) navigate("/tripalreadycreated");
+          console.log("✅ User has existing trip, navigating to home");
+          if (isMounted) navigate("/");
           return;
         }
         

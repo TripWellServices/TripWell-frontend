@@ -45,15 +45,13 @@ export default function TripIntentForm() {
 
         setUser(userData);
 
-        // Check if user has a trip
-        if (!userData.tripId) {
-          console.log("❌ No tripId found, routing to tripsetup");
-          navigate("/tripsetup");
-          return;
+        // Set tripId if user has one, but don't require it
+        if (userData.tripId) {
+          setTripId(userData.tripId);
+          console.log("✅ Hydration complete - tripId:", userData.tripId);
+        } else {
+          console.log("ℹ️ No tripId yet - user can still fill out intent");
         }
-
-        setTripId(userData.tripId);
-        console.log("✅ Hydration complete - tripId:", userData.tripId);
 
       } catch (err) {
         console.error("❌ WHOAMI failed:", err.response?.status, err.response?.data || err.message);
@@ -86,8 +84,10 @@ export default function TripIntentForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // If user doesn't have a trip yet, redirect to trip setup
     if (!tripId) {
-      console.error("❌ No tripId available for submission");
+      console.log("ℹ️ No tripId yet - redirecting to trip setup");
+      navigate("/tripsetup");
       return;
     }
     

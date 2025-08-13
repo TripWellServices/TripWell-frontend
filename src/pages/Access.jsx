@@ -46,7 +46,7 @@ export default function Access() {
           return;
         }
 
-        navigate("/tripalreadycreated");
+        navigate("/");
       } catch (err) {
         console.error("❌ Access flow error", err);
       }
