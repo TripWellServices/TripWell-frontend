@@ -1,7 +1,7 @@
-import React from "react";
+// src/pages/TripPrebuild.jsx
 import { useNavigate } from "react-router-dom";
 
-export default function TripPreBuild() {
+export default function TripPrebuild() {
   const navigate = useNavigate();
 
   return (
@@ -24,10 +24,17 @@ export default function TripPreBuild() {
 
       <div className="space-y-4">
         <button
-          onClick={() => navigate(`/tripintent`)}
+          onClick={() => navigate("/tripintent")}
           className="w-full bg-blue-600 text-white px-5 py-3 rounded-md hover:bg-blue-700 transition"
         >
           🚀 Let's Plan!
+        </button>
+
+        <button
+          onClick={() => navigate("/tripintent")} // always start here for test
+          className="w-full bg-green-600 text-white px-5 py-3 rounded-md hover:bg-green-700 transition"
+        >
+          📍 Take Me Where I Left Off
         </button>
 
         <button

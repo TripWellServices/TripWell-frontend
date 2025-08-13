@@ -15,14 +15,14 @@ axios.interceptors.request.use(
       console.warn("⚠️ Firebase auth error in interceptor:", error);
       // Continue without auth token if Firebase fails
     }
-    
+
     // Add cache-busting headers for whoami and tripstatus endpoints
     if (config.url && (config.url.includes('/tripwell/whoami') || config.url.includes('/tripwell/tripstatus'))) {
       config.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
       config.headers['Pragma'] = 'no-cache';
       config.headers['Expires'] = '0';
     }
-    
+
     return config;
   },
   (error) => Promise.reject(error),
@@ -38,7 +38,7 @@ import TripJoin from "./pages/TripJoin";
 import ProfileSetup from "./pages/ProfileSetup";
 import ProfileParticipant from "./pages/ProfileParticipant";
 import TripSetup from "./pages/TripSetup";
-import PreTripSetup from "./pages/PreTripSetup"; // ✅ CORRECTED
+import PreTripSetup from "./pages/PreTripSetup";
 import TripCreated from "./pages/TripCreated";
 import PrepBuild from "./pages/TripPreBuild";
 import TripIntentForm from "./pages/TripIntentForm";
@@ -60,15 +60,13 @@ import TripComplete from "./pages/TripComplete";
 import CurrentTripReflection from "./pages/CurrentTripReflection";
 import TripReflectionsHub from "./pages/TripReflectionsHub";
 
-// 🔜 Future Pages (import to avoid breakage if used anywhere)
+// 🔜 Future Pages
 import TripWellHub from "./pages/TripWellHub";
 import TripPlannerAI from "./pages/TripPlannerAI";
 import YourStuck from "./pages/YourStuck";
 import TripAlreadyCreated from "./pages/TripAlreadyCreated";
 import TripNotCreated from "./pages/TripNotCreated";
 import TripItineraryRequired from "./pages/TripItineraryRequired";
-// import GeneralHub from "./pages/GeneralHub";
-// import TripItineraryPage from "./pages/TripItineraryPage";
 
 export default function App() {
   return (
@@ -83,34 +81,29 @@ export default function App() {
       <Route path="/prejointrip" element={<PreJoinTrip />} />
       <Route path="/join" element={<TripJoin />} />
       <Route path="/profileparticipant" element={<ProfileParticipant />} />
-      <Route
-        path="/plannerparticipanthub"
-        element={<PlannerParticipantHub />}
-      />
-      <Route
-        path="/triplivedayparticipant"
-        element={<TripLiveDayParticipant />}
-      />
+      <Route path="/plannerparticipanthub" element={<PlannerParticipantHub />} />
+      <Route path="/triplivedayparticipant" element={<TripLiveDayParticipant />} />
       <Route path="/daylookback" element={<TripDayLookback />} />
 
       {/* ✅ Originator Flow */}
       <Route path="/profilesetup" element={<ProfileSetup />} />
-      <Route path="/pretrip" element={<PreTripSetup />} /> {/* ✅ MOUNTED CORRECTLY */}
+      <Route path="/pretrip" element={<PreTripSetup />} />
       <Route path="/tripsetup" element={<TripSetup />} />
       <Route path="/tripalreadycreated" element={<TripAlreadyCreated />} />
       <Route path="/tripcreated" element={<TripCreated />} />
       <Route path="/tripnotcreated" element={<TripNotCreated />} />
       <Route path="/tripwell/tripitineraryrequired" element={<TripItineraryRequired />} />
+
+      {/* ✅ PrepBuild + alias */}
       <Route path="/prepbuild" element={<PrepBuild />} />
+      <Route path="/tripprebuild" element={<PrepBuild />} /> {/* legacy alias */}
+
       <Route path="/tripintent" element={<TripIntentForm />} />
       <Route path="/anchorselect" element={<AnchorSelectPage />} />
       <Route path="/tripwell/itinerarybuild" element={<TripItineraryBuild />} />
       <Route path="/tripwell/itineraryupdate" element={<TripDayOverview />} />
       <Route path="/modify/day" element={<ModifyDay />} />
-      <Route
-        path="/modifyblock/:tripId/:dayIndex/:blockName"
-        element={<ModifyBlock />}
-      />
+      <Route path="/modifyblock/:tripId/:dayIndex/:blockName" element={<ModifyBlock />} />
       <Route path="/tripplannerreturn" element={<TripPlannerReturn />} />
 
       {/* ✅ Execution Phase (Shared) */}
@@ -128,8 +121,6 @@ export default function App() {
       <Route path="/tripwellhub" element={<TripWellHub />} />
       <Route path="/trip-planner-ai" element={<TripPlannerAI />} />
       <Route path="/yourstuck" element={<YourStuck />} />
-      {/* <Route path="/hub" element={<GeneralHub />} /> */}
-      {/* <Route path="/tripwell/:tripId/itinerary" element={<TripItineraryPage />} /> */}
 
       {/* ✅ Fallback */}
       <Route path="*" element={<Navigate to="/" />} />
