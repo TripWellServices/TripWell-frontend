@@ -3,13 +3,12 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 export default function TripPreBuild() {
-  const [tripData, setTripData] = useState(null);
   const [tripId, setTripId] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    async function hydrateTrip() {
+    async function hydrateUser() {
       try {
         const whoamiRes = await axios.get("/tripwell/whoami");
         console.log("🔍 WHOAMI RESPONSE:", whoamiRes.data);
@@ -18,20 +17,15 @@ export default function TripPreBuild() {
         
         if (whoamiRes.data?.user?.tripId) {
           setTripId(whoamiRes.data.user.tripId);
-          // Just set basic trip info from user data
-          setTripData({
-            _id: whoamiRes.data.user.tripId,
-            city: "Your Trip" // Placeholder - will be filled by actual trip data when needed
-          });
         }
       } catch (err) {
-        console.warn("⚠️ Could not hydrate user trip data.");
+        console.warn("⚠️ Could not hydrate user data.");
       } finally {
         setLoading(false);
       }
     }
 
-    hydrateTrip();
+    hydrateUser();
   }, [navigate]);
 
   if (loading) {
@@ -43,7 +37,7 @@ export default function TripPreBuild() {
     );
   }
 
-  if (!tripData) {
+  if (!tripId) {
     return (
       <div className="p-6 max-w-xl mx-auto space-y-6">
         <h1 className="text-2xl font-bold text-red-600">No Trip Found</h1>
@@ -76,8 +70,7 @@ export default function TripPreBuild() {
       <h1 className="text-2xl font-bold">Welcome to Your Trip Planner</h1>
 
       <p className="text-gray-700">
-        You're planning a trip to <span className="font-semibold">{tripData.city}</span>.
-        TripWell's AI assistant <strong>Angela</strong> is here to guide you through it — fast.
+        You're planning a trip! TripWell's AI assistant <strong>Angela</strong> is here to guide you through it — fast.
       </p>
 
       <div className="bg-gray-100 p-4 rounded-md text-left space-y-2 text-sm">
