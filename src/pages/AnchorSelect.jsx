@@ -66,7 +66,7 @@ export default function AnchorSelect() {
         },
         { withCredentials: true }
       );
-      navigate(`/tripwell/itinerary/${tripId}`);
+      navigate(`/tripwell/itinerarybuild`);
     } catch (err) {
       console.error("❌ Submit Anchor Logic Failed", err);
     }

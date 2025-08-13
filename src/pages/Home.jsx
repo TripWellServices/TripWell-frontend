@@ -47,7 +47,7 @@ export default function Home() {
       icon: <CalendarDays className="w-5 h-5 mr-2" />,
       label: "I'm TripWelling!",
       description: "Start your adventure. We’ll guide you block by block.",
-      route: "/prelive",
+      route: "/preliveday",
     },
     {
       icon: <RefreshCcw className="w-5 h-5 mr-2" />,

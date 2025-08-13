@@ -60,6 +60,8 @@ import TripWellHub from "./pages/TripWellHub";
 import TripPlannerAI from "./pages/TripPlannerAI";
 import YourStuck from "./pages/YourStuck";
 import TripAlreadyCreated from "./pages/TripAlreadyCreated";
+import TripNotCreated from "./pages/TripNotCreated";
+import TripItineraryRequired from "./pages/TripItineraryRequired";
 // import GeneralHub from "./pages/GeneralHub";
 // import TripItineraryPage from "./pages/TripItineraryPage";
 
@@ -92,8 +94,10 @@ export default function App() {
       <Route path="/tripsetup" element={<TripSetup />} />
       <Route path="/tripalreadycreated" element={<TripAlreadyCreated />} />
       <Route path="/tripcreated" element={<TripCreated />} />
+      <Route path="/tripnotcreated" element={<TripNotCreated />} />
+      <Route path="/tripwell/tripitineraryrequired" element={<TripItineraryRequired />} />
       <Route path="/prepbuild" element={<PrepBuild />} />
-      <Route path="/tripintent/:tripId" element={<TripIntentForm />} />
+      <Route path="/tripintent" element={<TripIntentForm />} />
       <Route path="/anchorselect" element={<AnchorSelectPage />} />
       <Route path="/tripwell/itinerarybuild" element={<TripItineraryBuild />} />
       <Route path="/tripwell/itineraryupdate" element={<TripDayOverview />} />

@@ -11,46 +11,14 @@ export default function TripPreBuild() {
   useEffect(() => {
     async function hydrateTrip() {
       try {
-        const statusRes = await axios.get("/tripwell/tripstatus");
-        const { tripId, intentExists, anchorsExist, daysExist } = statusRes.data;
-
-        if (!tripId) {
-          navigate("/tripnotcreated");
-          return;
+        const whoamiRes = await axios.get("/tripwell/whoami");
+        if (whoamiRes.data?.user?.trip) {
+          setTripData(whoamiRes.data.user.trip);
+          setTripId(whoamiRes.data.user.trip._id);
         }
-
-        setTripId(tripId);
-
-        // Fallbacks in canonical order:
-        if (!intentExists) {
-          navigate(`/tripintent/${tripId}`);
-          return;
-        }
-
-        if (!anchorsExist) {
-          navigate("/anchorselect");
-          return;
-        }
-
-        if (!daysExist) {
-          navigate("/tripwell/itinerarybuild");
-          return;
-        }
-
-        // ✅ All steps complete → go to saved itinerary
-        navigate("/tripwell/itineraryupdate");
       } catch (err) {
-        console.error("❌ Failed to load trip:", err);
-        navigate("/tripnotcreated");
+        console.warn("⚠️ Could not hydrate user trip data.");
       } finally {
-        try {
-          const whoamiRes = await axios.get("/tripwell/whoami");
-          if (whoamiRes.data?.trip) {
-            setTripData(whoamiRes.data.trip);
-          }
-        } catch (err) {
-          console.warn("⚠️ Could not hydrate user trip data.");
-        }
         setLoading(false);
       }
     }
@@ -88,12 +56,52 @@ export default function TripPreBuild() {
         Total time: about 5 minutes. Angela will do most of the heavy lifting.
       </p>
 
-      <button
-        onClick={() => navigate(`/tripintent/${tripId}`)}
-        className="bg-blue-600 text-white px-5 py-3 rounded-md hover:bg-blue-700"
-      >
-        Let’s Get Started
-      </button>
+      <div className="space-y-4">
+        <button
+          onClick={() => navigate(`/tripintent`)}
+          className="w-full bg-blue-600 text-white px-5 py-3 rounded-md hover:bg-blue-700 transition"
+        >
+          🚀 Let's Plan!
+        </button>
+
+        <button
+          onClick={async () => {
+            try {
+              const statusRes = await axios.get("/tripwell/tripstatus");
+              const { intentExists, anchorsExist, daysExist } = statusRes.data.tripStatus || statusRes.data;
+
+              // Smart routing based on progress:
+              if (!intentExists) {
+                navigate(`/tripintent`);
+                return;
+              }
+              if (!anchorsExist) {
+                navigate("/anchorselect");
+                return;
+              }
+              if (!daysExist) {
+                navigate("/tripwell/itinerarybuild");
+                return;
+              }
+              // All complete → go to saved itinerary
+              navigate("/tripwell/itineraryupdate");
+            } catch (err) {
+              console.error("❌ Failed to check trip status:", err);
+              navigate(`/tripintent/${tripId}`); // fallback
+            }
+          }}
+          className="w-full bg-green-600 text-white px-5 py-3 rounded-md hover:bg-green-700 transition"
+        >
+          📍 Take Me Where I Left Off
+        </button>
+
+        <button
+          onClick={() => navigate("/")}
+          className="w-full bg-gray-300 text-gray-800 px-5 py-3 rounded-md hover:bg-gray-400 transition"
+        >
+          🏠 Return Home
+        </button>
+      </div>
     </div>
   );
 }

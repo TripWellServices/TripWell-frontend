@@ -112,7 +112,7 @@ export default function TripCreated() {
           Ready to plan the rest of your trip?
         </p>
         <button
-          onClick={() => navigate("/tripprebuild")}
+          onClick={() => navigate("/prepbuild")}
           className="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition"
         >
           Yes! Let's Plan It

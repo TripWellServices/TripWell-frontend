@@ -1,17 +1,15 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { auth } from "../firebase";
 
 export default function TripIntentForm() {
   const navigate = useNavigate();
-  const { tripId } = useParams();
 
   const [user, setUser] = useState(null);
   const [tripStatus, setTripStatus] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const [whoWith, setWhoWith] = useState("");
   const [priorities, setPriorities] = useState("");
   const [vibes, setVibes] = useState("");
   const [mobility, setMobility] = useState("");
@@ -41,14 +39,14 @@ export default function TripIntentForm() {
         setTripStatus(statusRes.data);
 
         // ❗ No trip created, fallback
-        if (!statusRes.data.tripId) {
+        if (!statusRes.data.tripStatus.tripId) {
           navigate("/tripwell/tripitineraryrequired");
           return;
         }
 
         // ✅ Already did intent? Skip forward
-        if (statusRes.data.tripIntentId) {
-          navigate(`/tripwell/${statusRes.data.tripId}/anchors`);
+        if (statusRes.data.tripStatus.intentExists) {
+          navigate(`/anchorselect`);
           return;
         }
 
@@ -66,9 +64,8 @@ export default function TripIntentForm() {
     try {
       const token = await auth.currentUser.getIdToken(true);
       await axios.post(
-        `/tripwell/tripintent/${tripId}`,
+        `/tripwell/tripintent`,
         {
-          whoWith,
           priorities,
           vibes,
           mobility,
@@ -80,7 +77,7 @@ export default function TripIntentForm() {
         }
       );
 
-      navigate(`/tripwell/${tripId}/anchors`);
+      navigate(`/anchorselect`);
     } catch (err) {
       console.error("❌ Failed to save trip intent", err);
       alert("Could not save your intent. Try again.");
@@ -93,12 +90,7 @@ export default function TripIntentForm() {
     <div className="max-w-xl mx-auto p-6 space-y-4">
       <h1 className="text-2xl font-bold mb-4">🧠 What Kind of Trip is This?</h1>
 
-      <input
-        value={whoWith}
-        onChange={(e) => setWhoWith(e.target.value)}
-        placeholder="Traveling with (e.g., family, spouse, solo)"
-        className="w-full p-3 border rounded"
-      />
+
       <input
         value={priorities}
         onChange={(e) => setPriorities(e.target.value)}
