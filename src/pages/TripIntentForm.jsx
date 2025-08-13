@@ -5,39 +5,21 @@ import { auth } from "../firebase";
 
 export default function TripIntentForm() {
   const navigate = useNavigate();
-
+  
   const [user, setUser] = useState(null);
-  const [tripStatus, setTripStatus] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const [priorities, setPriorities] = useState("");
   const [vibes, setVibes] = useState("");
   const [mobility, setMobility] = useState("");
-  const [travelPace, setTravelPace] = useState("");
   const [budget, setBudget] = useState("");
+  const [travelPace, setTravelPace] = useState("");
 
   useEffect(() => {
-    const hydrate = async () => {
+    async function checkTripStatus() {
       try {
-        const firebaseUser = auth.currentUser;
-        if (!firebaseUser) {
-          navigate("/access");
-          return;
-        }
-
-        const token = await firebaseUser.getIdToken(true);
-
-        const whoamiRes = await axios.get("/tripwell/whoami", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        const statusRes = await axios.get("/tripwell/tripstatus", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        setUser(whoamiRes.data.user);
-        setTripStatus(statusRes.data);
-
+        const statusRes = await axios.get("/tripwell/tripstatus");
+        
         // ❗ No trip created, fallback
         if (!statusRes.data.tripStatus.tripId) {
           navigate("/tripwell/tripitineraryrequired");
@@ -49,18 +31,20 @@ export default function TripIntentForm() {
           navigate(`/anchorselect`);
           return;
         }
-
-        setLoading(false);
       } catch (err) {
-        console.error("❌ Error hydrating user or trip status", err);
-        navigate("/access");
+        console.error("❌ Failed to check trip status:", err);
+        navigate("/tripwell/tripitineraryrequired");
+      } finally {
+        setLoading(false);
       }
-    };
+    }
 
-    hydrate();
+    checkTripStatus();
   }, [navigate]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
     try {
       const token = await auth.currentUser.getIdToken(true);
       await axios.post(
@@ -69,65 +53,80 @@ export default function TripIntentForm() {
           priorities,
           vibes,
           mobility,
-          travelPace,
           budget,
+          travelPace,
         },
         {
           headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
         }
       );
 
       navigate(`/anchorselect`);
     } catch (err) {
       console.error("❌ Failed to save trip intent", err);
-      alert("Could not save your intent. Try again.");
     }
   };
 
-  if (loading) return <div className="p-6">Loading your trip...</div>;
+  if (loading) {
+    return <div className="p-6 text-center">Loading...</div>;
+  }
 
   return (
-    <div className="max-w-xl mx-auto p-6 space-y-4">
+    <div className="max-w-xl mx-auto p-6 space-y-6">
       <h1 className="text-2xl font-bold mb-4">🧠 What Kind of Trip is This?</h1>
 
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <input
+          value={priorities}
+          onChange={(e) => setPriorities(e.target.value)}
+          placeholder="What are your priorities? (e.g., food, culture, relaxation)"
+          className="w-full p-3 border rounded"
+        />
 
-      <input
-        value={priorities}
-        onChange={(e) => setPriorities(e.target.value)}
-        placeholder="Top priorities (e.g., memories, comfort)"
-        className="w-full p-3 border rounded"
-      />
-      <input
-        value={vibes}
-        onChange={(e) => setVibes(e.target.value)}
-        placeholder="Vibe (e.g., laid back, cultural, adventurous)"
-        className="w-full p-3 border rounded"
-      />
-      <input
-        value={mobility}
-        onChange={(e) => setMobility(e.target.value)}
-        placeholder="Mobility (e.g., limited, active)"
-        className="w-full p-3 border rounded"
-      />
-      <input
-        value={travelPace}
-        onChange={(e) => setTravelPace(e.target.value)}
-        placeholder="Travel pace (e.g., slow, full days)"
-        className="w-full p-3 border rounded"
-      />
-      <input
-        value={budget}
-        onChange={(e) => setBudget(e.target.value)}
-        placeholder="Budget range (e.g., $$-$$$)"
-        className="w-full p-3 border rounded"
-      />
+        <input
+          value={vibes}
+          onChange={(e) => setVibes(e.target.value)}
+          placeholder="What vibes are you going for? (e.g., laid back, cultural, adventurous)"
+          className="w-full p-3 border rounded"
+        />
 
-      <button
-        onClick={handleSubmit}
-        className="bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition"
-      >
-        Save Intent
-      </button>
+        <input
+          value={mobility}
+          onChange={(e) => setMobility(e.target.value)}
+          placeholder="Any mobility considerations? (e.g., walking, wheelchair accessible)"
+          className="w-full p-3 border rounded"
+        />
+
+        <select
+          value={budget}
+          onChange={(e) => setBudget(e.target.value)}
+          className="w-full p-3 border rounded"
+        >
+          <option value="">Select budget range</option>
+          <option value="budget">Budget-friendly</option>
+          <option value="moderate">Moderate</option>
+          <option value="luxury">Luxury</option>
+        </select>
+
+        <select
+          value={travelPace}
+          onChange={(e) => setTravelPace(e.target.value)}
+          className="w-full p-3 border rounded"
+        >
+          <option value="">Select travel pace</option>
+          <option value="relaxed">Relaxed - take it slow</option>
+          <option value="balanced">Balanced - mix of activity and rest</option>
+          <option value="active">Active - pack it in</option>
+        </select>
+
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition"
+        >
+          Continue to Anchor Selection
+        </button>
+      </form>
     </div>
   );
 }

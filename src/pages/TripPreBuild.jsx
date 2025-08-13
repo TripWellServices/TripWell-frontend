@@ -12,9 +12,17 @@ export default function TripPreBuild() {
     async function hydrateTrip() {
       try {
         const whoamiRes = await axios.get("/tripwell/whoami");
-        if (whoamiRes.data?.user?.trip) {
-          setTripData(whoamiRes.data.user.trip);
-          setTripId(whoamiRes.data.user.trip._id);
+        console.log("🔍 WHOAMI RESPONSE:", whoamiRes.data);
+        console.log("🔍 USER:", whoamiRes.data?.user);
+        console.log("🔍 TRIP ID:", whoamiRes.data?.user?.tripId);
+        
+        if (whoamiRes.data?.user?.tripId) {
+          setTripId(whoamiRes.data.user.tripId);
+          // Just set basic trip info from user data
+          setTripData({
+            _id: whoamiRes.data.user.tripId,
+            city: "Your Trip" // Placeholder - will be filled by actual trip data when needed
+          });
         }
       } catch (err) {
         console.warn("⚠️ Could not hydrate user trip data.");
@@ -30,12 +38,38 @@ export default function TripPreBuild() {
     return (
       <div className="p-6 text-center text-gray-700">
         <h2 className="text-xl font-semibold mb-2">Just a sec...</h2>
-        <p>We’re loading your trip and getting Angela ready to help you plan.</p>
+        <p>We're loading your trip and getting Angela ready to help you plan.</p>
       </div>
     );
   }
 
-  if (!tripData) return null;
+  if (!tripData) {
+    return (
+      <div className="p-6 max-w-xl mx-auto space-y-6">
+        <h1 className="text-2xl font-bold text-red-600">No Trip Found</h1>
+        
+        <p className="text-gray-700">
+          It looks like you don't have a trip set up yet. You'll need to create a trip first before you can start planning.
+        </p>
+
+        <div className="space-y-4">
+          <button
+            onClick={() => navigate("/pretrip")}
+            className="w-full bg-blue-600 text-white px-5 py-3 rounded-md hover:bg-blue-700 transition"
+          >
+            🚀 Create a New Trip
+          </button>
+
+          <button
+            onClick={() => navigate("/")}
+            className="w-full bg-gray-300 text-gray-800 px-5 py-3 rounded-md hover:bg-gray-400 transition"
+          >
+            🏠 Return Home
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-xl mx-auto space-y-6">
@@ -43,7 +77,7 @@ export default function TripPreBuild() {
 
       <p className="text-gray-700">
         You're planning a trip to <span className="font-semibold">{tripData.city}</span>.
-        TripWell’s AI assistant <strong>Angela</strong> is here to guide you through it — fast.
+        TripWell's AI assistant <strong>Angela</strong> is here to guide you through it — fast.
       </p>
 
       <div className="bg-gray-100 p-4 rounded-md text-left space-y-2 text-sm">
@@ -87,7 +121,7 @@ export default function TripPreBuild() {
               navigate("/tripwell/itineraryupdate");
             } catch (err) {
               console.error("❌ Failed to check trip status:", err);
-              navigate(`/tripintent/${tripId}`); // fallback
+              navigate(`/tripintent`); // fallback
             }
           }}
           className="w-full bg-green-600 text-white px-5 py-3 rounded-md hover:bg-green-700 transition"
