@@ -70,17 +70,22 @@ export default function AnchorSelect() {
          return;
        }
 
-      // Hydrate saved selections (if any)
-      const anchorLogicRes = await fetchJSON(`${BACKEND_URL}/tripwell/anchorlogic/${status.tripId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (anchorLogicRes?.anchorTitles) {
-        setSelected(anchorLogicRes.anchorTitles);
-      }
-
-             const anchorGPTRes = await fetchJSON(`${BACKEND_URL}/tripwell/anchorgpt/${status.tripId}?userId=${userData.user._id}`, {
+             // Hydrate saved selections (if any)
+       console.log("🔍 Loading anchor logic...");
+       const anchorLogicRes = await fetchJSON(`${BACKEND_URL}/tripwell/anchorlogic/${status.tripId}`, {
          headers: { Authorization: `Bearer ${token}` }
        });
+       console.log("🔍 Anchor logic response:", anchorLogicRes);
+       if (anchorLogicRes?.anchorTitles) {
+         setSelected(anchorLogicRes.anchorTitles);
+       }
+
+       console.log("🔍 Loading anchor GPT suggestions...");
+       const anchorGPTRes = await fetchJSON(`${BACKEND_URL}/tripwell/anchorgpt/${status.tripId}?userId=${userData.user._id}`, {
+         headers: { Authorization: `Bearer ${token}` }
+       });
+       console.log("🔍 Anchor GPT response:", anchorGPTRes);
+       console.log("🔍 Setting anchors to:", anchorGPTRes);
        setAnchors(anchorGPTRes);
        setLoading(false);
      } catch (err) {
