@@ -1,8 +1,9 @@
 // src/pages/TripIntentForm.jsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { auth } from "../firebase";
+import BACKEND_URL from "../config";
+import { fetchJSON } from "../utils/fetchJSON";
 
 export default function TripIntentForm() {
   const navigate = useNavigate();
@@ -21,37 +22,47 @@ export default function TripIntentForm() {
   useEffect(() => {
     const hydrate = async () => {
       try {
+        // Wait for Firebase auth to be ready
+        await new Promise(resolve => {
+          const unsubscribe = auth.onAuthStateChanged((user) => {
+            unsubscribe();
+            resolve(user);
+          });
+        });
+        
         const firebaseUser = auth.currentUser;
         if (!firebaseUser) {
+          console.error("❌ No Firebase user after waiting");
           navigate("/access");
           return;
         }
 
-        const token = await firebaseUser.getIdToken(true);
+        const token = await firebaseUser.getIdToken();
 
-        const res = await axios.get(
-          "https://gofastbackend.onrender.com/tripwell/whoami",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const userData = await fetchJSON(`${BACKEND_URL}/tripwell/whoami`, {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store"
+        });
 
-        if (!res.data?.user) {
+        console.log("🔍 User data:", userData);
+
+        if (!userData?.user) {
           navigate("/access");
           return;
         }
 
         // No trip yet → bounce to setup
-        if (!res.data.user.tripId) {
+        if (!userData.user.tripId) {
           navigate("/tripsetup");
           return;
         }
 
-        setUser(res.data.user);
-        setLoading(false);
+        setUser(userData.user);
       } catch (err) {
         console.error("❌ Error hydrating user:", err);
         navigate("/access");
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -61,11 +72,12 @@ export default function TripIntentForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = await auth.currentUser.getIdToken(true);
+      const token = await auth.currentUser.getIdToken();
 
-      await axios.post(
-        `https://gofastbackend.onrender.com/tripwell/intent`,
-        {
+      await fetchJSON(`${BACKEND_URL}/tripwell/intent`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
           tripId: user.tripId,
           whoWith,
           priorities,
@@ -73,11 +85,8 @@ export default function TripIntentForm() {
           mobility,
           travelPace,
           budget,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+        })
+      });
 
       navigate("/tripprebuild");
     } catch (err) {
