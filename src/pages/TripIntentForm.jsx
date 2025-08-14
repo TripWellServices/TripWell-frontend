@@ -164,8 +164,8 @@ export default function TripIntentForm() {
     try {
       const token = await auth.currentUser.getIdToken();
 
+      // Test with minimal payload first
       const payload = {
-        tripId: user.tripId,
         priorities: priorities.join(','),
         vibes: vibes.join(','),
         mobility: mobility.join(','),
@@ -174,12 +174,15 @@ export default function TripIntentForm() {
       };
 
       console.log("📤 Sending payload:", payload);
+      console.log("🔍 User tripId:", user.tripId);
 
-      await fetchJSON(`${BACKEND_URL}/tripwell/tripintent`, {
+      const response = await fetchJSON(`${BACKEND_URL}/tripwell/tripintent`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: JSON.stringify(payload)
       });
+
+      console.log("✅ Response:", response);
 
       navigate("/anchorselect");
     } catch (err) {
@@ -338,6 +341,43 @@ export default function TripIntentForm() {
           }`}
         >
           {hasSelections ? 'Save Trip Intent' : 'Please make some selections first'}
+        </button>
+
+        {/* Test button for debugging */}
+        <button
+          type="button"
+          onClick={async () => {
+            console.log("🧪 Test button clicked");
+            console.log("Current state:", { priorities, vibes, mobility, travelPace, budget });
+            
+            // Test with dummy data
+            const testPayload = {
+              priorities: "Cultural experiences,Food & dining",
+              vibes: "Romantic,Adventurous",
+              mobility: "Walking,Public transit",
+              travelPace: "Slow & relaxed",
+              budget: "Moderate ($$)",
+            };
+            
+            console.log("🧪 Test payload:", testPayload);
+            
+            try {
+              const token = await auth.currentUser.getIdToken();
+              const response = await fetchJSON(`${BACKEND_URL}/tripwell/tripintent`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+                body: JSON.stringify(testPayload)
+              });
+              console.log("🧪 Test response:", response);
+              alert("Test successful! Check console.");
+            } catch (err) {
+              console.error("🧪 Test failed:", err);
+              alert("Test failed! Check console.");
+            }
+          }}
+          className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition text-sm"
+        >
+          🧪 Test Submit (Debug)
         </button>
       </form>
     </div>
