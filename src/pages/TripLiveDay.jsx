@@ -25,6 +25,10 @@ export default function TripLiveDay() {
         setCurrentDayIndex(currentDayIndex);
         setCurrentBlock(currentBlock);
         setDayData(dayData);
+        
+        // Save to localStorage for test flow
+        localStorage.setItem("lastDayVisited", currentDayIndex.toString());
+        console.log("💾 Saved lastDayVisited to localStorage:", currentDayIndex);
       } catch (err) {
         console.error("❌ Live day hydration failed:", err);
       } finally {

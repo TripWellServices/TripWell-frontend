@@ -36,6 +36,10 @@ export default function Access() {
         if (!whoRes.ok) throw new Error(`WhoAmI failed: ${whoRes.status}`);
         const { user, trip } = await whoRes.json();
 
+        // Save userId to localStorage for test flow
+        localStorage.setItem("userId", user._id);
+        console.log("💾 Saved userId to localStorage:", user._id);
+
         // 3) Route: profile completeness -> trip presence -> already created
         const missingProfile = !user?.firstName || !user?.lastName || !user?.hometownCity;
         if (missingProfile) {

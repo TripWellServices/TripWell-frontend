@@ -63,8 +63,17 @@ import YourStuck from "./pages/YourStuck";
 import TripNotCreated from "./pages/TripNotCreated";
 import TripItineraryRequired from "./pages/TripItineraryRequired";
 
-// ✅ Test Page
+// ✅ Test Pages
 import TripIDTest from "./pages/TripIDTest"; // 👈 new
+import AnchorGPTTest from "./pages/anchorgpttest"; // 👈 new
+
+// ✅ Local State Test Flow Pages
+import LocalWelcome from "./pages/LocalWelcome";
+import LocalUniversalRouter from "./pages/LocalUniversalRouter";
+import PreTripHub from "./pages/PreTripHub";
+import ReflectionHub from "./pages/ReflectionHub";
+import LiveDay from "./pages/LiveDay";
+import LocalStateDebug from "./pages/LocalStateDebug";
 
 export default function App() {
   return (
@@ -96,8 +105,17 @@ export default function App() {
       <Route path="/prepbuild" element={<PrepBuild />} />
       <Route path="/tripprebuild" element={<PrepBuild />} /> {/* legacy alias */}
 
-      {/* ✅ Test route */}
+      {/* ✅ Test routes */}
       <Route path="/tripidtest" element={<TripIDTest />} />
+      <Route path="/anchorgpttest" element={<AnchorGPTTest />} />
+
+      {/* ✅ Local State Test Flow Routes */}
+      <Route path="/localwelcome" element={<LocalWelcome />} />
+      <Route path="/localrouter" element={<LocalUniversalRouter />} />
+      <Route path="/pretrip" element={<PreTripHub />} />
+      <Route path="/reflectionhub" element={<ReflectionHub />} />
+      <Route path="/liveday/:dayNumber" element={<LiveDay />} />
+      <Route path="/localdebug" element={<LocalStateDebug />} />
 
       <Route path="/tripintent" element={<TripIntentForm />} />
       <Route path="/anchorselect" element={<AnchorSelectPage />} />

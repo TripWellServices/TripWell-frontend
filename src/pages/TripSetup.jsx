@@ -183,6 +183,14 @@ export default function TripSetup() {
       console.log("create trip resp", res.status, data);
 
               if (res.status === 201 && data.tripId) {
+          // Save to localStorage for test flow
+          localStorage.setItem("tripId", data.tripId);
+          localStorage.setItem("userId", user._id);
+          console.log("💾 Saved tripId and userId to localStorage:", {
+            tripId: data.tripId,
+            userId: user._id
+          });
+          
           // Navigate to trip created page (no tripId in URL)
           navigate(`/tripcreated`);
       } else if (res.status === 409) {

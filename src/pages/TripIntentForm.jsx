@@ -128,6 +128,15 @@ export default function TripIntentForm() {
 
       if (res.ok) {
         console.log("✅ Trip intent saved successfully");
+        
+        // Save to localStorage for test flow
+        const intentData = {
+          priorities: priorities,
+          vibes: vibes
+        };
+        localStorage.setItem("intent", JSON.stringify(intentData));
+        console.log("💾 Saved intent to localStorage:", intentData);
+        
         navigate("/anchorselect");
       } else {
         alert(data.error || `Save failed (${res.status})`);

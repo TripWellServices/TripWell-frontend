@@ -84,6 +84,11 @@ export default function TripItineraryBuilder() {
   async function handleSave() {
     try {
       setSaving(true);
+      
+      // Save to localStorage for test flow
+      localStorage.setItem("itineraryFinal", "true");
+      console.log("💾 Saved itineraryFinal to localStorage: true");
+      
       navigate("/tripwell/home");
     } catch (err) {
       console.error("Save error:", err);

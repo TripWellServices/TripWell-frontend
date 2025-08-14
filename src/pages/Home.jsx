@@ -8,6 +8,7 @@ import {
   NotebookPen,
   Info,
   RefreshCcw,
+  TestTube,
 } from "lucide-react";
 
 export function Button({ children, className = "", ...props }) {
@@ -67,6 +68,24 @@ export default function Home() {
       label: "What is TripWell?",
       description: "Learn how we turn travel into lasting memories.",
       route: "/explainer",
+    },
+    {
+      icon: <TestTube className="w-5 h-5 mr-2" />,
+      label: "AnchorGPT Test",
+      description: "Test the GPT anchor suggestion service with a hardcoded Paris prompt.",
+      route: "/anchorgpttest",
+    },
+    {
+      icon: <TestTube className="w-5 h-5 mr-2" />,
+      label: "New Local State Test Flow",
+      description: "Test localStorage-first routing with Hunger Games mode.",
+      route: "/localwelcome",
+    },
+    {
+      icon: <TestTube className="w-5 h-5 mr-2" />,
+      label: "Local State Debug",
+      description: "View and manage localStorage state for testing.",
+      route: "/localdebug",
     },
   ];
 

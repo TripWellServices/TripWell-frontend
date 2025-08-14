@@ -118,6 +118,10 @@ export default function AnchorSelect() {
       });
 
       if (res.ok) {
+        // Save to localStorage for test flow
+        localStorage.setItem("anchors", JSON.stringify(selected));
+        console.log("💾 Saved anchors to localStorage:", selected);
+        
         navigate(`/tripwell/itinerarybuild`);
       } else {
         console.error("❌ Submit Anchor Logic Failed", res.status);

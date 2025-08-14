@@ -4,6 +4,10 @@ export default function TripComplete() {
   const { tripId } = useParams();
   const navigate = useNavigate();
 
+  // Save to localStorage for test flow
+  localStorage.setItem("tripStatus", "done");
+  console.log("💾 Saved tripStatus to localStorage: done");
+
   return (
     <div className="p-8 max-w-2xl mx-auto text-center space-y-6">
       <h1 className="text-4xl font-bold text-green-700">🎉 Trip Complete</h1>
