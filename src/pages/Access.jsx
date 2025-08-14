@@ -1,5 +1,5 @@
 // src/pages/Access.jsx
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { auth } from "../firebase";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
@@ -9,10 +9,12 @@ export default function Access() {
   const navigate = useNavigate();
   const googleProvider = new GoogleAuthProvider();
 
-  // If the user is already signed in (returning), run backend flow and route
+  // Only redirect if user explicitly signs in (not on page load)
+  const [hasAttemptedSignIn, setHasAttemptedSignIn] = useState(false);
+
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async (firebaseUser) => {
-      if (!firebaseUser) return; // no auto-popup; user clicks the button
+      if (!firebaseUser || !hasAttemptedSignIn) return; // Only proceed if user just signed in
 
       try {
         // 1) Create or find the user on backend (unprotected)
@@ -53,10 +55,11 @@ export default function Access() {
     });
 
     return unsub;
-  }, [navigate]);
+  }, [navigate, hasAttemptedSignIn]);
 
   const handleGoogle = async () => {
     try {
+      setHasAttemptedSignIn(true);
       await signInWithPopup(auth, googleProvider);
       // onAuthStateChanged will handle the rest
     } catch (err) {

@@ -20,18 +20,18 @@ export default function AnchorSelect() {
 
   const hydratePage = async () => {
     try {
-      // ✅ Wait until Firebase is ready
-      await new Promise(resolve => {
+      // ✅ Wait until Firebase is ready with Promise
+      const firebaseUser = await new Promise(resolve => {
         const unsubscribe = auth.onAuthStateChanged(user => {
           unsubscribe();
           resolve(user);
         });
       });
 
-      const firebaseUser = auth.currentUser;
       if (!firebaseUser) {
         console.error("❌ No Firebase user after waiting");
-        navigate("/access");
+        // Don't redirect immediately - let the user see the loading state
+        setLoading(false);
         return;
       }
 
@@ -126,6 +126,25 @@ export default function AnchorSelect() {
           className="w-full bg-green-600 text-white px-5 py-3 rounded-md hover:bg-green-700 transition"
         >
           📍 Take Me Where I Left Off
+        </button>
+      </div>
+    );
+  }
+
+  // If we're not loading but have no user, show a sign-in prompt
+  if (!user) {
+    return (
+      <div className="p-6 max-w-xl mx-auto space-y-6">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
+          <p className="text-gray-600 mb-6">Please sign in to access your trip planning</p>
+        </div>
+        
+        <button
+          onClick={() => navigate("/access")}
+          className="w-full bg-blue-600 text-white px-5 py-3 rounded-md hover:bg-blue-700 transition"
+        >
+          🔐 Sign In
         </button>
       </div>
     );
