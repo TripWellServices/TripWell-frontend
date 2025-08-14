@@ -10,6 +10,7 @@ export default function TripIntentForm() {
 
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   // Simple text inputs for MVP1
   const [priorities, setPriorities] = useState("");
@@ -55,9 +56,11 @@ export default function TripIntentForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    try {
-      const token = await auth.currentUser.getIdToken();
+    if (submitting) return;
 
+    setSubmitting(true);
+
+    try {
       const payload = {
         tripId: user?.tripId,
         userId: user?._id,
@@ -69,20 +72,30 @@ export default function TripIntentForm() {
       console.log("📤 Sending payload:", payload);
       console.log("🔑 User tripId:", user?.tripId);
 
-      await fetchJSON(`${BACKEND_URL}/tripwell/tripintent`, {
-        method: 'POST',
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${BACKEND_URL}/tripwell/tripintent`, {
+        method: "POST",
         headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
+      
+      const data = await res.json().catch(() => ({}));
+      console.log("tripintent resp", res.status, data);
 
-      console.log("✅ Trip intent saved successfully");
-      navigate("/anchorselect");
+      if (res.ok) {
+        console.log("✅ Trip intent saved successfully");
+        navigate("/anchorselect");
+      } else {
+        alert(data.error || `Save failed (${res.status})`);
+      }
     } catch (err) {
       console.error("❌ Failed to save trip intent", err);
       alert("Could not save your intent. Try again.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -135,14 +148,14 @@ export default function TripIntentForm() {
 
         <button
           type="submit"
-          disabled={!hasInput}
+          disabled={!hasInput || submitting}
           className={`w-full py-4 px-6 rounded-lg transition text-lg font-semibold ${
-            hasInput 
+            hasInput && !submitting
               ? 'bg-blue-600 text-white hover:bg-blue-700' 
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
           }`}
         >
-          {hasInput ? 'Save Trip Intent' : 'Please fill in something first'}
+          {submitting ? "Saving..." : (hasInput ? 'Save Trip Intent' : 'Please fill in something first')}
         </button>
 
       </form>
