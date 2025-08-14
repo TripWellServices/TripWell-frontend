@@ -60,8 +60,9 @@ export default function TripIntentForm() {
 
       const payload = {
         tripId: user?.tripId,
-        priorities: priorities,
-        vibes: vibes,
+        userId: user?._id,
+        priorities: priorities.trim(),
+        vibes: vibes.trim(),
       };
 
       console.log("🔍 Current state:", { priorities, vibes });
@@ -70,13 +71,15 @@ export default function TripIntentForm() {
 
       await fetchJSON(`${BACKEND_URL}/tripwell/tripintent`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify(payload)
       });
 
-      alert("Saved! Trip intent saved successfully.");
       console.log("✅ Trip intent saved successfully");
-      // Stay on this page for now - no navigation
+      navigate("/anchorselect");
     } catch (err) {
       console.error("❌ Failed to save trip intent", err);
       alert("Could not save your intent. Try again.");
