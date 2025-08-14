@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { auth } from "../firebase";
+import BACKEND_URL from "../config";
+import { fetchJSON } from "../utils/fetchJSON";
 
 export default function TripItineraryBuilder() {
   const navigate = useNavigate();
@@ -12,23 +14,58 @@ export default function TripItineraryBuilder() {
   useEffect(() => {
     async function buildItinerary() {
       try {
+        // ✅ Wait until Firebase is ready
+        await new Promise(resolve => {
+          const unsubscribe = auth.onAuthStateChanged(user => {
+            unsubscribe();
+            resolve(user);
+          });
+        });
+
+        const firebaseUser = auth.currentUser;
+        if (!firebaseUser) {
+          console.error("❌ No Firebase user after waiting");
+          navigate("/access");
+          return;
+        }
+
+        const token = await firebaseUser.getIdToken();
+
         // Step 1: Get tripId from whoami
-        const whoRes = await axios.get("/tripwell/whoami");
-        const tripId = whoRes.data?.trip?._id;
+        const whoRes = await fetchJSON(`${BACKEND_URL}/tripwell/whoami`, {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store"
+        });
+        const tripId = whoRes?.user?.tripId;
 
         if (!tripId) {
           setError("No trip found. Returning home.");
-          setTimeout(() => navigate("/tripwell/home"), 2500);
+          setTimeout(() => navigate("/access"), 2500);
           return;
         }
 
         // Step 2: Build itinerary via Angela (GPT)
-        const res = await axios.post("/tripwell/itinerary/build", { tripId });
-        const { daysSaved } = res.data;
+        const res = await fetch(`${BACKEND_URL}/tripwell/itinerary/build`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ tripId }),
+        });
+        
+        if (!res.ok) {
+          throw new Error(`Build failed: ${res.status}`);
+        }
+        
+        const buildData = await res.json();
+        const { daysSaved } = buildData;
 
         // Step 3: Optional — summarize it for display
-        const savedDays = await axios.get(`/tripwell/itinerary/days/${tripId}`);
-        const combinedSummary = savedDays.data
+        const savedDaysRes = await fetchJSON(`${BACKEND_URL}/tripwell/itinerary/days/${tripId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const combinedSummary = savedDaysRes
           .map((day) => `Day ${day.dayIndex}: ${day.summary}`)
           .join("\n");
 

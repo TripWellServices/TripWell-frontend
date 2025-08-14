@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { auth } from "../firebase";
+import BACKEND_URL from "../config";
+import { fetchJSON } from "../utils/fetchJSON";
 
 export default function AnchorSelect() {
   const { tripId } = useParams();
@@ -14,39 +16,68 @@ export default function AnchorSelect() {
 
   useEffect(() => {
     hydratePage();
-  }, [tripId]);
+  }, []);
 
   const hydratePage = async () => {
     try {
-      const whoRes = await axios.get("/tripwell/whoami", { withCredentials: true });
-      const statusRes = await axios.get("/tripwell/tripstatus", { withCredentials: true });
+      // ✅ Wait until Firebase is ready
+      await new Promise(resolve => {
+        const unsubscribe = auth.onAuthStateChanged(user => {
+          unsubscribe();
+          resolve(user);
+        });
+      });
 
-      const user = whoRes.data.user;
-      const status = statusRes.data.tripStatus;
+      const firebaseUser = auth.currentUser;
+      if (!firebaseUser) {
+        console.error("❌ No Firebase user after waiting");
+        navigate("/access");
+        return;
+      }
 
-      if (!status.tripId || !user || user.role !== "originator") {
-        return navigate("/tripwell/tripitineraryrequired");
+      const token = await firebaseUser.getIdToken();
+
+      // Get user data
+      const whoRes = await fetchJSON(`${BACKEND_URL}/tripwell/whoami`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store"
+      });
+
+      const statusRes = await fetchJSON(`${BACKEND_URL}/tripwell/tripstatus`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store"
+      });
+
+      const user = whoRes.user;
+      const status = statusRes.tripStatus;
+
+      if (!status.tripId || !user) {
+        return navigate("/access");
       }
 
       if (!status.intentExists) {
-        return navigate("/tripwell/tripintentrequired");
+        return navigate("/tripintent");
       }
 
       setUser(user);
       setTripStatus(status);
 
       // Hydrate saved selections (if any)
-      const anchorLogicRes = await axios.get(`/tripwell/anchorlogic/${status.tripId}`);
-      if (anchorLogicRes.data?.anchorTitles) {
-        setSelected(anchorLogicRes.data.anchorTitles);
+      const anchorLogicRes = await fetchJSON(`${BACKEND_URL}/tripwell/anchorlogic/${status.tripId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (anchorLogicRes?.anchorTitles) {
+        setSelected(anchorLogicRes.anchorTitles);
       }
 
-      const anchorGPTRes = await axios.get(`/tripwell/anchorgpt/${status.tripId}?userId=${user._id}`);
-      setAnchors(anchorGPTRes.data);
+      const anchorGPTRes = await fetchJSON(`${BACKEND_URL}/tripwell/anchorgpt/${status.tripId}?userId=${user._id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAnchors(anchorGPTRes);
       setLoading(false);
     } catch (err) {
       console.error("❌ Anchor Select Load Error", err);
-      navigate("/tripwell/tripitineraryrequired");
+      navigate("/access");
     }
   };
 
@@ -58,21 +89,47 @@ export default function AnchorSelect() {
 
   const handleSubmit = async () => {
     try {
-      await axios.post(
-        `/tripwell/anchorselect/save/${tripId}`,
-        {
+      const token = await auth.currentUser.getIdToken();
+      
+      const res = await fetch(`${BACKEND_URL}/tripwell/anchorselect/save/${tripStatus.tripId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
           userId: user._id,
           anchorTitles: selected,
-        },
-        { withCredentials: true }
-      );
-      navigate(`/tripwell/itinerarybuild`);
+        }),
+      });
+
+      if (res.ok) {
+        navigate(`/tripwell/itinerarybuild`);
+      } else {
+        console.error("❌ Submit Anchor Logic Failed", res.status);
+      }
     } catch (err) {
       console.error("❌ Submit Anchor Logic Failed", err);
     }
   };
 
-  if (loading) return <div className="p-6">Loading anchors...</div>;
+  if (loading) {
+    return (
+      <div className="p-6 max-w-xl mx-auto space-y-6">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Loading Your Trip...</h1>
+          <p className="text-gray-600 mb-6">Getting your anchor experiences ready</p>
+        </div>
+        
+        <button
+          onClick={() => navigate("/tripprebuild")}
+          className="w-full bg-green-600 text-white px-5 py-3 rounded-md hover:bg-green-700 transition"
+        >
+          📍 Take Me Where I Left Off
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
