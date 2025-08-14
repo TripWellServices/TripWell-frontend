@@ -28,47 +28,42 @@ export default function AnchorSelect() {
         });
       });
 
-      if (!firebaseUser) {
-        console.error("❌ No Firebase user after waiting");
-        // Don't redirect immediately - let the user see the loading state
-        setLoading(false);
-        return;
-      }
+             if (!firebaseUser) {
+         console.error("❌ No Firebase user after waiting");
+         return;
+       }
 
       const token = await firebaseUser.getIdToken();
 
-             // Get user data
-       console.log("🔍 Calling /whoami for AnchorSelect...");
-       const whoRes = await fetchJSON(`${BACKEND_URL}/tripwell/whoami`, {
+                    // Get user data from /whoami (matching TripCreated.jsx pattern)
+       const userData = await fetchJSON(`${BACKEND_URL}/tripwell/whoami`, {
          headers: { Authorization: `Bearer ${token}` },
          cache: "no-store"
        });
-       console.log("🔍 WHOAMI response:", whoRes);
 
-       console.log("🔍 Calling /tripstatus for AnchorSelect...");
+       console.log("🔍 User data:", userData);
+       setUser(userData.user);
+
+       // Get trip status
        const statusRes = await fetchJSON(`${BACKEND_URL}/tripwell/tripstatus`, {
          headers: { Authorization: `Bearer ${token}` },
          cache: "no-store"
        });
-       console.log("🔍 TRIPSTATUS response:", statusRes);
 
-       const user = whoRes.user;
+       console.log("🔍 Trip status:", statusRes);
        const status = statusRes.tripStatus;
+       setTripStatus(status);
 
-       console.log("🔍 User:", user);
-       console.log("🔍 Status:", status);
-
-       if (!status.tripId || !user) {
-         console.log("❌ Missing tripId or user, redirecting to /access");
-         return navigate("/access");
+       if (!status.tripId || !userData.user) {
+         console.log("❌ Missing tripId or user");
+         return;
        }
 
-      if (!status.intentExists) {
-        return navigate("/tripintent");
-      }
-
-      setUser(user);
-      setTripStatus(status);
+       if (!status.intentExists) {
+         console.log("❌ No intent exists, redirecting to tripintent");
+         navigate("/tripintent");
+         return;
+       }
 
       // Hydrate saved selections (if any)
       const anchorLogicRes = await fetchJSON(`${BACKEND_URL}/tripwell/anchorlogic/${status.tripId}`, {
@@ -78,15 +73,16 @@ export default function AnchorSelect() {
         setSelected(anchorLogicRes.anchorTitles);
       }
 
-      const anchorGPTRes = await fetchJSON(`${BACKEND_URL}/tripwell/anchorgpt/${status.tripId}?userId=${user._id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setAnchors(anchorGPTRes);
-      setLoading(false);
-    } catch (err) {
-      console.error("❌ Anchor Select Load Error", err);
-      navigate("/access");
-    }
+             const anchorGPTRes = await fetchJSON(`${BACKEND_URL}/tripwell/anchorgpt/${status.tripId}?userId=${userData.user._id}`, {
+         headers: { Authorization: `Bearer ${token}` }
+       });
+       setAnchors(anchorGPTRes);
+       setLoading(false);
+     } catch (err) {
+       console.error("❌ Anchor Select Load Error", err);
+     } finally {
+       setLoading(false);
+     }
   };
 
   const toggleSelection = (title) => {
@@ -129,31 +125,46 @@ export default function AnchorSelect() {
           <p className="text-gray-600 mb-6">Getting your anchor experiences ready</p>
         </div>
         
-        <button
-          onClick={() => navigate("/tripprebuild")}
-          className="w-full bg-green-600 text-white px-5 py-3 rounded-md hover:bg-green-700 transition"
-        >
-          📍 Take Me Where I Left Off
-        </button>
+        <div className="space-y-3">
+          <button
+            onClick={() => navigate("/tripprebuild")}
+            className="w-full bg-green-600 text-white px-5 py-3 rounded-md hover:bg-green-700 transition"
+          >
+            📍 Take Me Where I Left Off
+          </button>
+          
+          <div className="text-center">
+            <p className="text-sm text-gray-500 mb-2">Don't see your data here?</p>
+            <button
+              onClick={() => navigate("/access")}
+              className="text-blue-600 hover:text-blue-800 underline text-sm"
+            >
+              Log in
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
 
-  // If we're not loading but have no user, show a sign-in prompt
+  // If we're not loading but have no user, show the same optional login
   if (!user) {
     return (
       <div className="p-6 max-w-xl mx-auto space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
-          <p className="text-gray-600 mb-6">Please sign in to access your trip planning</p>
+          <h1 className="text-2xl font-bold mb-4">Pick Your Anchors 🧭</h1>
+          <p className="text-gray-600 mb-6">These are curated experience ideas based on your trip</p>
         </div>
         
-        <button
-          onClick={() => navigate("/access")}
-          className="w-full bg-blue-600 text-white px-5 py-3 rounded-md hover:bg-blue-700 transition"
-        >
-          🔐 Sign In
-        </button>
+        <div className="text-center">
+          <p className="text-sm text-gray-500 mb-2">Don't see your data here?</p>
+          <button
+            onClick={() => navigate("/access")}
+            className="text-blue-600 hover:text-blue-800 underline text-sm"
+          >
+            Log in
+          </button>
+        </div>
       </div>
     );
   }
