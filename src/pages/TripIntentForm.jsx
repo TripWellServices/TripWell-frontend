@@ -148,7 +148,7 @@ export default function TripIntentForm() {
     try {
       const token = await auth.currentUser.getIdToken();
 
-      await fetchJSON(`${BACKEND_URL}/tripwell/intent`, {
+      await fetchJSON(`${BACKEND_URL}/tripwell/tripintent`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: JSON.stringify({
