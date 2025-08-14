@@ -31,6 +31,7 @@ export default function TripIntentForm() {
         const firebaseUser = auth.currentUser;
         if (!firebaseUser) {
           console.error("❌ No Firebase user after waiting");
+          navigate("/access");
           return;
         }
 
