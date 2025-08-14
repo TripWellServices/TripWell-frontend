@@ -37,23 +37,31 @@ export default function AnchorSelect() {
 
       const token = await firebaseUser.getIdToken();
 
-      // Get user data
-      const whoRes = await fetchJSON(`${BACKEND_URL}/tripwell/whoami`, {
-        headers: { Authorization: `Bearer ${token}` },
-        cache: "no-store"
-      });
+             // Get user data
+       console.log("🔍 Calling /whoami for AnchorSelect...");
+       const whoRes = await fetchJSON(`${BACKEND_URL}/tripwell/whoami`, {
+         headers: { Authorization: `Bearer ${token}` },
+         cache: "no-store"
+       });
+       console.log("🔍 WHOAMI response:", whoRes);
 
-      const statusRes = await fetchJSON(`${BACKEND_URL}/tripwell/tripstatus`, {
-        headers: { Authorization: `Bearer ${token}` },
-        cache: "no-store"
-      });
+       console.log("🔍 Calling /tripstatus for AnchorSelect...");
+       const statusRes = await fetchJSON(`${BACKEND_URL}/tripwell/tripstatus`, {
+         headers: { Authorization: `Bearer ${token}` },
+         cache: "no-store"
+       });
+       console.log("🔍 TRIPSTATUS response:", statusRes);
 
-      const user = whoRes.user;
-      const status = statusRes.tripStatus;
+       const user = whoRes.user;
+       const status = statusRes.tripStatus;
 
-      if (!status.tripId || !user) {
-        return navigate("/access");
-      }
+       console.log("🔍 User:", user);
+       console.log("🔍 Status:", status);
+
+       if (!status.tripId || !user) {
+         console.log("❌ Missing tripId or user, redirecting to /access");
+         return navigate("/access");
+       }
 
       if (!status.intentExists) {
         return navigate("/tripintent");
