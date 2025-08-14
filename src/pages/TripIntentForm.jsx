@@ -12,9 +12,47 @@ export default function TripIntentForm() {
   const [user, setUser] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Simple text inputs for MVP1
-  const [priorities, setPriorities] = useState("");
-  const [vibes, setVibes] = useState("");
+  // Predefined options for better UX
+  const priorityOptions = [
+    "Adventure & Outdoor Activities",
+    "Cultural Experiences & History",
+    "Food & Culinary Adventures",
+    "Relaxation & Wellness",
+    "Shopping & Local Markets",
+    "Nightlife & Entertainment",
+    "Nature & Scenic Views",
+    "Local Community & People"
+  ];
+
+  const vibeOptions = [
+    "Adventurous & Energetic",
+    "Relaxed & Chill",
+    "Romantic & Intimate",
+    "Social & Fun",
+    "Luxurious & Upscale",
+    "Authentic & Local",
+    "Creative & Artistic",
+    "Spiritual & Mindful"
+  ];
+
+  const [priorities, setPriorities] = useState([]);
+  const [vibes, setVibes] = useState([]);
+
+  const togglePriority = (priority) => {
+    setPriorities(prev => 
+      prev.includes(priority) 
+        ? prev.filter(p => p !== priority)
+        : [...prev, priority]
+    );
+  };
+
+  const toggleVibe = (vibe) => {
+    setVibes(prev => 
+      prev.includes(vibe) 
+        ? prev.filter(v => v !== vibe)
+        : [...prev, vibe]
+    );
+  };
 
   // Hydrate user via /whoami - matching TripIDTest.jsx pattern
   useEffect(() => {
@@ -67,8 +105,8 @@ export default function TripIntentForm() {
       const payload = {
         tripId: user?.tripId,
         userId: user?._id,
-        priorities: priorities.trim(),
-        vibes: vibes.trim(),
+        priorities: priorities.join(','),
+        vibes: vibes.join(','),
       };
 
       console.log("🔍 Current state:", { priorities, vibes });
@@ -103,7 +141,7 @@ export default function TripIntentForm() {
   };
 
   // Check if form has any input
-  const hasInput = priorities.trim() || vibes.trim();
+  const hasInput = priorities.length > 0 || vibes.length > 0;
 
   if (loading) return <div className="p-6">Loading your trip...</div>;
 
@@ -121,15 +159,24 @@ export default function TripIntentForm() {
             🎯 What are your top priorities for this trip?
           </h2>
           <p className="text-gray-600 mb-4">
-            Just type something like "food, history, adventure"
+            Check all that apply to your trip goals
           </p>
-          <input
-            type="text"
-            value={priorities}
-            onChange={(e) => setPriorities(e.target.value)}
-            placeholder="e.g., Food & dining, Historical sites, Adventure"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+          <div className="grid grid-cols-1 gap-3">
+            {priorityOptions.map((option) => (
+              <label key={option} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                <input
+                  type="checkbox"
+                  checked={priorities.includes(option)}
+                  onChange={() => togglePriority(option)}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">{option}</span>
+              </label>
+            ))}
+          </div>
+          {priorities.length === 0 && (
+            <p className="text-sm text-gray-500 mt-2">Select at least one priority</p>
+          )}
         </div>
 
         {/* Vibes Section */}
@@ -138,15 +185,24 @@ export default function TripIntentForm() {
             🌟 What's the vibe you're going for?
           </h2>
           <p className="text-gray-600 mb-4">
-            Just type something like "romantic, budget-friendly"
+            Check all that match your desired trip energy
           </p>
-          <input
-            type="text"
-            value={vibes}
-            onChange={(e) => setVibes(e.target.value)}
-            placeholder="e.g., Romantic, Budget-friendly, Social"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+          <div className="grid grid-cols-1 gap-3">
+            {vibeOptions.map((option) => (
+              <label key={option} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                <input
+                  type="checkbox"
+                  checked={vibes.includes(option)}
+                  onChange={() => toggleVibe(option)}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">{option}</span>
+              </label>
+            ))}
+          </div>
+          {vibes.length === 0 && (
+            <p className="text-sm text-gray-500 mt-2">Select at least one vibe</p>
+          )}
         </div>
 
         <button
