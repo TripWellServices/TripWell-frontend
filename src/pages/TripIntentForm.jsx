@@ -86,7 +86,6 @@ export default function TripIntentForm() {
         const firebaseUser = auth.currentUser;
         if (!firebaseUser) {
           console.error("❌ No Firebase user after waiting");
-          navigate("/access");
           return;
         }
 
@@ -98,22 +97,9 @@ export default function TripIntentForm() {
         });
 
         console.log("🔍 User data:", userData);
-
-        if (!userData?.user) {
-          navigate("/access");
-          return;
-        }
-
-        // No trip yet → bounce to setup
-        if (!userData.user.tripId) {
-          navigate("/tripsetup");
-          return;
-        }
-
         setUser(userData.user);
       } catch (err) {
         console.error("❌ Error hydrating user:", err);
-        navigate("/access");
       } finally {
         setLoading(false);
       }
