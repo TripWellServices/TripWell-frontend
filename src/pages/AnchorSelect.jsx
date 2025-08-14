@@ -30,6 +30,7 @@ export default function AnchorSelect() {
 
              if (!firebaseUser) {
          console.error("❌ No Firebase user after waiting");
+         setLoading(false);
          return;
        }
 
@@ -54,13 +55,17 @@ export default function AnchorSelect() {
        const status = statusRes.tripStatus;
        setTripStatus(status);
 
-       if (!status.tripId || !userData.user) {
-         console.log("❌ Missing tripId or user");
+       // Only redirect if we have a user but no trip at all
+       if (userData.user && !status.tripId) {
+         console.log("❌ User exists but no trip found");
+         setLoading(false);
          return;
        }
 
-       if (!status.intentExists) {
+       // If user has no intent, redirect to tripintent
+       if (userData.user && status.tripId && !status.intentExists) {
          console.log("❌ No intent exists, redirecting to tripintent");
+         setLoading(false);
          navigate("/tripintent");
          return;
        }
