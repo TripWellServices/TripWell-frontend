@@ -124,8 +124,6 @@ export default function TripIntentForm() {
 
   // Helper function to handle checkbox changes
   const handleCheckboxChange = (category, value, checked) => {
-    console.log(`🔘 Checkbox change: ${category} - ${value} - ${checked}`);
-    
     const setterMap = {
       priorities: setPriorities,
       vibes: setVibes,
@@ -136,24 +134,17 @@ export default function TripIntentForm() {
     const setter = setterMap[category];
     if (setter) {
       setter(prev => {
-        console.log(`📝 Previous ${category}:`, prev);
-        const newValue = checked ? [...prev, value] : prev.filter(item => item !== value);
-        console.log(`📝 New ${category}:`, newValue);
-        return newValue;
+        if (checked) {
+          return [...prev, value];
+        } else {
+          return prev.filter(item => item !== value);
+        }
       });
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    console.log("🔍 Form submission - Current state:", {
-      priorities,
-      vibes,
-      mobility,
-      travelPace,
-      budget
-    });
     
     // Validate that user has made some selections
     if (priorities.length === 0 && vibes.length === 0 && mobility.length === 0 && travelPace.length === 0 && !budget) {
@@ -164,7 +155,6 @@ export default function TripIntentForm() {
     try {
       const token = await auth.currentUser.getIdToken();
 
-      // Test with minimal payload first
       const payload = {
         priorities: priorities.join(','),
         vibes: vibes.join(','),
@@ -173,16 +163,11 @@ export default function TripIntentForm() {
         budget,
       };
 
-      console.log("📤 Sending payload:", payload);
-      console.log("🔍 User tripId:", user.tripId);
-
-      const response = await fetchJSON(`${BACKEND_URL}/tripwell/tripintent`, {
+      await fetchJSON(`${BACKEND_URL}/tripwell/tripintent`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: JSON.stringify(payload)
       });
-
-      console.log("✅ Response:", response);
 
       navigate("/anchorselect");
     } catch (err) {
@@ -194,17 +179,7 @@ export default function TripIntentForm() {
   // Check if form has any selections
   const hasSelections = priorities.length > 0 || vibes.length > 0 || mobility.length > 0 || travelPace.length > 0 || budget;
 
-  // Debug useEffect to monitor state changes
-  useEffect(() => {
-    console.log("🔄 State changed:", {
-      priorities,
-      vibes,
-      mobility,
-      travelPace,
-      budget,
-      hasSelections
-    });
-  }, [priorities, vibes, mobility, travelPace, budget, hasSelections]);
+
 
   if (loading) return <div className="p-6">Loading your trip...</div>;
 
@@ -343,42 +318,7 @@ export default function TripIntentForm() {
           {hasSelections ? 'Save Trip Intent' : 'Please make some selections first'}
         </button>
 
-        {/* Test button for debugging */}
-        <button
-          type="button"
-          onClick={async () => {
-            console.log("🧪 Test button clicked");
-            console.log("Current state:", { priorities, vibes, mobility, travelPace, budget });
-            
-            // Test with dummy data
-            const testPayload = {
-              priorities: "Cultural experiences,Food & dining",
-              vibes: "Romantic,Adventurous",
-              mobility: "Walking,Public transit",
-              travelPace: "Slow & relaxed",
-              budget: "Moderate ($$)",
-            };
-            
-            console.log("🧪 Test payload:", testPayload);
-            
-            try {
-              const token = await auth.currentUser.getIdToken();
-              const response = await fetchJSON(`${BACKEND_URL}/tripwell/tripintent`, {
-                method: 'POST',
-                headers: { Authorization: `Bearer ${token}` },
-                body: JSON.stringify(testPayload)
-              });
-              console.log("🧪 Test response:", response);
-              alert("Test successful! Check console.");
-            } catch (err) {
-              console.error("🧪 Test failed:", err);
-              alert("Test failed! Check console.");
-            }
-          }}
-          className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition text-sm"
-        >
-          🧪 Test Submit (Debug)
-        </button>
+
       </form>
     </div>
   );
