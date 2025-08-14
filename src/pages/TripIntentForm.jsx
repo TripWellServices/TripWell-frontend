@@ -45,6 +45,8 @@ export default function TripIntentForm() {
         setUser(data?.user);
       } catch (err) {
         console.error("Error fetching user data", err);
+        // Redirect to access if whoami fails
+        navigate("/access");
       } finally {
         setLoading(false);
       }
