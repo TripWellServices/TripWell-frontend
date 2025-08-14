@@ -161,7 +161,7 @@ export default function TripIntentForm() {
         })
       });
 
-      navigate("/tripprebuild");
+      navigate("/anchorselect");
     } catch (err) {
       console.error("❌ Failed to save trip intent", err);
       alert("Could not save your intent. Try again.");
