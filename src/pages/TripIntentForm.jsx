@@ -124,6 +124,8 @@ export default function TripIntentForm() {
 
   // Helper function to handle checkbox changes
   const handleCheckboxChange = (category, value, checked) => {
+    console.log(`🔘 Checkbox change: ${category} - ${value} - ${checked}`);
+    
     const setterMap = {
       priorities: setPriorities,
       vibes: setVibes,
@@ -134,31 +136,49 @@ export default function TripIntentForm() {
     const setter = setterMap[category];
     if (setter) {
       setter(prev => {
-        if (checked) {
-          return [...prev, value];
-        } else {
-          return prev.filter(item => item !== value);
-        }
+        console.log(`📝 Previous ${category}:`, prev);
+        const newValue = checked ? [...prev, value] : prev.filter(item => item !== value);
+        console.log(`📝 New ${category}:`, newValue);
+        return newValue;
       });
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    console.log("🔍 Form submission - Current state:", {
+      priorities,
+      vibes,
+      mobility,
+      travelPace,
+      budget
+    });
+    
+    // Validate that user has made some selections
+    if (priorities.length === 0 && vibes.length === 0 && mobility.length === 0 && travelPace.length === 0 && !budget) {
+      alert("Please make at least some selections before saving your trip intent.");
+      return;
+    }
+    
     try {
       const token = await auth.currentUser.getIdToken();
+
+      const payload = {
+        tripId: user.tripId,
+        priorities: priorities.join(','),
+        vibes: vibes.join(','),
+        mobility: mobility.join(','),
+        travelPace: travelPace.join(','),
+        budget,
+      };
+
+      console.log("📤 Sending payload:", payload);
 
       await fetchJSON(`${BACKEND_URL}/tripwell/tripintent`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          tripId: user.tripId,
-          priorities: priorities.join(','),
-          vibes: vibes.join(','),
-          mobility: mobility.join(','),
-          travelPace: travelPace.join(','),
-          budget,
-        })
+        body: JSON.stringify(payload)
       });
 
       navigate("/anchorselect");
@@ -167,6 +187,21 @@ export default function TripIntentForm() {
       alert("Could not save your intent. Try again.");
     }
   };
+
+  // Check if form has any selections
+  const hasSelections = priorities.length > 0 || vibes.length > 0 || mobility.length > 0 || travelPace.length > 0 || budget;
+
+  // Debug useEffect to monitor state changes
+  useEffect(() => {
+    console.log("🔄 State changed:", {
+      priorities,
+      vibes,
+      mobility,
+      travelPace,
+      budget,
+      hasSelections
+    });
+  }, [priorities, vibes, mobility, travelPace, budget, hasSelections]);
 
   if (loading) return <div className="p-6">Loading your trip...</div>;
 
@@ -183,7 +218,9 @@ export default function TripIntentForm() {
           <h2 className="text-xl font-semibold mb-4 text-gray-800">
             🎯 What are your top priorities for this trip?
           </h2>
-          <p className="text-gray-600 mb-4">Select all that apply:</p>
+          <p className="text-gray-600 mb-4">
+            Select all that apply: {priorities.length > 0 && <span className="text-blue-600 font-semibold">({priorities.length} selected)</span>}
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {PRIORITIES_OPTIONS.map((option) => (
               <label key={option} className="flex items-center space-x-3 cursor-pointer">
@@ -204,7 +241,9 @@ export default function TripIntentForm() {
           <h2 className="text-xl font-semibold mb-4 text-gray-800">
             🌟 What's the vibe you're going for?
           </h2>
-          <p className="text-gray-600 mb-4">Select all that apply:</p>
+          <p className="text-gray-600 mb-4">
+            Select all that apply: {vibes.length > 0 && <span className="text-blue-600 font-semibold">({vibes.length} selected)</span>}
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {VIBES_OPTIONS.map((option) => (
               <label key={option} className="flex items-center space-x-3 cursor-pointer">
@@ -225,7 +264,9 @@ export default function TripIntentForm() {
           <h2 className="text-xl font-semibold mb-4 text-gray-800">
             🚶 How do you prefer to get around?
           </h2>
-          <p className="text-gray-600 mb-4">Select all that apply:</p>
+          <p className="text-gray-600 mb-4">
+            Select all that apply: {mobility.length > 0 && <span className="text-blue-600 font-semibold">({mobility.length} selected)</span>}
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {MOBILITY_OPTIONS.map((option) => (
               <label key={option} className="flex items-center space-x-3 cursor-pointer">
@@ -246,7 +287,9 @@ export default function TripIntentForm() {
           <h2 className="text-xl font-semibold mb-4 text-gray-800">
             ⏱️ What's your preferred travel pace?
           </h2>
-          <p className="text-gray-600 mb-4">Select all that apply:</p>
+          <p className="text-gray-600 mb-4">
+            Select all that apply: {travelPace.length > 0 && <span className="text-blue-600 font-semibold">({travelPace.length} selected)</span>}
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {TRAVEL_PACE_OPTIONS.map((option) => (
               <label key={option} className="flex items-center space-x-3 cursor-pointer">
@@ -287,9 +330,14 @@ export default function TripIntentForm() {
 
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-4 px-6 rounded-lg hover:bg-blue-700 transition text-lg font-semibold"
+          disabled={!hasSelections}
+          className={`w-full py-4 px-6 rounded-lg transition text-lg font-semibold ${
+            hasSelections 
+              ? 'bg-blue-600 text-white hover:bg-blue-700' 
+              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+          }`}
         >
-          Save Trip Intent
+          {hasSelections ? 'Save Trip Intent' : 'Please make some selections first'}
         </button>
       </form>
     </div>
