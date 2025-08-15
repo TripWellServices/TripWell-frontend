@@ -15,6 +15,7 @@ export default function LocalUniversalRouter() {
 
         // Get all localStorage data
         const userData = JSON.parse(localStorage.getItem("userData") || "null");
+        const profileComplete = localStorage.getItem("profileComplete") === "true";
         const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
         const tripIntentData = JSON.parse(localStorage.getItem("tripIntentData") || "null");
         const anchorSelectData = JSON.parse(localStorage.getItem("anchorSelectData") || "null");
@@ -22,7 +23,7 @@ export default function LocalUniversalRouter() {
 
         console.log("🔍 Current localStorage state:", {
           userData: !!userData,
-          profileComplete: userData?.profileComplete,
+          profileComplete: profileComplete,
           tripData: !!tripData,
           tripIntentData: !!tripIntentData,
           anchorSelectData: !!anchorSelectData,
@@ -87,12 +88,8 @@ export default function LocalUniversalRouter() {
             console.log("💾 Saved itineraryData to localStorage:", localStorageData.itineraryData);
           }
 
-          // Check if profile is complete based on user data
-          const isProfileComplete = localStorageData.userData?.firstName && 
-                                   localStorageData.userData?.lastName && 
-                                   localStorageData.userData?.hometownCity;
-          
-          if (isProfileComplete) {
+          // Set profileComplete flag based on backend data
+          if (localStorageData.userData?.profileComplete) {
             localStorage.setItem("profileComplete", "true");
             console.log("💾 Set profileComplete to true");
           } else {

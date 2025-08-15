@@ -89,7 +89,8 @@ export default function ProfileSetup() {
         firstName: firstName,
         lastName: lastName,
         hometownCity: hometownCity,
-        state: state
+        state: state,
+        profileComplete: true
       };
       localStorage.setItem("userData", JSON.stringify(updatedUserData));
       localStorage.setItem("profileComplete", "true");
