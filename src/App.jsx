@@ -70,6 +70,7 @@ import AnchorGPTTest from "./pages/anchorgpttest"; // 👈 new
 // ✅ Local State Test Flow Pages
 import LocalWelcome from "./pages/LocalWelcome";
 import LocalUniversalRouter from "./pages/LocalUniversalRouter";
+import LocalFlusherRoute from "./pages/LocalFlusherRoute";
 import PreTripHub from "./pages/PreTripHub";
 import ReflectionHub from "./pages/ReflectionHub";
 import LiveDay from "./pages/LiveDay";
@@ -112,6 +113,7 @@ export default function App() {
       {/* ✅ Local State Test Flow Routes */}
       <Route path="/localwelcome" element={<LocalWelcome />} />
       <Route path="/localrouter" element={<LocalUniversalRouter />} />
+      <Route path="/localflush" element={<LocalFlusherRoute />} />
       <Route path="/pretrip" element={<PreTripHub />} />
       <Route path="/reflectionhub" element={<ReflectionHub />} />
       <Route path="/liveday/:dayNumber" element={<LiveDay />} />

@@ -105,6 +105,13 @@ export default function LocalStateDebug() {
         </button>
         
         <button 
+          onClick={() => navigate("/localflush")}
+          className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+        >
+          🔄 Flush from Backend
+        </button>
+        
+        <button 
           onClick={resetTrip}
           className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
         >
