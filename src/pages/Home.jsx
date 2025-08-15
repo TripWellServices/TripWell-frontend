@@ -30,6 +30,12 @@ export default function Home() {
         >
           Sign In
         </button>
+        <button
+          onClick={() => navigate("/localrouter")}
+          className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition-colors text-lg"
+        >
+          🧪 Test LocalStorage Flow
+        </button>
       </div>
 
       <div className="text-center">

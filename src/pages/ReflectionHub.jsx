@@ -29,14 +29,12 @@ export default function ReflectionHub() {
         <button 
           onClick={() => {
             // Reset localStorage for a fresh start
-            localStorage.removeItem("tripId");
-            localStorage.removeItem("tripStatus");
-            localStorage.removeItem("intent");
-            localStorage.removeItem("anchors");
-            localStorage.removeItem("itineraryFinal");
-            localStorage.removeItem("lastDayVisited");
+            localStorage.removeItem("tripData");
+            localStorage.removeItem("tripIntentData");
+            localStorage.removeItem("anchorSelectData");
+            localStorage.removeItem("itineraryData");
             console.log("🔄 Reset localStorage for fresh start");
-            navigate("/localwelcome");
+            navigate("/");
           }}
           className="w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-4 px-6 rounded-lg transition-colors text-lg flex items-center justify-center space-x-2"
         >

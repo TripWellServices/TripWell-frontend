@@ -6,14 +6,23 @@ export default function LiveDay() {
 
   const completeDay = () => {
     const nextDay = parseInt(dayNumber) + 1;
-    localStorage.setItem("lastDayVisited", nextDay.toString());
-    console.log("💾 Updated lastDayVisited to localStorage:", nextDay);
+    
+    // Update tripData with lastDayVisited
+    const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
+    if (tripData) {
+      const updatedTripData = { ...tripData, lastDayVisited: nextDay };
+      localStorage.setItem("tripData", JSON.stringify(updatedTripData));
+      console.log("💾 Updated tripData with lastDayVisited:", nextDay);
+    }
     
     if (nextDay > 3) {
       // Trip is complete
-      localStorage.setItem("tripStatus", "done");
-      console.log("💾 Trip complete - setting tripStatus to done");
-      navigate("/reflectionhub");
+      if (tripData) {
+        const completedTripData = { ...tripData, tripComplete: true };
+        localStorage.setItem("tripData", JSON.stringify(completedTripData));
+        console.log("💾 Trip complete - setting tripComplete to true");
+      }
+      navigate("/tripcomplete");
     } else {
       navigate(`/liveday/${nextDay}`);
     }

@@ -335,4 +335,15 @@ export default function TripSetup() {
         <button
           type="submit"
           disabled={!codeValid || submitting}
-          className={`
+          className={`w-full p-3 rounded font-medium ${
+            !codeValid || submitting
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+              : "bg-blue-600 text-white hover:bg-blue-700"
+          }`}
+        >
+          {submitting ? "Creating..." : "Create Trip"}
+        </button>
+      </form>
+    </div>
+  );
+}
