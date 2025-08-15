@@ -28,6 +28,7 @@ axios.interceptors.request.use(
 
 // ✅ Canonical Pages
 import Home from "./pages/Home";
+import HomeArchive from "./pages/HomeArchive";
 import Explainer from "./pages/Explainer";
 import Access from "./pages/Access";
 import JoinAccess from "./pages/JoinAccess";
@@ -68,7 +69,6 @@ import TripIDTest from "./pages/TripIDTest"; // 👈 new
 import AnchorGPTTest from "./pages/anchorgpttest"; // 👈 new
 
 // ✅ Local State Test Flow Pages
-import LocalWelcome from "./pages/LocalWelcome";
 import LocalUniversalRouter from "./pages/LocalUniversalRouter";
 import LocalFlusherRoute from "./pages/LocalFlusherRoute";
 import PreTripHub from "./pages/PreTripHub";
@@ -81,6 +81,7 @@ export default function App() {
     <Routes>
       {/* ✅ Public Routes */}
       <Route path="/" element={<Home />} />
+      <Route path="/homearchive" element={<HomeArchive />} />
       <Route path="/explainer" element={<Explainer />} />
       <Route path="/access" element={<Access />} />
       <Route path="/joinaccess" element={<JoinAccess />} />
@@ -111,7 +112,6 @@ export default function App() {
       <Route path="/anchorgpttest" element={<AnchorGPTTest />} />
 
       {/* ✅ Local State Test Flow Routes */}
-      <Route path="/localwelcome" element={<LocalWelcome />} />
       <Route path="/localrouter" element={<LocalUniversalRouter />} />
       <Route path="/localflush" element={<LocalFlusherRoute />} />
       <Route path="/prephub" element={<PreTripHub />} />

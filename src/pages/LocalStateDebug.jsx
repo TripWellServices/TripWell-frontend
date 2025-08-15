@@ -9,6 +9,7 @@ export default function LocalStateDebug() {
     const updateState = () => {
       const state = {
         userData: localStorage.getItem("userData"),
+        profileComplete: localStorage.getItem("profileComplete"),
         tripData: localStorage.getItem("tripData"),
         tripIntentData: localStorage.getItem("tripIntentData"),
         anchorSelectData: localStorage.getItem("anchorSelectData"),

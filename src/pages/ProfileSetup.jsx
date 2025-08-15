@@ -82,6 +82,19 @@ export default function ProfileSetup() {
 
       if (!res.ok) throw new Error(`Profile update failed: ${res.status}`);
 
+      // Save updated user data to localStorage
+      const updatedUserData = {
+        firebaseId: auth.currentUser.uid,
+        email: email,
+        firstName: firstName,
+        lastName: lastName,
+        hometownCity: hometownCity,
+        state: state
+      };
+      localStorage.setItem("userData", JSON.stringify(updatedUserData));
+      localStorage.setItem("profileComplete", "true");
+      console.log("💾 Updated userData and set profileComplete to true:", updatedUserData);
+
       // ✅ Always send to TripSetup after saving profile
       navigate("/tripsetup");
     } catch (err) {

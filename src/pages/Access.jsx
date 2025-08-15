@@ -17,6 +17,8 @@ export default function Access() {
       if (!firebaseUser || !hasAttemptedSignIn) return; // Only proceed if user just signed in
 
       try {
+        console.log("🔐 User signed in, starting localStorage flow...");
+        
         // 1) Create or find the user on backend (unprotected)
         await fetch(`${BACKEND_URL}/tripwell/user/createOrFind`, {
           method: "POST",
@@ -27,34 +29,53 @@ export default function Access() {
           }),
         });
 
-        // 2) Hydrate (protected)
+        // 2) Call localflush to get all localStorage data
         const token = await firebaseUser.getIdToken(true);
-        const whoRes = await fetch(`${BACKEND_URL}/tripwell/whoami`, {
+        const flushRes = await fetch(`${BACKEND_URL}/tripwell/localflush`, {
           headers: { Authorization: `Bearer ${token}` },
           cache: "no-store"
         });
-        if (!whoRes.ok) throw new Error(`WhoAmI failed: ${whoRes.status}`);
-        const { user, trip } = await whoRes.json();
+        
+        if (!flushRes.ok) {
+          throw new Error(`LocalFlush failed: ${flushRes.status}`);
+        }
+        
+        const localStorageData = await flushRes.json();
+        console.log("🔍 LocalFlush response:", localStorageData);
 
-        // Save userId to localStorage for test flow
-        localStorage.setItem("userId", user._id);
-        console.log("💾 Saved userId to localStorage:", user._id);
-
-        // 3) Route: profile completeness -> trip presence -> already created
-        const missingProfile = !user?.firstName || !user?.lastName || !user?.hometownCity;
-        if (missingProfile) {
-          navigate("/profilesetup");
-          return;
+        // 3) Save all data to localStorage
+        if (localStorageData.userData) {
+          localStorage.setItem("userData", JSON.stringify(localStorageData.userData));
+          console.log("💾 Saved userData to localStorage:", localStorageData.userData);
         }
 
-        if (!trip?._id) {
-          navigate("/tripsetup");
-          return;
+        if (localStorageData.tripData) {
+          localStorage.setItem("tripData", JSON.stringify(localStorageData.tripData));
+          console.log("💾 Saved tripData to localStorage:", localStorageData.tripData);
         }
 
-        navigate("/");
+        if (localStorageData.tripIntentData) {
+          localStorage.setItem("tripIntentData", JSON.stringify(localStorageData.tripIntentData));
+          console.log("💾 Saved tripIntentData to localStorage:", localStorageData.tripIntentData);
+        }
+
+        if (localStorageData.anchorSelectData) {
+          localStorage.setItem("anchorSelectData", JSON.stringify(localStorageData.anchorSelectData));
+          console.log("💾 Saved anchorSelectData to localStorage:", localStorageData.anchorSelectData);
+        }
+
+        if (localStorageData.itineraryData) {
+          localStorage.setItem("itineraryData", JSON.stringify(localStorageData.itineraryData));
+          console.log("💾 Saved itineraryData to localStorage:", localStorageData.itineraryData);
+        }
+
+        // 4) Route to universal router which will handle all the routing logic
+        console.log("✅ Access flow complete, routing to /localrouter");
+        navigate("/localrouter");
+        
       } catch (err) {
         console.error("❌ Access flow error", err);
+        alert("Something went wrong. Please try again.");
       }
     });
 

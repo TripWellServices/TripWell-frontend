@@ -22,6 +22,7 @@ export default function LocalUniversalRouter() {
 
         console.log("🔍 Current localStorage state:", {
           userData: !!userData,
+          profileComplete: userData?.profileComplete,
           tripData: !!tripData,
           tripIntentData: !!tripIntentData,
           anchorSelectData: !!anchorSelectData,
@@ -86,54 +87,62 @@ export default function LocalUniversalRouter() {
             console.log("💾 Saved itineraryData to localStorage:", localStorageData.itineraryData);
           }
 
-          // If user has no profile, route to profile setup
-          if (!localStorageData.userData?.firstName || !localStorageData.userData?.lastName || !localStorageData.userData?.hometownCity) {
-            console.log("❌ Incomplete profile, routing to /profilesetup");
-            return navigate("/profilesetup");
-          }
-
-          // If user has no trip, route to trip setup
-          if (!localStorageData.tripData?.tripId) {
-            console.log("❌ No trip found, routing to /tripsetup");
-            return navigate("/tripsetup");
+          // Check if profile is complete based on user data
+          const isProfileComplete = localStorageData.userData?.firstName && 
+                                   localStorageData.userData?.lastName && 
+                                   localStorageData.userData?.hometownCity;
+          
+          if (isProfileComplete) {
+            localStorage.setItem("profileComplete", "true");
+            console.log("💾 Set profileComplete to true");
+          } else {
+            localStorage.setItem("profileComplete", "false");
+            console.log("💾 Set profileComplete to false");
           }
         }
 
         // Re-read localStorage after potential updates
         const currentUserData = JSON.parse(localStorage.getItem("userData") || "null");
+        const currentProfileComplete = localStorage.getItem("profileComplete") === "true";
         const currentTripData = JSON.parse(localStorage.getItem("tripData") || "null");
 
-        // Step 2: Check trip data
+        // Step 2: Check if profile is complete
+        if (!currentProfileComplete) {
+          console.log("❌ Profile not complete, routing to /profilesetup");
+          return navigate("/profilesetup");
+        }
+
+        // Step 3: Check trip data
         if (!currentTripData || !currentTripData.tripId) {
           console.log("❌ No tripId found, routing to /tripsetup");
           return navigate("/tripsetup");
         }
 
-        // Step 3: Check if trip is complete
+        // Step 4: Check if trip is complete
         if (currentTripData.tripComplete === true) {
           console.log("✅ Trip is complete, routing to /tripcomplete");
           return navigate("/tripcomplete");
         }
 
-        // Step 4: Check if trip has started
+        // Step 5: Check if trip has started
         if (currentTripData.startedTrip === true) {
           console.log("✅ Trip has started, routing to /prephub");
           return navigate("/prephub");
         }
 
-        // Step 5: Check trip intent
+        // Step 6: Check trip intent
         if (!tripIntentData || !tripIntentData.tripIntentId) {
           console.log("❌ No tripIntentId found, routing to /tripintent");
           return navigate("/tripintent");
         }
 
-        // Step 6: Check anchors
+        // Step 7: Check anchors
         if (!anchorSelectData || !anchorSelectData.anchors || anchorSelectData.anchors.length === 0) {
           console.log("❌ No anchors selected, routing to /anchorselect");
           return navigate("/anchorselect");
         }
 
-        // Step 7: Check itinerary (optional)
+        // Step 8: Check itinerary (optional)
         if (!itineraryData || !itineraryData.itineraryId) {
           console.log("❌ No itinerary found, routing to /itinerarybuild");
           return navigate("/itinerarybuild");
