@@ -1,98 +1,53 @@
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
 import BACKEND_URL from "../config";
-import { fetchJSON } from "../utils/fetchJSON";
 
 export default function AnchorSelect() {
-  const { tripId } = useParams();
   const navigate = useNavigate();
 
-  const [user, setUser] = useState(null);
-  const [tripStatus, setTripStatus] = useState(null);
   const [anchors, setAnchors] = useState([]);
   const [selected, setSelected] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    hydratePage();
+  // Get data from localStorage
+  const userData = JSON.parse(localStorage.getItem("userData") || "null");
+  const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
+  const tripIntentData = JSON.parse(localStorage.getItem("tripIntentData") || "null");
+
+  // Load anchors on component mount
+  React.useEffect(() => {
+    loadAnchors();
   }, []);
 
-  const hydratePage = async () => {
+  const loadAnchors = async () => {
     try {
-      // ✅ Wait until Firebase is ready with Promise
-      const firebaseUser = await new Promise(resolve => {
-        const unsubscribe = auth.onAuthStateChanged(user => {
-          unsubscribe();
-          resolve(user);
-        });
+      const token = await auth.currentUser.getIdToken();
+      
+      console.log("🔍 Loading anchor GPT suggestions...");
+      const anchorGPTRes = await fetch(`${BACKEND_URL}/tripwell/anchorgpt/${tripData.tripId}?userId=${userData.firebaseId}`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
-
-             if (!firebaseUser) {
-         console.error("❌ No Firebase user after waiting");
-         setLoading(false);
-         return;
-       }
-
-      const token = await firebaseUser.getIdToken();
-
-                    // Get user data from /whoami (matching TripCreated.jsx pattern)
-       const userData = await fetchJSON(`${BACKEND_URL}/tripwell/whoami`, {
-         headers: { Authorization: `Bearer ${token}` },
-         cache: "no-store"
-       });
-
-       console.log("🔍 User data:", userData);
-       setUser(userData.user);
-
-       // Get trip status
-       const statusRes = await fetchJSON(`${BACKEND_URL}/tripwell/tripstatus`, {
-         headers: { Authorization: `Bearer ${token}` },
-         cache: "no-store"
-       });
-
-       console.log("🔍 Trip status:", statusRes);
-       const status = statusRes.tripStatus;
-       setTripStatus(status);
-
-       // Only redirect if we have a user but no trip at all
-       if (userData.user && !status.tripId) {
-         console.log("❌ User exists but no trip found");
-         setLoading(false);
-         return;
-       }
-
-       // If user has no intent, redirect to tripintent
-       if (userData.user && status.tripId && !status.intentExists) {
-         console.log("❌ No intent exists, redirecting to tripintent");
-         setLoading(false);
-         navigate("/tripintent");
-         return;
-       }
-
-             // Hydrate saved selections (if any)
-       console.log("🔍 Loading anchor logic...");
-       const anchorLogicRes = await fetchJSON(`${BACKEND_URL}/tripwell/anchorlogic/${status.tripId}`, {
-         headers: { Authorization: `Bearer ${token}` }
-       });
-       console.log("🔍 Anchor logic response:", anchorLogicRes);
-       if (anchorLogicRes?.anchorTitles) {
-         setSelected(anchorLogicRes.anchorTitles);
-       }
-
-       console.log("🔍 Loading anchor GPT suggestions...");
-       const anchorGPTRes = await fetchJSON(`${BACKEND_URL}/tripwell/anchorgpt/${status.tripId}?userId=${userData.user._id}`, {
-         headers: { Authorization: `Bearer ${token}` }
-       });
-       console.log("🔍 Anchor GPT response:", anchorGPTRes);
-       console.log("🔍 Setting anchors to:", anchorGPTRes);
-       setAnchors(anchorGPTRes);
-       setLoading(false);
-     } catch (err) {
-       console.error("❌ Anchor Select Load Error", err);
-     } finally {
-       setLoading(false);
-     }
+      
+      if (!anchorGPTRes.ok) {
+        throw new Error(`Failed to load anchors: ${anchorGPTRes.status}`);
+      }
+      
+      const anchorData = await anchorGPTRes.json();
+      console.log("🔍 Anchor GPT response:", anchorData);
+      setAnchors(anchorData);
+      
+      // Load previously selected anchors if any
+      const existingAnchorSelectData = JSON.parse(localStorage.getItem("anchorSelectData") || "null");
+      if (existingAnchorSelectData?.anchors) {
+        setSelected(existingAnchorSelectData.anchors);
+      }
+      
+    } catch (err) {
+      console.error("❌ Failed to load anchors", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const toggleSelection = (title) => {
@@ -105,22 +60,25 @@ export default function AnchorSelect() {
     try {
       const token = await auth.currentUser.getIdToken();
       
-      const res = await fetch(`${BACKEND_URL}/tripwell/anchorselect/save/${tripStatus.tripId}`, {
+      const res = await fetch(`${BACKEND_URL}/tripwell/anchorselect/save/${tripData.tripId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          userId: user._id,
+          userId: userData.firebaseId,
           anchorTitles: selected,
         }),
       });
 
       if (res.ok) {
         // Save to localStorage for test flow
-        localStorage.setItem("anchors", JSON.stringify(selected));
-        console.log("💾 Saved anchors to localStorage:", selected);
+        const anchorSelectData = {
+          anchors: selected
+        };
+        localStorage.setItem("anchorSelectData", JSON.stringify(anchorSelectData));
+        console.log("💾 Saved anchorSelectData to localStorage:", anchorSelectData);
         
         navigate(`/tripwell/itinerarybuild`);
       } else {
@@ -131,53 +89,30 @@ export default function AnchorSelect() {
     }
   };
 
-  if (loading) {
+  // If no localStorage data, show error
+  if (!userData || !tripData || !tripIntentData) {
     return (
-      <div className="p-6 max-w-xl mx-auto space-y-6">
+      <div className="max-w-2xl mx-auto p-6 space-y-8">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Loading Your Trip...</h1>
-          <p className="text-gray-600 mb-6">Getting your anchor experiences ready</p>
-        </div>
-        
-        <div className="space-y-3">
-          <button
-            onClick={() => navigate("/tripprebuild")}
-            className="w-full bg-green-600 text-white px-5 py-3 rounded-md hover:bg-green-700 transition"
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Missing Data</h1>
+          <p className="text-gray-600">Please start from the beginning.</p>
+          <button 
+            onClick={() => navigate("/")}
+            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg"
           >
-            📍 Take Me Where I Left Off
+            Go Home
           </button>
-          
-          <div className="text-center">
-            <p className="text-sm text-gray-500 mb-2">Don't see your data here?</p>
-            <button
-              onClick={() => navigate("/access")}
-              className="text-blue-600 hover:text-blue-800 underline text-sm"
-            >
-              Log in
-            </button>
-          </div>
         </div>
       </div>
     );
   }
 
-  // If we're not loading but have no user, show the same optional login
-  if (!user) {
+  if (loading) {
     return (
       <div className="p-6 max-w-xl mx-auto space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Pick Your Anchors 🧭</h1>
-          <p className="text-gray-600 mb-6">These are curated experience ideas based on your trip</p>
-        </div>
-        
-        <div className="text-center">
-          <p className="text-sm text-gray-500 mb-2">Don't see your data here?</p>
-          <button
-            onClick={() => navigate("/access")}
-            className="text-blue-600 hover:text-blue-800 underline text-sm"
-          >
-            Log in
-          </button>
+          <h1 className="text-2xl font-bold mb-4">Loading Your Anchors...</h1>
+          <p className="text-gray-600 mb-6">Getting your anchor experiences ready</p>
         </div>
       </div>
     );
@@ -186,6 +121,13 @@ export default function AnchorSelect() {
   return (
     <div className="p-6 max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Pick Your Anchors 🧭</h1>
+      
+      <div className="bg-blue-50 p-4 rounded-lg mb-6">
+        <p className="text-sm text-blue-800">
+          Planning: <strong>{tripData.tripName}</strong> to <strong>{tripData.city}</strong>
+        </p>
+      </div>
+      
       <p className="mb-6">
         These are curated experience ideas based on your trip. Check the ones that speak to you.
         Think of them as the main characters of your journey.

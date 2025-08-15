@@ -1,16 +1,17 @@
-// src/pages/TripIntentForm.jsx - MVP1 SIMPLE VERSION
-import { useEffect, useState } from "react";
+// src/pages/TripIntentForm.jsx - localStorage-first version
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
 import BACKEND_URL from "../config";
-import { fetchJSON } from "../utils/fetchJSON";
 
 export default function TripIntentForm() {
   const navigate = useNavigate();
 
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Get data from localStorage
+  const userData = JSON.parse(localStorage.getItem("userData") || "null");
+  const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
 
   // Predefined options for better UX
   const priorityOptions = [
@@ -37,6 +38,7 @@ export default function TripIntentForm() {
 
   const [priorities, setPriorities] = useState([]);
   const [vibes, setVibes] = useState([]);
+  const [budget, setBudget] = useState("");
 
   const togglePriority = (priority) => {
     setPriorities(prev => 
@@ -54,46 +56,6 @@ export default function TripIntentForm() {
     );
   };
 
-  // Hydrate user via /whoami - matching TripIDTest.jsx pattern
-  useEffect(() => {
-    async function hydrateTripId() {
-      try {
-        // ✅ Wait until Firebase is ready
-        await new Promise(resolve => {
-          const unsubscribe = auth.onAuthStateChanged(user => {
-            unsubscribe();
-            resolve(user);
-          });
-        });
-
-        const firebaseUser = auth.currentUser;
-        if (!firebaseUser) {
-          console.error("❌ No Firebase user after waiting");
-          navigate("/access");
-          return;
-        }
-
-        const token = await firebaseUser.getIdToken();
-
-        const data = await fetchJSON(`${BACKEND_URL}/tripwell/whoami`, {
-          headers: { Authorization: `Bearer ${token}` },
-          cache: "no-store"
-        });
-
-        console.log("WHOAMI RESPONSE:", data);
-        setUser(data?.user);
-      } catch (err) {
-        console.error("Error fetching user data", err);
-        // Redirect to access if whoami fails
-        navigate("/access");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    hydrateTripId();
-  }, []);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -103,15 +65,16 @@ export default function TripIntentForm() {
 
     try {
       const payload = {
-        tripId: user?.tripId,
-        userId: user?._id,
+        tripId: tripData.tripId,
+        userId: userData.firebaseId,
         priorities: priorities.join(','),
         vibes: vibes.join(','),
+        budget: budget
       };
 
-      console.log("🔍 Current state:", { priorities, vibes });
+      console.log("🔍 Current state:", { priorities, vibes, budget });
       console.log("📤 Sending payload:", payload);
-      console.log("🔑 User tripId:", user?.tripId);
+      console.log("🔑 Trip tripId:", tripData.tripId);
 
       const token = await auth.currentUser.getIdToken();
       const res = await fetch(`${BACKEND_URL}/tripwell/tripintent`, {
@@ -130,12 +93,14 @@ export default function TripIntentForm() {
         console.log("✅ Trip intent saved successfully");
         
         // Save to localStorage for test flow
-        const intentData = {
+        const tripIntentData = {
+          tripIntentId: data.tripIntentId || "generated-id",
           priorities: priorities,
-          vibes: vibes
+          vibes: vibes,
+          budget: budget
         };
-        localStorage.setItem("intent", JSON.stringify(intentData));
-        console.log("💾 Saved intent to localStorage:", intentData);
+        localStorage.setItem("tripIntentData", JSON.stringify(tripIntentData));
+        console.log("💾 Saved tripIntentData to localStorage:", tripIntentData);
         
         navigate("/anchorselect");
       } else {
@@ -152,13 +117,35 @@ export default function TripIntentForm() {
   // Check if form has any input
   const hasInput = priorities.length > 0 || vibes.length > 0;
 
-  if (loading) return <div className="p-6">Loading your trip...</div>;
+  // If no localStorage data, show error
+  if (!userData || !tripData) {
+    return (
+      <div className="max-w-2xl mx-auto p-6 space-y-8">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Missing Data</h1>
+          <p className="text-gray-600">Please start from the beginning.</p>
+          <button 
+            onClick={() => navigate("/")}
+            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg"
+          >
+            Go Home
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-8">
       <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">
-        🧠 What Kind of Trip is This? (MVP1)
+        🧠 What Kind of Trip is This?
       </h1>
+      
+      <div className="bg-blue-50 p-4 rounded-lg mb-6">
+        <p className="text-sm text-blue-800">
+          Planning: <strong>{tripData.tripName}</strong> to <strong>{tripData.city}</strong>
+        </p>
+      </div>
       
       <form onSubmit={handleSubmit} className="space-y-8">
         
@@ -212,6 +199,23 @@ export default function TripIntentForm() {
           {vibes.length === 0 && (
             <p className="text-sm text-gray-500 mt-2">Select at least one vibe</p>
           )}
+        </div>
+
+        {/* Budget Section */}
+        <div className="bg-white shadow rounded-lg p-6">
+          <h2 className="text-xl font-semibold mb-4 text-gray-800">
+            💰 What's your budget range?
+          </h2>
+          <p className="text-gray-600 mb-4">
+            This helps us suggest experiences that fit your budget
+          </p>
+          <input
+            type="text"
+            value={budget}
+            onChange={(e) => setBudget(e.target.value)}
+            placeholder="e.g., $500-1000, Budget-friendly, Luxury"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
         </div>
 
         <button

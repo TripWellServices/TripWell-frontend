@@ -182,17 +182,40 @@ export default function TripSetup() {
       const data = await res.json().catch(() => ({}));
       console.log("create trip resp", res.status, data);
 
-              if (res.status === 201 && data.tripId) {
-          // Save to localStorage for test flow
-          localStorage.setItem("tripId", data.tripId);
-          localStorage.setItem("userId", user._id);
-          console.log("💾 Saved tripId and userId to localStorage:", {
-            tripId: data.tripId,
-            userId: user._id
-          });
-          
-          // Navigate to trip created page (no tripId in URL)
-          navigate(`/tripcreated`);
+      if (res.status === 201 && data.tripId) {
+        // Save to localStorage for test flow
+        const userData = {
+          firebaseId: user.firebaseId,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          hometownCity: user.hometownCity,
+          state: user.state
+        };
+        
+        const tripData = {
+          tripId: data.tripId,
+          tripName: tripName,
+          purpose: purpose,
+          startDate: startDate,
+          endDate: endDate,
+          city: city,
+          joinCode: joinCode,
+          whoWith: whoWith,
+          partyCount: Number(partyCount),
+          startedTrip: false,
+          tripComplete: false
+        };
+        
+        localStorage.setItem("userData", JSON.stringify(userData));
+        localStorage.setItem("tripData", JSON.stringify(tripData));
+        console.log("💾 Saved userData and tripData to localStorage:", {
+          userData,
+          tripData
+        });
+        
+        // Navigate to trip created page (no tripId in URL)
+        navigate(`/tripcreated`);
       } else if (res.status === 409) {
         // Show user-visible error for conflicts
         alert(data.error || "Join code taken or user already has a trip");
@@ -312,15 +335,4 @@ export default function TripSetup() {
         <button
           type="submit"
           disabled={!codeValid || submitting}
-          className={`py-3 px-6 rounded-lg transition ${
-            codeValid && !submitting
-              ? "bg-blue-600 text-white hover:bg-blue-700"
-              : "bg-gray-300 text-gray-500 cursor-not-allowed"
-          }`}
-        >
-          {submitting ? "Creating..." : "Create Trip"}
-        </button>
-      </form>
-    </div>
-  );
-}
+          className={`

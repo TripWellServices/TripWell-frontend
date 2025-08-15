@@ -1,13 +1,8 @@
 import { useNavigate } from "react-router-dom";
-// import { Button } from "../components/Button"; // ✅ fixed import path
 import {
   PlaneTakeoff,
   Users,
-  Hammer,
-  CalendarDays,
-  NotebookPen,
   Info,
-  RefreshCcw,
   TestTube,
 } from "lucide-react";
 
@@ -25,92 +20,54 @@ export function Button({ children, className = "", ...props }) {
 export default function Home() {
   const navigate = useNavigate();
 
-  const navItems = [
-    {
-      icon: <PlaneTakeoff className="w-5 h-5 mr-2" />,
-      label: "Create a Trip",
-      description: "Start from scratch and build something unforgettable.",
-      route: "/pretrip", // ✅ Updated from /tripsetup
-    },
-    {
-      icon: <Users className="w-5 h-5 mr-2" />,
-      label: "Join a Trip",
-      description: "Enter a join code and sync up with your crew.",
-      route: "/join",
-    },
-    {
-      icon: <Hammer className="w-5 h-5 mr-2" />,
-      label: "Build My TripWell Experience",
-      description: "Plan your itinerary, edit blocks, or restart your vibe.",
-      route: "/tripplannerreturn",
-    },
-    {
-      icon: <CalendarDays className="w-5 h-5 mr-2" />,
-      label: "I'm TripWelling!",
-      description: "Start your adventure. We’ll guide you block by block.",
-      route: "/preliveday",
-    },
-    {
-      icon: <RefreshCcw className="w-5 h-5 mr-2" />,
-      label: "Resume My Trip",
-      description: "Jump back in exactly where you left off.",
-      route: "/tripliveblock",
-    },
-    {
-      icon: <NotebookPen className="w-5 h-5 mr-2" />,
-      label: "Trip Reflection",
-      description:
-        "See what you captured, what made you laugh, and what you’ll never forget.",
-      route: "/reflections/last",
-    },
-    {
-      icon: <Info className="w-5 h-5 mr-2" />,
-      label: "What is TripWell?",
-      description: "Learn how we turn travel into lasting memories.",
-      route: "/explainer",
-    },
-    {
-      icon: <TestTube className="w-5 h-5 mr-2" />,
-      label: "AnchorGPT Test",
-      description: "Test the GPT anchor suggestion service with a hardcoded Paris prompt.",
-      route: "/anchorgpttest",
-    },
-    {
-      icon: <TestTube className="w-5 h-5 mr-2" />,
-      label: "New Local State Test Flow",
-      description: "Test localStorage-first routing with Hunger Games mode.",
-      route: "/localwelcome",
-    },
-    {
-      icon: <TestTube className="w-5 h-5 mr-2" />,
-      label: "Local State Debug",
-      description: "View and manage localStorage state for testing.",
-      route: "/localdebug",
-    },
-  ];
-
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-8">
-      <h1 className="text-3xl font-bold text-center">
-        Travel isn’t about going — it’s about building core memories with the
-        ones you love.
-      </h1>
+      <div className="text-center space-y-4">
+        <h1 className="text-3xl font-bold text-gray-800">
+          Welcome to TripWell
+        </h1>
+        <p className="text-lg text-gray-600">
+          We're here to help you plan your trip and make memories.
+        </p>
+        <p className="text-sm text-gray-500 bg-blue-50 p-3 rounded-lg">
+          🚀 Universal localStorage-first routing
+        </p>
+      </div>
 
-      <div className="grid gap-4 mt-6">
-        {navItems.map((item) => (
-          <div key={item.label}>
-            <Button
-              onClick={() => navigate(item.route)}
-              className="w-full flex items-center justify-start px-4 py-3 text-lg rounded-xl shadow-md"
-            >
-              {item.icon}
-              {item.label}
-            </Button>
-            <p className="text-sm text-gray-500 ml-2 mt-1">
-              {item.description}
-            </p>
-          </div>
-        ))}
+      <div className="space-y-4">
+        <button 
+          onClick={() => navigate("/localrouter")}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors text-lg flex items-center justify-center space-x-2"
+        >
+          <PlaneTakeoff className="w-5 h-5" />
+          <span>Start Planning My Trip</span>
+        </button>
+        
+        <button 
+          onClick={() => navigate("/join")}
+          className="w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-6 rounded-lg transition-colors text-lg flex items-center justify-center space-x-2"
+        >
+          <Users className="w-5 h-5" />
+          <span>Join a Friend's Trip</span>
+        </button>
+      </div>
+
+      <div className="space-y-3">
+        <button 
+          onClick={() => navigate("/explainer")}
+          className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-3 px-6 rounded-lg transition-colors text-lg flex items-center justify-center space-x-2"
+        >
+          <Info className="w-5 h-5" />
+          <span>What is TripWell?</span>
+        </button>
+        
+        <button 
+          onClick={() => navigate("/localdebug")}
+          className="w-full bg-yellow-100 hover:bg-yellow-200 text-yellow-800 font-medium py-3 px-6 rounded-lg transition-colors text-lg flex items-center justify-center space-x-2"
+        >
+          <TestTube className="w-5 h-5" />
+          <span>Debug Local State</span>
+        </button>
       </div>
     </div>
   );

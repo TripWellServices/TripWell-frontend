@@ -8,13 +8,11 @@ export default function LocalStateDebug() {
   useEffect(() => {
     const updateState = () => {
       const state = {
-        userId: localStorage.getItem("userId"),
-        tripId: localStorage.getItem("tripId"),
-        tripStatus: localStorage.getItem("tripStatus"),
-        intent: localStorage.getItem("intent"),
-        anchors: localStorage.getItem("anchors"),
-        itineraryFinal: localStorage.getItem("itineraryFinal"),
-        lastDayVisited: localStorage.getItem("lastDayVisited"),
+        userData: localStorage.getItem("userData"),
+        tripData: localStorage.getItem("tripData"),
+        tripIntentData: localStorage.getItem("tripIntentData"),
+        anchorSelectData: localStorage.getItem("anchorSelectData"),
+        itineraryData: localStorage.getItem("itineraryData"),
       };
       setLocalState(state);
     };
@@ -31,22 +29,47 @@ export default function LocalStateDebug() {
   };
 
   const resetTrip = () => {
-    localStorage.removeItem("tripId");
-    localStorage.removeItem("tripStatus");
-    localStorage.removeItem("intent");
-    localStorage.removeItem("anchors");
-    localStorage.removeItem("itineraryFinal");
-    localStorage.removeItem("lastDayVisited");
+    localStorage.removeItem("tripData");
+    localStorage.removeItem("tripIntentData");
+    localStorage.removeItem("anchorSelectData");
+    localStorage.removeItem("itineraryData");
     setLocalState({
-      userId: localStorage.getItem("userId"),
-      tripId: localStorage.getItem("tripId"),
-      tripStatus: localStorage.getItem("tripStatus"),
-      intent: localStorage.getItem("intent"),
-      anchors: localStorage.getItem("anchors"),
-      itineraryFinal: localStorage.getItem("itineraryFinal"),
-      lastDayVisited: localStorage.getItem("lastDayVisited"),
+      userData: localStorage.getItem("userData"),
+      tripData: localStorage.getItem("tripData"),
+      tripIntentData: localStorage.getItem("tripIntentData"),
+      anchorSelectData: localStorage.getItem("anchorSelectData"),
+      itineraryData: localStorage.getItem("itineraryData"),
     });
     console.log("🔄 Reset trip data");
+  };
+
+  const resetUser = () => {
+    localStorage.removeItem("userData");
+    localStorage.removeItem("tripData");
+    localStorage.removeItem("tripIntentData");
+    localStorage.removeItem("anchorSelectData");
+    localStorage.removeItem("itineraryData");
+    setLocalState({
+      userData: localStorage.getItem("userData"),
+      tripData: localStorage.getItem("tripData"),
+      tripIntentData: localStorage.getItem("tripIntentData"),
+      anchorSelectData: localStorage.getItem("anchorSelectData"),
+      itineraryData: localStorage.getItem("itineraryData"),
+    });
+    console.log("🔄 Reset user data");
+  };
+
+  const formatValue = (value) => {
+    if (!value) return "null";
+    try {
+      const parsed = JSON.parse(value);
+      if (typeof parsed === 'object') {
+        return JSON.stringify(parsed, null, 2).substring(0, 100) + (JSON.stringify(parsed).length > 100 ? "..." : "");
+      }
+      return parsed;
+    } catch {
+      return value;
+    }
   };
 
   return (
@@ -56,17 +79,19 @@ export default function LocalStateDebug() {
           🧪 Local State Debug
         </h1>
         <p className="text-gray-600">
-          Current localStorage state for test flow
+          Current localStorage state for universal routing
         </p>
       </div>
 
       <div className="bg-gray-50 rounded-lg p-4 space-y-3">
         {Object.entries(localState).map(([key, value]) => (
-          <div key={key} className="flex justify-between items-center">
-            <span className="font-mono text-sm text-gray-700">{key}:</span>
-            <span className="font-mono text-sm text-gray-900 max-w-xs truncate">
-              {value || "null"}
-            </span>
+          <div key={key} className="border-b border-gray-200 pb-3 last:border-b-0">
+            <div className="flex justify-between items-start">
+              <span className="font-mono text-sm text-gray-700 font-semibold">{key}:</span>
+              <span className="font-mono text-xs text-gray-900 max-w-xs break-words text-right">
+                {formatValue(value)}
+              </span>
+            </div>
           </div>
         ))}
       </div>
@@ -84,6 +109,13 @@ export default function LocalStateDebug() {
           className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
         >
           🔄 Reset Trip Data
+        </button>
+        
+        <button 
+          onClick={resetUser}
+          className="w-full bg-orange-600 hover:bg-orange-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+        >
+          🔄 Reset User Data
         </button>
         
         <button 
