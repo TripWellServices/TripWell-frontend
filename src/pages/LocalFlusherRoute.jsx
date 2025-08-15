@@ -28,131 +28,48 @@ export default function LocalFlusherRoute() {
           return;
         }
 
-        setStatus("🔍 Calling /whoami to get user data...");
+        setStatus("🔄 Calling backend to flush all localStorage data...");
         const token = await firebaseUser.getIdToken();
-        const whoRes = await fetch(`${BACKEND_URL}/tripwell/whoami`, {
+        const flushRes = await fetch(`${BACKEND_URL}/tripwell/localflush`, {
           headers: { Authorization: `Bearer ${token}` },
           cache: "no-store"
         });
 
-        if (!whoRes.ok) {
-          setStatus("❌ /whoami failed - user may not exist");
+        if (!flushRes.ok) {
+          setStatus("❌ Flush failed - user may not exist");
           setTimeout(() => navigate("/access"), 2000);
           return;
         }
 
-        const whoData = await whoRes.json();
-        console.log("🔍 /whoami response:", whoData);
+        const localStorageData = await flushRes.json();
+        console.log("🔍 Backend flush response:", localStorageData);
 
-        // Flush userData
-        setStatus("💾 Flushing userData...");
-        const userData = {
-          firebaseId: whoData.user.firebaseId,
-          email: whoData.user.email,
-          firstName: whoData.user.firstName,
-          lastName: whoData.user.lastName,
-          hometownCity: whoData.user.hometownCity,
-          state: whoData.user.state
-        };
-        localStorage.setItem("userData", JSON.stringify(userData));
-        console.log("💾 Flushed userData:", userData);
-
-        // Check if user has a trip
-        if (!whoData.trip?._id) {
-          setStatus("❌ No trip found in backend");
-          setTimeout(() => navigate("/tripsetup"), 2000);
-          return;
+        // Save all data to localStorage
+        setStatus("💾 Saving data to localStorage...");
+        
+        if (localStorageData.userData) {
+          localStorage.setItem("userData", JSON.stringify(localStorageData.userData));
+          console.log("💾 Saved userData:", localStorageData.userData);
         }
-
-        // Flush tripData
-        setStatus("💾 Flushing tripData...");
-        const tripData = {
-          tripId: whoData.trip._id,
-          tripName: whoData.trip.tripName,
-          purpose: whoData.trip.purpose,
-          startDate: whoData.trip.startDate,
-          endDate: whoData.trip.endDate,
-          city: whoData.trip.city,
-          joinCode: whoData.trip.joinCode,
-          whoWith: whoData.trip.whoWith || [],
-          partyCount: whoData.trip.partyCount,
-          startedTrip: whoData.trip.startedTrip || false,
-          tripComplete: whoData.trip.tripComplete || false
-        };
-        localStorage.setItem("tripData", JSON.stringify(tripData));
-        console.log("💾 Flushed tripData:", tripData);
-
-        // Try to flush tripIntentData
-        setStatus("🔍 Checking for trip intent...");
-        try {
-          const intentRes = await fetch(`${BACKEND_URL}/tripwell/tripintent/${tripData.tripId}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          
-          if (intentRes.ok) {
-            const intentData = await intentRes.json();
-            setStatus("💾 Flushing tripIntentData...");
-            const tripIntentData = {
-              tripIntentId: intentData._id,
-              priorities: intentData.priorities ? intentData.priorities.split(',') : [],
-              vibes: intentData.vibes ? intentData.vibes.split(',') : [],
-              budget: intentData.budget || ""
-            };
-            localStorage.setItem("tripIntentData", JSON.stringify(tripIntentData));
-            console.log("💾 Flushed tripIntentData:", tripIntentData);
-          } else {
-            console.log("ℹ️ No trip intent found in backend");
-          }
-        } catch (err) {
-          console.log("ℹ️ Could not fetch trip intent:", err);
+        
+        if (localStorageData.tripData) {
+          localStorage.setItem("tripData", JSON.stringify(localStorageData.tripData));
+          console.log("💾 Saved tripData:", localStorageData.tripData);
         }
-
-        // Try to flush anchorSelectData
-        setStatus("🔍 Checking for anchor selections...");
-        try {
-          const anchorRes = await fetch(`${BACKEND_URL}/tripwell/anchorlogic/${tripData.tripId}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          
-          if (anchorRes.ok) {
-            const anchorData = await anchorRes.json();
-            setStatus("💾 Flushing anchorSelectData...");
-            const anchorSelectData = {
-              anchors: anchorData.anchorTitles || []
-            };
-            localStorage.setItem("anchorSelectData", JSON.stringify(anchorSelectData));
-            console.log("💾 Flushed anchorSelectData:", anchorSelectData);
-          } else {
-            console.log("ℹ️ No anchor selections found in backend");
-          }
-        } catch (err) {
-          console.log("ℹ️ Could not fetch anchor selections:", err);
+        
+        if (localStorageData.tripIntentData) {
+          localStorage.setItem("tripIntentData", JSON.stringify(localStorageData.tripIntentData));
+          console.log("💾 Saved tripIntentData:", localStorageData.tripIntentData);
         }
-
-        // Try to flush itineraryData
-        setStatus("🔍 Checking for itinerary...");
-        try {
-          const itineraryRes = await fetch(`${BACKEND_URL}/tripwell/itinerary/days/${tripData.tripId}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          
-          if (itineraryRes.ok) {
-            const itineraryDays = await itineraryRes.json();
-            setStatus("💾 Flushing itineraryData...");
-            const itineraryData = {
-              itineraryId: "flushed-from-backend",
-              days: itineraryDays.map(day => ({
-                dayIndex: day.dayIndex,
-                summary: day.summary
-              }))
-            };
-            localStorage.setItem("itineraryData", JSON.stringify(itineraryData));
-            console.log("💾 Flushed itineraryData:", itineraryData);
-          } else {
-            console.log("ℹ️ No itinerary found in backend");
-          }
-        } catch (err) {
-          console.log("ℹ️ Could not fetch itinerary:", err);
+        
+        if (localStorageData.anchorSelectData) {
+          localStorage.setItem("anchorSelectData", JSON.stringify(localStorageData.anchorSelectData));
+          console.log("💾 Saved anchorSelectData:", localStorageData.anchorSelectData);
+        }
+        
+        if (localStorageData.itineraryData) {
+          localStorage.setItem("itineraryData", JSON.stringify(localStorageData.itineraryData));
+          console.log("💾 Saved itineraryData:", localStorageData.itineraryData);
         }
 
         setStatus("✅ Flush complete! Redirecting to universal router...");

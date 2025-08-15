@@ -114,7 +114,7 @@ export default function App() {
       <Route path="/localwelcome" element={<LocalWelcome />} />
       <Route path="/localrouter" element={<LocalUniversalRouter />} />
       <Route path="/localflush" element={<LocalFlusherRoute />} />
-      <Route path="/pretrip" element={<PreTripHub />} />
+      <Route path="/prephub" element={<PreTripHub />} />
       <Route path="/reflectionhub" element={<ReflectionHub />} />
       <Route path="/liveday/:dayNumber" element={<LiveDay />} />
       <Route path="/localdebug" element={<LocalStateDebug />} />

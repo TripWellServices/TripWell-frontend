@@ -30,7 +30,7 @@ export default function LocalUniversalRouter() {
 
         // Step 1: Check if we have user data, if not hydrate from backend
         if (!userData) {
-          console.log("❌ No userData in localStorage, calling /whoami");
+          console.log("❌ No userData in localStorage, calling /localflush");
 
           // Wait for Firebase auth
           await new Promise(resolve => {
@@ -47,58 +47,56 @@ export default function LocalUniversalRouter() {
           }
 
           const token = await firebaseUser.getIdToken();
-          const whoRes = await fetch(`${BACKEND_URL}/tripwell/whoami`, {
+          const flushRes = await fetch(`${BACKEND_URL}/tripwell/localflush`, {
             headers: { Authorization: `Bearer ${token}` },
             cache: "no-store"
           });
 
-          if (!whoRes.ok) {
-            console.log("❌ /whoami failed, routing to /access");
+          if (!flushRes.ok) {
+            console.log("❌ /localflush failed, routing to /access");
             return navigate("/access");
           }
 
-          const whoData = await whoRes.json();
-          const newUserData = {
-            firebaseId: whoData.user.firebaseId,
-            email: whoData.user.email,
-            firstName: whoData.user.firstName,
-            lastName: whoData.user.lastName,
-            hometownCity: whoData.user.hometownCity,
-            state: whoData.user.state
-          };
+          const localStorageData = await flushRes.json();
+          console.log("🔍 /localflush response:", localStorageData);
 
-          localStorage.setItem("userData", JSON.stringify(newUserData));
-          console.log("💾 Saved userData to localStorage:", newUserData);
+          // Save all data to localStorage
+          if (localStorageData.userData) {
+            localStorage.setItem("userData", JSON.stringify(localStorageData.userData));
+            console.log("💾 Saved userData to localStorage:", localStorageData.userData);
+          }
+
+          if (localStorageData.tripData) {
+            localStorage.setItem("tripData", JSON.stringify(localStorageData.tripData));
+            console.log("💾 Saved tripData to localStorage:", localStorageData.tripData);
+          }
+
+          if (localStorageData.tripIntentData) {
+            localStorage.setItem("tripIntentData", JSON.stringify(localStorageData.tripIntentData));
+            console.log("💾 Saved tripIntentData to localStorage:", localStorageData.tripIntentData);
+          }
+
+          if (localStorageData.anchorSelectData) {
+            localStorage.setItem("anchorSelectData", JSON.stringify(localStorageData.anchorSelectData));
+            console.log("💾 Saved anchorSelectData to localStorage:", localStorageData.anchorSelectData);
+          }
+
+          if (localStorageData.itineraryData) {
+            localStorage.setItem("itineraryData", JSON.stringify(localStorageData.itineraryData));
+            console.log("💾 Saved itineraryData to localStorage:", localStorageData.itineraryData);
+          }
 
           // If user has no profile, route to profile setup
-          if (!whoData.user.firstName || !whoData.user.lastName || !whoData.user.hometownCity) {
+          if (!localStorageData.userData?.firstName || !localStorageData.userData?.lastName || !localStorageData.userData?.hometownCity) {
             console.log("❌ Incomplete profile, routing to /profilesetup");
             return navigate("/profilesetup");
           }
 
           // If user has no trip, route to trip setup
-          if (!whoData.trip?._id) {
+          if (!localStorageData.tripData?.tripId) {
             console.log("❌ No trip found, routing to /tripsetup");
             return navigate("/tripsetup");
           }
-
-          // User has trip, hydrate trip data
-          const newTripData = {
-            tripId: whoData.trip._id,
-            tripName: whoData.trip.tripName,
-            purpose: whoData.trip.purpose,
-            startDate: whoData.trip.startDate,
-            endDate: whoData.trip.endDate,
-            city: whoData.trip.city,
-            joinCode: whoData.trip.joinCode,
-            whoWith: whoData.trip.whoWith || [],
-            partyCount: whoData.trip.partyCount,
-            startedTrip: whoData.trip.startedTrip || false,
-            tripComplete: whoData.trip.tripComplete || false
-          };
-
-          localStorage.setItem("tripData", JSON.stringify(newTripData));
-          console.log("💾 Saved tripData to localStorage:", newTripData);
         }
 
         // Re-read localStorage after potential updates
