@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import BACKEND_URL from "../config";
 import { useEffect, useState } from "react";
+import BACKEND_URL from "../config";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -14,10 +14,10 @@ export default function Home() {
       if (!firebaseUser || !hasAttemptedSignIn) return; // Only proceed if user just signed in
 
       try {
-        console.log("🔐 User signed in, starting localStorage hydration...");
+        console.log("🔐 User signed in, checking access...");
         
-        // 1) Create or find the user on backend (unprotected)
-        await fetch(`${BACKEND_URL}/tripwell/user/createOrFind`, {
+        // Check if this is a new or existing user
+        const createRes = await fetch(`${BACKEND_URL}/tripwell/user/createOrFind`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -26,52 +26,26 @@ export default function Home() {
           }),
         });
 
-        // 2) Call hydrate to populate localStorage
-        const token = await firebaseUser.getIdToken(true);
-        const hydrateRes = await fetch(`${BACKEND_URL}/tripwell/hydrate`, {
-          headers: { Authorization: `Bearer ${token}` },
-          cache: "no-store"
-        });
-        
-        if (!hydrateRes.ok) {
-          throw new Error(`Hydrate failed: ${hydrateRes.status}`);
-        }
-        
-        const localStorageData = await hydrateRes.json();
-        console.log("🔍 Hydrate response:", localStorageData);
-
-        // 3) Save all data to localStorage
-        if (localStorageData.userData) {
-          localStorage.setItem("userData", JSON.stringify(localStorageData.userData));
-          console.log("💾 Saved userData to localStorage:", localStorageData.userData);
+        if (!createRes.ok) {
+          throw new Error(`User check failed: ${createRes.status}`);
         }
 
-        if (localStorageData.tripData) {
-          localStorage.setItem("tripData", JSON.stringify(localStorageData.tripData));
-          console.log("💾 Saved tripData to localStorage:", localStorageData.tripData);
-        }
+        const userData = await createRes.json();
+        console.log("🔍 User check response:", userData);
 
-        if (localStorageData.tripIntentData) {
-          localStorage.setItem("tripIntentData", JSON.stringify(localStorageData.tripIntentData));
-          console.log("💾 Saved tripIntentData to localStorage:", localStorageData.tripIntentData);
+        // Check if this is a new user (no name yet) or existing user
+        if (!userData.name || userData.name === "") {
+          // New user - go to profile setup
+          console.log("👋 New user, routing to profile...");
+          navigate("/profile");
+        } else {
+          // Existing user - go to hydrate
+          console.log("💾 Existing user, routing to hydrate...");
+          navigate("/hydratelocal");
         }
-
-        if (localStorageData.anchorSelectData) {
-          localStorage.setItem("anchorSelectData", JSON.stringify(localStorageData.anchorSelectData));
-          console.log("💾 Saved anchorSelectData to localStorage:", localStorageData.anchorSelectData);
-        }
-
-        if (localStorageData.itineraryData) {
-          localStorage.setItem("itineraryData", JSON.stringify(localStorageData.itineraryData));
-          console.log("💾 Saved itineraryData to localStorage:", localStorageData.itineraryData);
-        }
-
-        // 4) Route to universal router which will handle all the routing logic
-        console.log("✅ Authentication flow complete, routing to /localrouter");
-        navigate("/localrouter");
         
       } catch (err) {
-        console.error("❌ Authentication flow error", err);
+        console.error("❌ Access check error:", err);
         alert("Something went wrong. Please try again.");
       }
     });
@@ -83,7 +57,7 @@ export default function Home() {
     try {
       setHasAttemptedSignIn(true);
       await signInWithPopup(auth, googleProvider);
-      // onAuthStateChanged will handle the rest
+      // onAuthStateChanged will handle the routing
     } catch (err) {
       console.error("❌ Google sign-in failed", err);
       alert("Authentication error — please try again.");
