@@ -36,8 +36,26 @@ export default function TripIntentForm() {
     "Spiritual & Mindful"
   ];
 
+  const mobilityOptions = [
+    "Fully Mobile - Love walking everywhere",
+    "Moderately Mobile - Mix of walking and transport",
+    "Limited Mobility - Prefer transport options",
+    "Wheelchair Accessible - Need accessible routes",
+    "Stroller Friendly - Traveling with young kids"
+  ];
+
+  const travelPaceOptions = [
+    "Fast Paced - Pack it all in",
+    "Moderate - Balanced activities and rest",
+    "Slow & Relaxed - Take time to soak it in",
+    "Flexible - Go with the flow",
+    "Structured - Like to have a plan"
+  ];
+
   const [priorities, setPriorities] = useState([]);
   const [vibes, setVibes] = useState([]);
+  const [mobility, setMobility] = useState([]);
+  const [travelPace, setTravelPace] = useState([]);
   const [budget, setBudget] = useState("");
 
   const togglePriority = (priority) => {
@@ -56,6 +74,22 @@ export default function TripIntentForm() {
     );
   };
 
+  const toggleMobility = (mobilityOption) => {
+    setMobility(prev => 
+      prev.includes(mobilityOption) 
+        ? prev.filter(m => m !== mobilityOption)
+        : [...prev, mobilityOption]
+    );
+  };
+
+  const toggleTravelPace = (paceOption) => {
+    setTravelPace(prev => 
+      prev.includes(paceOption) 
+        ? prev.filter(p => p !== paceOption)
+        : [...prev, paceOption]
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -67,12 +101,14 @@ export default function TripIntentForm() {
       const payload = {
         tripId: tripData.tripId,
         userId: userData.firebaseId,
-        priorities: priorities.join(','),
-        vibes: vibes.join(','),
+        priorities: priorities,
+        vibes: vibes,
+        mobility: mobility,
+        travelPace: travelPace,
         budget: budget
       };
 
-      console.log("🔍 Current state:", { priorities, vibes, budget });
+      console.log("🔍 Current state:", { priorities, vibes, mobility, travelPace, budget });
       console.log("📤 Sending payload:", payload);
       console.log("🔑 Trip tripId:", tripData.tripId);
 
@@ -97,6 +133,8 @@ export default function TripIntentForm() {
           tripIntentId: data.tripIntentId || "generated-id",
           priorities: priorities,
           vibes: vibes,
+          mobility: mobility,
+          travelPace: travelPace,
           budget: budget
         };
         localStorage.setItem("tripIntentData", JSON.stringify(tripIntentData));
@@ -115,7 +153,7 @@ export default function TripIntentForm() {
   };
 
   // Check if form has any input
-  const hasInput = priorities.length > 0 || vibes.length > 0;
+  const hasInput = priorities.length > 0 || vibes.length > 0 || mobility.length > 0 || travelPace.length > 0;
 
   // If no localStorage data, show error
   if (!userData || !tripData) {
@@ -198,6 +236,58 @@ export default function TripIntentForm() {
           </div>
           {vibes.length === 0 && (
             <p className="text-sm text-gray-500 mt-2">Select at least one vibe</p>
+          )}
+        </div>
+
+        {/* Mobility Section */}
+        <div className="bg-white shadow rounded-lg p-6">
+          <h2 className="text-xl font-semibold mb-4 text-gray-800">
+            🚶‍♂️ How mobile are you?
+          </h2>
+          <p className="text-gray-600 mb-4">
+            This helps us plan activities that work for your mobility needs
+          </p>
+          <div className="grid grid-cols-1 gap-3">
+            {mobilityOptions.map((option) => (
+              <label key={option} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                <input
+                  type="checkbox"
+                  checked={mobility.includes(option)}
+                  onChange={() => toggleMobility(option)}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">{option}</span>
+              </label>
+            ))}
+          </div>
+          {mobility.length === 0 && (
+            <p className="text-sm text-gray-500 mt-2">Select your mobility preference</p>
+          )}
+        </div>
+
+        {/* Travel Pace Section */}
+        <div className="bg-white shadow rounded-lg p-6">
+          <h2 className="text-xl font-semibold mb-4 text-gray-800">
+            ⏱️ What's your travel pace?
+          </h2>
+          <p className="text-gray-600 mb-4">
+            How do you like to experience your trips?
+          </p>
+          <div className="grid grid-cols-1 gap-3">
+            {travelPaceOptions.map((option) => (
+              <label key={option} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                <input
+                  type="checkbox"
+                  checked={travelPace.includes(option)}
+                  onChange={() => toggleTravelPace(option)}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">{option}</span>
+              </label>
+            ))}
+          </div>
+          {travelPace.length === 0 && (
+            <p className="text-sm text-gray-500 mt-2">Select your travel pace</p>
           )}
         </div>
 

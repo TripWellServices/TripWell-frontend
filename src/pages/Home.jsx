@@ -14,7 +14,7 @@ export default function Home() {
       if (!firebaseUser || !hasAttemptedSignIn) return; // Only proceed if user just signed in
 
       try {
-        console.log("🔐 User signed in, starting localStorage flow...");
+        console.log("🔐 User signed in, starting localStorage hydration...");
         
         // 1) Create or find the user on backend (unprotected)
         await fetch(`${BACKEND_URL}/tripwell/user/createOrFind`, {
@@ -26,19 +26,19 @@ export default function Home() {
           }),
         });
 
-        // 2) Call localflush to get all localStorage data
+        // 2) Call hydrate to populate localStorage
         const token = await firebaseUser.getIdToken(true);
-        const flushRes = await fetch(`${BACKEND_URL}/tripwell/localflush`, {
+        const hydrateRes = await fetch(`${BACKEND_URL}/tripwell/hydrate`, {
           headers: { Authorization: `Bearer ${token}` },
           cache: "no-store"
         });
         
-        if (!flushRes.ok) {
-          throw new Error(`LocalFlush failed: ${flushRes.status}`);
+        if (!hydrateRes.ok) {
+          throw new Error(`Hydrate failed: ${hydrateRes.status}`);
         }
         
-        const localStorageData = await flushRes.json();
-        console.log("🔍 LocalFlush response:", localStorageData);
+        const localStorageData = await hydrateRes.json();
+        console.log("🔍 Hydrate response:", localStorageData);
 
         // 3) Save all data to localStorage
         if (localStorageData.userData) {
@@ -109,7 +109,13 @@ export default function Home() {
           onClick={handleGoogle}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors text-lg"
         >
-          Sign Up / Sign In with Google
+          Sign Up
+        </button>
+        <button
+          onClick={handleGoogle}
+          className="w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-6 rounded-lg transition-colors text-lg"
+        >
+          Sign In
         </button>
       </div>
 
