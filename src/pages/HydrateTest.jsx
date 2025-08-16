@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
 import BACKEND_URL from "../config";
 
-export default function HydrateLocal() {
+export default function HydrateTest() {
   const navigate = useNavigate();
   const [status, setStatus] = useState("Ready to test hydration");
   const [error, setError] = useState(null);
@@ -11,17 +11,17 @@ export default function HydrateLocal() {
 
   const handleHydrate = async () => {
     try {
+      setStatus("🔐 Getting Firebase token...");
+      
       const firebaseUser = auth.currentUser;
       if (!firebaseUser) {
         setError("No authenticated user found");
         return;
       }
 
-      setStatus("🔐 Getting Firebase token...");
-      
-      const token = await firebaseUser.getIdToken(true);
       setStatus("💾 Calling /tripwell/hydrate...");
       
+      const token = await firebaseUser.getIdToken(true);
       const hydrateRes = await fetch(`${BACKEND_URL}/tripwell/hydrate`, {
         headers: { Authorization: `Bearer ${token}` },
         cache: "no-store"
@@ -103,7 +103,7 @@ export default function HydrateLocal() {
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6">
       <div className="max-w-2xl w-full bg-white rounded-lg shadow-lg p-8">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">HydrateLocal</h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">Hydrate Test Page</h1>
           <p className="text-gray-600">Test the hydration flow step by step</p>
         </div>
 
