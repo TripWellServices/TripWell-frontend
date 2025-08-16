@@ -8,50 +8,59 @@ export default function Home() {
   const navigate = useNavigate();
   const googleProvider = new GoogleAuthProvider();
   const [hasAttemptedSignIn, setHasAttemptedSignIn] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async (firebaseUser) => {
-      if (!firebaseUser || !hasAttemptedSignIn) return; // Only proceed if user just signed in
-
-      try {
-        console.log("🔐 User signed in, checking access...");
-        
-        // Check if this is a new or existing user
-        const createRes = await fetch(`${BACKEND_URL}/tripwell/user/createOrFind`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            firebaseId: firebaseUser.uid,
-            email: firebaseUser.email,
-          }),
-        });
-
-        if (!createRes.ok) {
-          throw new Error(`User check failed: ${createRes.status}`);
-        }
-
-        const userData = await createRes.json();
-        console.log("🔍 User check response:", userData);
-
-        // Simple binary check: does user exist or not?
-        if (userData && userData._id) {
-          // User exists - go to hydrate
-          console.log("💾 Existing user, routing to hydrate...");
-          navigate("/hydratelocal");
-        } else {
-          // No user - go to profile setup
-          console.log("👋 New user, routing to profile...");
-          navigate("/profile");
-        }
-        
-      } catch (err) {
-        console.error("❌ Access check error:", err);
-        alert("Something went wrong. Please try again.");
+      if (firebaseUser) {
+        // User is authenticated - check their access and route them
+        console.log("🔐 User authenticated, checking access...");
+        await checkUserAccess(firebaseUser);
+      } else {
+        // User is not authenticated - show sign-in options
+        console.log("🔐 User not authenticated, showing sign-in options");
+        setIsCheckingAuth(false);
       }
     });
 
     return unsub;
-  }, [navigate, hasAttemptedSignIn]);
+  }, [navigate]);
+
+  const checkUserAccess = async (firebaseUser) => {
+    try {
+      // Check if this is a new or existing user
+      const createRes = await fetch(`${BACKEND_URL}/tripwell/user/createOrFind`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firebaseId: firebaseUser.uid,
+          email: firebaseUser.email,
+        }),
+      });
+
+      if (!createRes.ok) {
+        throw new Error(`User check failed: ${createRes.status}`);
+      }
+
+      const userData = await createRes.json();
+      console.log("🔍 User check response:", userData);
+
+      // Simple binary check: does user exist or not?
+      if (userData && userData._id) {
+        // User exists - go to hydrate
+        console.log("💾 Existing user, routing to hydrate...");
+        navigate("/hydratelocal");
+      } else {
+        // No user - go to profile setup
+        console.log("👋 New user, routing to profile...");
+        navigate("/profile");
+      }
+      
+    } catch (err) {
+      console.error("❌ Access check error:", err);
+      alert("Something went wrong. Please try again.");
+    }
+  };
 
   const handleGoogle = async () => {
     try {
@@ -60,10 +69,31 @@ export default function Home() {
       // onAuthStateChanged will handle the routing
     } catch (err) {
       console.error("❌ Google sign-in failed", err);
+      if (err.code === 'auth/popup-closed-by-user') {
+        // User closed the popup - that's fine, don't show error
+        return;
+      }
       alert("Authentication error — please try again.");
     }
   };
 
+  // Show loading while checking auth state
+  if (isCheckingAuth) {
+    return (
+      <div className="max-w-2xl mx-auto p-6 space-y-8">
+        <div className="text-center space-y-4">
+          <h1 className="text-3xl font-bold text-gray-800">
+            Welcome to TripWell
+          </h1>
+          <p className="text-lg text-gray-600">
+            Checking your authentication status...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show sign-in buttons for unauthenticated users
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-8">
       <div className="text-center space-y-4">
