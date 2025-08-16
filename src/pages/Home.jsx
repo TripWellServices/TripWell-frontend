@@ -33,15 +33,15 @@ export default function Home() {
         const userData = await createRes.json();
         console.log("🔍 User check response:", userData);
 
-        // Check if this is a new user (no name yet) or existing user
-        if (!userData.name || userData.name === "") {
-          // New user - go to profile setup
-          console.log("👋 New user, routing to profile...");
-          navigate("/profile");
-        } else {
-          // Existing user - go to hydrate
+        // Simple binary check: does user exist or not?
+        if (userData && userData._id) {
+          // User exists - go to hydrate
           console.log("💾 Existing user, routing to hydrate...");
           navigate("/hydratelocal");
+        } else {
+          // No user - go to profile setup
+          console.log("👋 New user, routing to profile...");
+          navigate("/profile");
         }
         
       } catch (err) {
