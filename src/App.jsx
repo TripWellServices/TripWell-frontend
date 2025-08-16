@@ -83,7 +83,6 @@ export default function App() {
       <Route path="/" element={<Home />} />
       <Route path="/homearchive" element={<HomeArchive />} />
       <Route path="/explainer" element={<Explainer />} />
-      <Route path="/access" element={<Access />} />
       <Route path="/joinaccess" element={<JoinAccess />} />
 
       {/* ✅ Participant Flow */}
@@ -144,7 +143,7 @@ export default function App() {
       <Route path="/yourstuck" element={<YourStuck />} />
 
       {/* ✅ Fallback */}
-      <Route path="*" element={<Navigate to="/" />} />
+      <Route path="*" element={<Access />} />
     </Routes>
   );
 }
