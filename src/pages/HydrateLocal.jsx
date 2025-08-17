@@ -18,12 +18,18 @@ export default function HydrateLocal() {
       // Home already verified auth, so we can trust currentUser exists
       const firebaseUser = auth.currentUser;
 
-      setStatus("🔐 Getting your data...");
-      setProgress(20);
-      
-      const token = await firebaseUser.getIdToken(true);
-      setStatus("💾 Loading your trip information...");
-      setProgress(40);
+             setStatus("🔐 Getting your data...");
+       setProgress(20);
+       
+       // Add a small delay so user can see the progress
+       await new Promise(resolve => setTimeout(resolve, 800));
+       
+       const token = await firebaseUser.getIdToken(true);
+       setStatus("💾 Loading your trip information...");
+       setProgress(40);
+       
+       // Add another delay
+       await new Promise(resolve => setTimeout(resolve, 600));
       
       const hydrateRes = await fetch(`${BACKEND_URL}/tripwell/hydrate`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -66,13 +72,13 @@ export default function HydrateLocal() {
         localStorage.setItem("itineraryData", JSON.stringify(data.itineraryData));
       }
 
-      setStatus("✅ All set! Taking you to your trip...");
-      setProgress(100);
+             setStatus("✅ All set! Taking you to your trip...");
+       setProgress(100);
 
-      // Auto-route to universal router after saving data
-      setTimeout(() => {
-        navigate("/localrouter");
-      }, 1000);
+       // Auto-route to universal router after saving data
+       setTimeout(() => {
+         navigate("/localrouter");
+       }, 2000);
 
     } catch (err) {
       console.error("❌ Hydration error:", err);
