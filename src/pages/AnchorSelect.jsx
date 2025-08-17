@@ -34,45 +34,44 @@ export default function AnchorSelect() {
     loadLocalData();
   }, []);
 
-  // Load anchors when we have the required data and auth is ready
+  // Simple test - just call the service directly
   useEffect(() => {
-    if (userData && tripData && auth.currentUser) {
-      loadAnchors();
+    if (userData && tripData) {
+      testAnchorService();
     }
   }, [userData, tripData]);
 
-  const loadAnchors = async () => {
+  const testAnchorService = async () => {
     try {
-      const firebaseUser = auth.currentUser;
-      if (!firebaseUser) {
-        console.error("❌ No authenticated user found");
-        setLoading(false);
-        return;
-      }
+      console.log("🧪 Testing anchor service directly...");
+      console.log("🧪 TripId:", tripData.tripId);
+      console.log("🧪 UserId:", userData.firebaseId);
       
+      // Get token
+      const firebaseUser = auth.currentUser;
       const token = await firebaseUser.getIdToken();
       
-      console.log("🔍 Loading anchor GPT suggestions...");
-      const anchorGPTRes = await fetch(`${BACKEND_URL}/tripwell/anchorgpt/${tripData.tripId}?userId=${userData.firebaseId}`, {
+      // Call the service
+      const url = `${BACKEND_URL}/tripwell/anchorgpt/${tripData.tripId}?userId=${userData.firebaseId}`;
+      console.log("🧪 Calling URL:", url);
+      
+      const response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      if (!anchorGPTRes.ok) {
-        throw new Error(`Failed to load anchors: ${anchorGPTRes.status}`);
-      }
+      console.log("🧪 Response status:", response.status);
       
-      const anchorData = await anchorGPTRes.json();
-      console.log("🔍 Anchor GPT response:", anchorData);
-      setAnchors(anchorData);
-      
-      // Load previously selected anchors if any
-      const existingAnchorSelectData = JSON.parse(localStorage.getItem("anchorSelectData") || "null");
-      if (existingAnchorSelectData?.anchors) {
-        setSelected(existingAnchorSelectData.anchors);
+      if (response.ok) {
+        const data = await response.json();
+        console.log("🧪 Success! Data:", data);
+        setAnchors(data);
+      } else {
+        const errorText = await response.text();
+        console.error("🧪 Error response:", errorText);
       }
       
     } catch (err) {
-      console.error("❌ Failed to load anchors", err);
+      console.error("🧪 Test failed:", err);
     } finally {
       setLoading(false);
     }
@@ -87,11 +86,6 @@ export default function AnchorSelect() {
   const handleSubmit = async () => {
     try {
       const firebaseUser = auth.currentUser;
-      if (!firebaseUser) {
-        console.error("❌ No authenticated user found");
-        return;
-      }
-      
       const token = await firebaseUser.getIdToken();
       
       const res = await fetch(`${BACKEND_URL}/tripwell/anchorselect/save/${tripData.tripId}`, {
@@ -107,13 +101,9 @@ export default function AnchorSelect() {
       });
 
       if (res.ok) {
-        // Save to localStorage for test flow
-        const anchorSelectData = {
-          anchors: selected
-        };
+        const anchorSelectData = { anchors: selected };
         localStorage.setItem("anchorSelectData", JSON.stringify(anchorSelectData));
         console.log("💾 Saved anchorSelectData to localStorage:", anchorSelectData);
-        
         navigate(`/tripwell/itinerarybuild`);
       } else {
         console.error("❌ Submit Anchor Logic Failed", res.status);
@@ -151,8 +141,8 @@ export default function AnchorSelect() {
     return (
       <div className="p-6 max-w-xl mx-auto space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Loading Your Anchors...</h1>
-          <p className="text-gray-600 mb-6">Getting your anchor experiences ready</p>
+          <h1 className="text-2xl font-bold mb-4">Testing Anchor Service...</h1>
+          <p className="text-gray-600 mb-6">Checking if the backend route works</p>
         </div>
       </div>
     );
