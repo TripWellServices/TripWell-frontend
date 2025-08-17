@@ -58,7 +58,7 @@ export default function Access() {
       } else {
         // No user - go to profile setup
         console.log("👋 New user, routing to profile...");
-        navigate("/profile");
+        navigate("/profilesetup");
       }
       
     } catch (err) {
