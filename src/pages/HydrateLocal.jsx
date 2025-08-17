@@ -15,11 +15,8 @@ export default function HydrateLocal() {
 
   const handleHydrate = async () => {
     try {
+      // Home already verified auth, so we can trust currentUser exists
       const firebaseUser = auth.currentUser;
-      if (!firebaseUser) {
-        setError("No authenticated user found");
-        return;
-      }
 
       setStatus("🔐 Getting your data...");
       setProgress(20);
