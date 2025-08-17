@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
 import BACKEND_URL from "../config";
@@ -9,16 +9,37 @@ export default function AnchorSelect() {
   const [anchors, setAnchors] = useState([]);
   const [selected, setSelected] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState(null);
+  const [tripData, setTripData] = useState(null);
+  const [tripIntentData, setTripIntentData] = useState(null);
 
-  // Get data from localStorage
-  const userData = JSON.parse(localStorage.getItem("userData") || "null");
-  const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
-  const tripIntentData = JSON.parse(localStorage.getItem("tripIntentData") || "null");
+  // Load data from localStorage on mount
+  useEffect(() => {
+    const loadLocalData = () => {
+      try {
+        const user = JSON.parse(localStorage.getItem("userData") || "null");
+        const trip = JSON.parse(localStorage.getItem("tripData") || "null");
+        const intent = JSON.parse(localStorage.getItem("tripIntentData") || "null");
+        
+        setUserData(user);
+        setTripData(trip);
+        setTripIntentData(intent);
+        
+        console.log("🔍 Loaded localStorage data:", { user, trip, intent });
+      } catch (err) {
+        console.error("❌ Error loading localStorage data:", err);
+      }
+    };
 
-  // Load anchors on component mount
-  React.useEffect(() => {
-    loadAnchors();
+    loadLocalData();
   }, []);
+
+  // Load anchors when we have the required data
+  useEffect(() => {
+    if (userData && tripData) {
+      loadAnchors();
+    }
+  }, [userData, tripData]);
 
   const loadAnchors = async () => {
     try {
@@ -96,6 +117,12 @@ export default function AnchorSelect() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-red-600 mb-4">Missing Data</h1>
           <p className="text-gray-600">Please start from the beginning.</p>
+          <div className="mt-4 space-y-2">
+            <p className="text-sm text-gray-500">Debug info:</p>
+            <p className="text-xs text-gray-400">userData: {userData ? '✅' : '❌'}</p>
+            <p className="text-xs text-gray-400">tripData: {tripData ? '✅' : '❌'}</p>
+            <p className="text-xs text-gray-400">tripIntentData: {tripIntentData ? '✅' : '❌'}</p>
+          </div>
           <button 
             onClick={() => navigate("/")}
             className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg"
