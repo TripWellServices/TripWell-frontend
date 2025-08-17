@@ -34,19 +34,26 @@ export default function AnchorSelect() {
     loadLocalData();
   }, []);
 
-  // Load anchors when we have the required data
+  // Load anchors when we have the required data and auth is ready
   useEffect(() => {
-    if (userData && tripData) {
+    if (userData && tripData && auth.currentUser) {
       loadAnchors();
     }
   }, [userData, tripData]);
 
   const loadAnchors = async () => {
     try {
-      const token = await auth.currentUser.getIdToken();
+      const firebaseUser = auth.currentUser;
+      if (!firebaseUser) {
+        console.error("❌ No authenticated user found");
+        setLoading(false);
+        return;
+      }
       
-      console.log("🔍 Loading anchor GPT suggestions...");
-      const anchorGPTRes = await fetch(`${BACKEND_URL}/tripwell/anchorgpt/${tripData.tripId}?userId=${userData.firebaseId}`, {
+      const token = await firebaseUser.getIdToken();
+      
+      console.log("🔍 Loading anchor GPT suggestions (using test route)...");
+      const anchorGPTRes = await fetch(`${BACKEND_URL}/tripwell/anchorgpttest`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -79,7 +86,13 @@ export default function AnchorSelect() {
 
   const handleSubmit = async () => {
     try {
-      const token = await auth.currentUser.getIdToken();
+      const firebaseUser = auth.currentUser;
+      if (!firebaseUser) {
+        console.error("❌ No authenticated user found");
+        return;
+      }
+      
+      const token = await firebaseUser.getIdToken();
       
       const res = await fetch(`${BACKEND_URL}/tripwell/anchorselect/save/${tripData.tripId}`, {
         method: "POST",
