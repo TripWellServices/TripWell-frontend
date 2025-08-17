@@ -47,7 +47,7 @@ export default function AnchorSelect() {
        console.log("🧪 TripId:", tripData.tripId);
        console.log("🧪 UserId:", userData.firebaseId);
        
-       // Call the service directly - no auth needed since we're using localStorage
+       // Call the service - backend middleware handles auth
        const url = `${BACKEND_URL}/tripwell/anchorgpt/${tripData.tripId}?userId=${userData.firebaseId}`;
        console.log("🧪 Calling URL:", url);
        
