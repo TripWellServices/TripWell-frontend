@@ -34,41 +34,36 @@ export default function AnchorSelect() {
     loadLocalData();
   }, []);
 
-  // Simple test - just call the service directly
-  useEffect(() => {
-    if (userData && tripData) {
-      testAnchorService();
-    }
-  }, [userData, tripData]);
+        // Call anchor service when we have the data
+   useEffect(() => {
+     if (userData && tripData) {
+       loadAnchors();
+     }
+   }, [userData, tripData]);
 
-  const testAnchorService = async () => {
-    try {
-      console.log("🧪 Testing anchor service directly...");
-      console.log("🧪 TripId:", tripData.tripId);
-      console.log("🧪 UserId:", userData.firebaseId);
-      
-      // Get token
-      const firebaseUser = auth.currentUser;
-      const token = await firebaseUser.getIdToken();
-      
-      // Call the service
-      const url = `${BACKEND_URL}/tripwell/anchorgpt/${tripData.tripId}?userId=${userData.firebaseId}`;
-      console.log("🧪 Calling URL:", url);
-      
-      const response = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const loadAnchors = async () => {
+     try {
+       console.log("🧪 Loading anchors from localStorage data...");
+       console.log("🧪 TripId:", tripData.tripId);
+       console.log("🧪 UserId:", userData.firebaseId);
+       
+       // Call the service directly - no auth needed since we're using localStorage
+       const url = `${BACKEND_URL}/tripwell/anchorgpt/${tripData.tripId}?userId=${userData.firebaseId}`;
+       console.log("🧪 Calling URL:", url);
+       
+       const response = await fetch(url);
       
       console.log("🧪 Response status:", response.status);
       
-      if (response.ok) {
-        const data = await response.json();
-        console.log("🧪 Success! Data:", data);
-        setAnchors(data);
-      } else {
-        const errorText = await response.text();
-        console.error("🧪 Error response:", errorText);
-      }
+             if (response.ok) {
+         const data = await response.json();
+         console.log("🧪 Success! Data:", data);
+         setAnchors(data);
+       } else {
+         const errorText = await response.text();
+         console.error("🧪 Error response:", errorText);
+         console.error("🧪 Status:", response.status);
+       }
       
     } catch (err) {
       console.error("🧪 Test failed:", err);
@@ -83,17 +78,13 @@ export default function AnchorSelect() {
     );
   };
 
-  const handleSubmit = async () => {
-    try {
-      const firebaseUser = auth.currentUser;
-      const token = await firebaseUser.getIdToken();
-      
-      const res = await fetch(`${BACKEND_URL}/tripwell/anchorselect/save/${tripData.tripId}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
+        const handleSubmit = async () => {
+     try {
+       const res = await fetch(`${BACKEND_URL}/tripwell/anchorselect/save/${tripData.tripId}`, {
+         method: "POST",
+         headers: {
+           "Content-Type": "application/json"
+         },
         body: JSON.stringify({
           userId: userData.firebaseId,
           anchorTitles: selected,
