@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth } from "../firebase";
 import BACKEND_URL from "../config";
 
 export default function AnchorSelect() {
@@ -34,36 +33,34 @@ export default function AnchorSelect() {
     loadLocalData();
   }, []);
 
-        // Call anchor service when we have the data
-   useEffect(() => {
-     if (userData && tripData) {
-       loadAnchors();
-     }
-   }, [userData, tripData]);
+  // Call anchor service when we have the data
+  useEffect(() => {
+    if (userData && tripData) {
+      loadAnchors();
+    }
+  }, [userData, tripData]);
 
-      const loadAnchors = async () => {
-     try {
-       console.log("🧪 Loading anchors from localStorage data...");
-       console.log("🧪 TripId:", tripData.tripId);
-       console.log("🧪 UserId:", userData.firebaseId);
-       
-       // Call the service - backend middleware handles auth
-       const url = `${BACKEND_URL}/tripwell/anchorgpt/${tripData.tripId}?userId=${userData.firebaseId}`;
-       console.log("🧪 Calling URL:", url);
-       
-       const response = await fetch(url);
+  const loadAnchors = async () => {
+    try {
+      console.log("🧪 Testing backend service directly...");
+      
+      // Just call the service with hardcoded values to test if it works
+      const url = `${BACKEND_URL}/tripwell/anchorgpt/test123?userId=testuser`;
+      console.log("🧪 Calling URL:", url);
+      
+      const response = await fetch(url);
       
       console.log("🧪 Response status:", response.status);
       
-             if (response.ok) {
-         const data = await response.json();
-         console.log("🧪 Success! Data:", data);
-         setAnchors(data);
-       } else {
-         const errorText = await response.text();
-         console.error("🧪 Error response:", errorText);
-         console.error("🧪 Status:", response.status);
-       }
+      if (response.ok) {
+        const data = await response.json();
+        console.log("🧪 Success! Data:", data);
+        setAnchors(data);
+      } else {
+        const errorText = await response.text();
+        console.error("🧪 Error response:", errorText);
+        console.error("🧪 Status:", response.status);
+      }
       
     } catch (err) {
       console.error("🧪 Test failed:", err);
@@ -78,13 +75,14 @@ export default function AnchorSelect() {
     );
   };
 
-        const handleSubmit = async () => {
-     try {
-       const res = await fetch(`${BACKEND_URL}/tripwell/anchorselect/save/${tripData.tripId}`, {
-         method: "POST",
-         headers: {
-           "Content-Type": "application/json"
-         },
+  const handleSubmit = async () => {
+    try {
+      const tripId = tripData._id || tripData.tripId;
+      const res = await fetch(`${BACKEND_URL}/tripwell/anchorselect/save/${tripId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({
           userId: userData.firebaseId,
           anchorTitles: selected,
@@ -132,8 +130,8 @@ export default function AnchorSelect() {
     return (
       <div className="p-6 max-w-xl mx-auto space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Testing Anchor Service...</h1>
-          <p className="text-gray-600 mb-6">Checking if the backend route works</p>
+          <h1 className="text-2xl font-bold mb-4">Loading Anchors...</h1>
+          <p className="text-gray-600 mb-6">Getting your personalized experience suggestions</p>
         </div>
       </div>
     );
