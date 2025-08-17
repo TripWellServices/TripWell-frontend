@@ -78,6 +78,12 @@ export default function HydrateLocal() {
 
       setStatus("✅ Hydration complete! Check console for details.");
 
+      // Auto-route to universal router after saving data
+      setTimeout(() => {
+        console.log("🚀 Auto-routing to LocalUniversalRouter...");
+        navigate("/localrouter");
+      }, 1000);
+
     } catch (err) {
       console.error("❌ Hydration error:", err);
       setError(err.message);
