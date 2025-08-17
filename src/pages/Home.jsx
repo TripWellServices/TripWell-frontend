@@ -12,20 +12,25 @@ export default function Home() {
   const [hasRouted, setHasRouted] = useState(false);
 
   useEffect(() => {
+    // First, let the page load normally
+    const timer = setTimeout(() => {
+      setIsCheckingAuth(false);
+    }, 200);
+
+    // Then check auth state
     const unsub = auth.onAuthStateChanged(async (firebaseUser) => {
       if (firebaseUser && !hasRouted) {
-        // User is authenticated and we haven't routed yet
-        console.log("🔐 User authenticated, checking access...");
-        setHasRouted(true); // Prevent multiple routing attempts
+        // User is already authenticated - route them forward
+        console.log("🔐 User already authenticated, routing forward...");
+        setHasRouted(true);
         await checkUserAccess(firebaseUser);
-      } else if (!firebaseUser) {
-        // User is not authenticated - show sign-in options
-        console.log("🔐 User not authenticated, showing sign-in options");
-        setIsCheckingAuth(false);
       }
     });
 
-    return unsub;
+    return () => {
+      clearTimeout(timer);
+      unsub();
+    };
   }, [navigate, hasRouted]);
 
   const checkUserAccess = async (firebaseUser) => {
@@ -79,7 +84,7 @@ export default function Home() {
     }
   };
 
-  // Show loading while checking auth state
+  // Show loading briefly while page loads
   if (isCheckingAuth) {
     return (
       <div className="max-w-2xl mx-auto p-6 space-y-8">
@@ -88,7 +93,10 @@ export default function Home() {
             Welcome to TripWell
           </h1>
           <p className="text-lg text-gray-600">
-            Checking your authentication status...
+            We're here to help you plan your trip and make memories.
+          </p>
+          <p className="text-sm text-gray-500 bg-blue-50 p-3 rounded-lg">
+            🚀 Universal localStorage-first routing
           </p>
         </div>
       </div>
