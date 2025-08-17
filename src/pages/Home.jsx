@@ -9,14 +9,16 @@ export default function Home() {
   const googleProvider = new GoogleAuthProvider();
   const [hasAttemptedSignIn, setHasAttemptedSignIn] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [hasRouted, setHasRouted] = useState(false);
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async (firebaseUser) => {
-      if (firebaseUser) {
-        // User is authenticated - check their access and route them
+      if (firebaseUser && !hasRouted) {
+        // User is authenticated and we haven't routed yet
         console.log("🔐 User authenticated, checking access...");
+        setHasRouted(true); // Prevent multiple routing attempts
         await checkUserAccess(firebaseUser);
-      } else {
+      } else if (!firebaseUser) {
         // User is not authenticated - show sign-in options
         console.log("🔐 User not authenticated, showing sign-in options");
         setIsCheckingAuth(false);
@@ -24,7 +26,7 @@ export default function Home() {
     });
 
     return unsub;
-  }, [navigate]);
+  }, [navigate, hasRouted]);
 
   const checkUserAccess = async (firebaseUser) => {
     try {
