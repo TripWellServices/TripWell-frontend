@@ -52,8 +52,8 @@ export default function AnchorSelect() {
       
       const token = await firebaseUser.getIdToken();
       
-      console.log("🔍 Loading anchor GPT suggestions (using test route)...");
-      const anchorGPTRes = await fetch(`${BACKEND_URL}/tripwell/anchorgpttest`, {
+      console.log("🔍 Loading anchor GPT suggestions...");
+      const anchorGPTRes = await fetch(`${BACKEND_URL}/tripwell/anchorgpt/${tripData.tripId}?userId=${userData.firebaseId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
