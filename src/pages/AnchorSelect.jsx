@@ -42,28 +42,30 @@ export default function AnchorSelect() {
 
   const loadAnchors = async () => {
     try {
-      console.log("🧪 Testing backend service directly...");
+      console.log("🔍 Loading anchors with real trip data...");
       
-      // Just call the service with hardcoded values to test if it works
-      const url = `${BACKEND_URL}/tripwell/anchorgpt/test123?userId=testuser`;
-      console.log("🧪 Calling URL:", url);
+      const tripId = tripData.tripId || tripData._id;
+      const userId = userData.firebaseId;
+      
+      const url = `${BACKEND_URL}/tripwell/anchorgpt/${tripId}?userId=${userId}`;
+      console.log("🔍 Calling URL:", url);
       
       const response = await fetch(url);
       
-      console.log("🧪 Response status:", response.status);
+      console.log("🔍 Response status:", response.status);
       
       if (response.ok) {
         const data = await response.json();
-        console.log("🧪 Success! Data:", data);
+        console.log("✅ Success! Got anchors:", data);
         setAnchors(data);
       } else {
         const errorText = await response.text();
-        console.error("🧪 Error response:", errorText);
-        console.error("🧪 Status:", response.status);
+        console.error("❌ Error response:", errorText);
+        console.error("❌ Status:", response.status);
       }
       
     } catch (err) {
-      console.error("🧪 Test failed:", err);
+      console.error("❌ Failed to load anchors:", err);
     } finally {
       setLoading(false);
     }
