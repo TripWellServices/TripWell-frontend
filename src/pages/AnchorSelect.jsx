@@ -42,7 +42,7 @@ export default function AnchorSelect() {
 
   const loadAnchors = async () => {
     try {
-      console.log("🔍 Loading anchors with real trip data...");
+      console.log("🔍 Loading anchors with localStorage data...");
       
       const tripId = tripData.tripId || tripData._id;
       const userId = userData.firebaseId;
@@ -50,7 +50,16 @@ export default function AnchorSelect() {
       const url = `${BACKEND_URL}/tripwell/anchorgpt/${tripId}?userId=${userId}`;
       console.log("🔍 Calling URL:", url);
       
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          tripData: tripData,
+          tripIntentData: tripIntentData
+        })
+      });
       
       console.log("🔍 Response status:", response.status);
       
