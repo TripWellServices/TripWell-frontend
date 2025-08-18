@@ -143,7 +143,7 @@ export default function AnchorSelect() {
       
       <div className="bg-blue-50 p-4 rounded-lg mb-6">
         <p className="text-sm text-blue-800">
-          Planning: <strong>{tripData.tripName}</strong> to <strong>{tripData.city}</strong>
+          Your trip to <strong>{tripData.city}</strong>
         </p>
       </div>
       
