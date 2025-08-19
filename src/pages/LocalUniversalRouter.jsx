@@ -18,8 +18,8 @@ export default function LocalUniversalRouter() {
         const profileComplete = localStorage.getItem("profileComplete") === "true";
         const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
         const tripIntentData = JSON.parse(localStorage.getItem("tripIntentData") || "null");
-        const anchorSelectData = JSON.parse(localStorage.getItem("anchorSelectData") || "null");
-        const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
+        let anchorSelectData = JSON.parse(localStorage.getItem("anchorSelectData") || "null");
+        let itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
 
         console.log("🔍 Current localStorage state:", {
           userData: !!userData,
@@ -29,6 +29,53 @@ export default function LocalUniversalRouter() {
           anchorSelectData: !!anchorSelectData,
           itineraryData: !!itineraryData
         });
+
+        // Helper to refresh localStorage from server
+        async function refreshFromServer() {
+          // Wait for Firebase auth
+          await new Promise(resolve => {
+            const unsubscribe = auth.onAuthStateChanged(user => {
+              unsubscribe();
+              resolve(user);
+            });
+          });
+
+          const firebaseUser = auth.currentUser;
+          if (!firebaseUser) {
+            console.log("❌ No Firebase user, routing to /access");
+            return navigate("/access");
+          }
+
+          const token = await firebaseUser.getIdToken();
+          const flushRes = await fetch(`${BACKEND_URL}/tripwell/localflush`, {
+            headers: { Authorization: `Bearer ${token}` },
+            cache: "no-store"
+          });
+
+          if (!flushRes.ok) {
+            console.log("❌ /localflush failed while refreshing");
+            return;
+          }
+
+          const localStorageData = await flushRes.json();
+          console.log("🔄 Refreshed from /localflush:", localStorageData);
+
+          if (localStorageData.userData) {
+            localStorage.setItem("userData", JSON.stringify(localStorageData.userData));
+          }
+          if (localStorageData.tripData) {
+            localStorage.setItem("tripData", JSON.stringify(localStorageData.tripData));
+          }
+          if (localStorageData.tripIntentData) {
+            localStorage.setItem("tripIntentData", JSON.stringify(localStorageData.tripIntentData));
+          }
+          if (localStorageData.anchorSelectData) {
+            localStorage.setItem("anchorSelectData", JSON.stringify(localStorageData.anchorSelectData));
+          }
+          if (localStorageData.itineraryData) {
+            localStorage.setItem("itineraryData", JSON.stringify(localStorageData.itineraryData));
+          }
+        }
 
         // Step 1: Check if we have user data, if not hydrate from backend
         if (!userData) {
@@ -133,16 +180,28 @@ export default function LocalUniversalRouter() {
           return navigate("/tripintent");
         }
 
-        // Step 7: Check anchors
+        // Step 7: Check anchors (refresh from server if missing locally)
         if (!anchorSelectData || !anchorSelectData.anchors || anchorSelectData.anchors.length === 0) {
-          console.log("❌ No anchors selected, routing to /anchorselect");
-          return navigate("/anchorselect");
+          console.log("❌ No anchors in localStorage; refreshing from server before routing");
+          await refreshFromServer();
+          anchorSelectData = JSON.parse(localStorage.getItem("anchorSelectData") || "null");
+          itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
+
+          if (!anchorSelectData || !anchorSelectData.anchors || anchorSelectData.anchors.length === 0) {
+            console.log("❌ Still no anchors after refresh, routing to /anchorselect");
+            return navigate("/anchorselect");
+          }
         }
 
-        // Step 8: Check itinerary (optional)
+        // Step 8: Check itinerary (refresh first if missing)
         if (!itineraryData || !itineraryData.itineraryId) {
-          console.log("❌ No itinerary found, routing to /itinerarybuild");
-          return navigate("/itinerarybuild");
+          console.log("❌ No itinerary in localStorage; refreshing from server before routing");
+          await refreshFromServer();
+          itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
+          if (!itineraryData || !itineraryData.itineraryId) {
+            console.log("❌ Still no itinerary, routing to /itinerarybuild");
+            return navigate("/itinerarybuild");
+          }
         }
 
         // All conditions met - let them continue to their intended route
