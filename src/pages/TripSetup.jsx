@@ -183,7 +183,9 @@ export default function TripSetup() {
       console.log("create trip resp", res.status, data);
 
       if (res.status === 201 && data.tripId) {
-        // Save to localStorage for test flow
+        console.log("✅ Trip created successfully, starting TripExtra flow...");
+        
+        // 1. Save basic data to localStorage immediately
         const userData = {
           firebaseId: user.firebaseId,
           email: user.email,
@@ -209,12 +211,52 @@ export default function TripSetup() {
         
         localStorage.setItem("userData", JSON.stringify(userData));
         localStorage.setItem("tripData", JSON.stringify(tripData));
-        console.log("💾 Saved userData and tripData to localStorage:", {
-          userData,
-          tripData
-        });
+        console.log("💾 Saved basic userData and tripData to localStorage");
+
+        // 2. Wait 1000ms as requested
+        console.log("⏳ Waiting 1000ms before TripExtra validation...");
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // 3. Call TripExtra validation and get complete localStorage data
+        try {
+          console.log("🔍 Calling TripExtra validation...");
+          const hydrateRes = await fetch(`${BACKEND_URL}/tripwell/hydrate`, {
+            headers: { Authorization: `Bearer ${token}` },
+            cache: "no-store"
+          });
+          
+          if (hydrateRes.ok) {
+            const hydrateData = await hydrateRes.json();
+            console.log("✅ TripExtra validation complete:", hydrateData.validation?.summary);
+            
+            // 4. Update localStorage with validated data
+            if (hydrateData.userData) {
+              localStorage.setItem("userData", JSON.stringify(hydrateData.userData));
+            }
+            if (hydrateData.tripData) {
+              localStorage.setItem("tripData", JSON.stringify(hydrateData.tripData));
+            }
+            if (hydrateData.tripIntentData) {
+              localStorage.setItem("tripIntentData", JSON.stringify(hydrateData.tripIntentData));
+            }
+            if (hydrateData.anchorSelectData) {
+              localStorage.setItem("anchorSelectData", JSON.stringify(hydrateData.anchorSelectData));
+            }
+            if (hydrateData.itineraryData) {
+              localStorage.setItem("itineraryData", JSON.stringify(hydrateData.itineraryData));
+            }
+            
+            console.log("💾 Updated localStorage with TripExtra validated data");
+          } else {
+            console.warn("⚠️ TripExtra validation failed, continuing with basic data");
+          }
+        } catch (err) {
+          console.warn("⚠️ TripExtra validation error:", err.message);
+          // Continue anyway - basic data is already saved
+        }
         
-        // Navigate to trip created page (no tripId in URL)
+        // 5. Navigate to trip created page
+        console.log("🚀 Navigating to /tripcreated");
         navigate(`/tripcreated`);
       } else if (res.status === 409) {
         // Show user-visible error for conflicts
@@ -335,15 +377,4 @@ export default function TripSetup() {
         <button
           type="submit"
           disabled={!codeValid || submitting}
-          className={`w-full p-3 rounded font-medium ${
-            !codeValid || submitting
-              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-              : "bg-blue-600 text-white hover:bg-blue-700"
-          }`}
-        >
-          {submitting ? "Creating..." : "Create Trip"}
-        </button>
-      </form>
-    </div>
-  );
-}
+          className={`
