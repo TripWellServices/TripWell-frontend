@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppData } from "../context/AppDataContext";
+import { auth } from "../firebase";
+import { signOut } from "firebase/auth";
 
 export default function HydrateLocal() {
   const navigate = useNavigate();
@@ -46,6 +48,31 @@ export default function HydrateLocal() {
       // error is handled inside context state
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      // Clear all localStorage data
+      localStorage.removeItem("userData");
+      localStorage.removeItem("tripData");
+      localStorage.removeItem("tripIntentData");
+      localStorage.removeItem("anchorSelectData");
+      localStorage.removeItem("itineraryData");
+      localStorage.removeItem("profileComplete");
+      
+      console.log("🗑️ Cleared all localStorage data");
+      
+      // Sign out from Firebase
+      await signOut(auth);
+      console.log("🔐 Signed out from Firebase");
+      
+      // Navigate to home (which will redirect to /access for login)
+      navigate("/");
+    } catch (err) {
+      console.error("❌ Logout error:", err);
+      // Still try to navigate even if logout fails
+      navigate("/");
     }
   };
 
@@ -203,6 +230,12 @@ export default function HydrateLocal() {
               className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
             >
               🔄 Refresh Data
+            </button>
+            <button
+              onClick={handleLogout}
+              className="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+            >
+              🚪 Logout & Clear Data
             </button>
           </div>
 
