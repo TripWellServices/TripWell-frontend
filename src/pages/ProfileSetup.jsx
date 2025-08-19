@@ -103,65 +103,101 @@ export default function ProfileSetup() {
     }
   };
 
-  if (loading) return <div>Loading profile...</div>;
+  if (loading) {
+    return (
+      <div className="p-6 text-center">
+        <div className="text-gray-600 text-lg">Loading profile…</div>
+      </div>
+    );
+  }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Let's finish setting up your profile</h2>
+    <div className="max-w-xl mx-auto p-6 space-y-6">
+      <h1 className="text-2xl font-bold">Let's finish setting up your profile</h1>
 
-      <label>First Name</label>
-      <input value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-2">
+          <label className="font-semibold">First Name</label>
+          <input
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            className="w-full p-3 border rounded"
+            required
+          />
+        </div>
 
-      <label>Last Name</label>
-      <input value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+        <div className="space-y-2">
+          <label className="font-semibold">Last Name</label>
+          <input
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            className="w-full p-3 border rounded"
+            required
+          />
+        </div>
 
-      <label>Email</label>
-      <input value={email} disabled />
+        <div className="space-y-2">
+          <label className="font-semibold">Email</label>
+          <input value={email} disabled className="w-full p-3 border rounded bg-gray-100 text-gray-600" />
+        </div>
 
-      <label>City/State You Call Home (Where Launching From)</label>
-      <input
-        value={hometownCity}
-        onChange={(e) => setHometownCity(e.target.value)}
-        placeholder="City"
-        required
-      />
+        <div className="space-y-2">
+          <label className="font-semibold">City/State You Call Home (Where Launching From)</label>
+          <input
+            value={hometownCity}
+            onChange={(e) => setHometownCity(e.target.value)}
+            placeholder="City"
+            className="w-full p-3 border rounded"
+            required
+          />
+          <select
+            value={state}
+            onChange={(e) => setState(e.target.value)}
+            className="w-full p-3 border rounded"
+            required
+          >
+            <option value="">State</option>
+            {states.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </div>
 
-      <select value={state} onChange={(e) => setState(e.target.value)} required>
-        <option value="">State</option>
-        {states.map((s) => (
-          <option key={s} value={s}>{s}</option>
-        ))}
-      </select>
+        <fieldset className="space-y-2">
+          <legend className="font-semibold">Travel Style</legend>
+          {["Luxury", "Budget", "Spontaneous", "Planned"].map((style) => (
+            <label key={style} className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={travelStyle.includes(style)}
+                onChange={() => handleCheckboxChange(style, setTravelStyle, travelStyle)}
+              />
+              <span>{style}</span>
+            </label>
+          ))}
+        </fieldset>
 
-      <fieldset>
-        <legend>Travel Style</legend>
-        {["Luxury", "Budget", "Spontaneous", "Planned"].map((style) => (
-          <label key={style}>
-            <input
-              type="checkbox"
-              checked={travelStyle.includes(style)}
-              onChange={() => handleCheckboxChange(style, setTravelStyle, travelStyle)}
-            />
-            {style}
-          </label>
-        ))}
-      </fieldset>
+        <fieldset className="space-y-2">
+          <legend className="font-semibold">Trip Vibe</legend>
+          {["Chill", "Adventure", "Party", "Culture"].map((vibe) => (
+            <label key={vibe} className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={tripVibe.includes(vibe)}
+                onChange={() => handleCheckboxChange(vibe, setTripVibe, tripVibe)}
+              />
+              <span>{vibe}</span>
+            </label>
+          ))}
+        </fieldset>
 
-      <fieldset>
-        <legend>Trip Vibe</legend>
-        {["Chill", "Adventure", "Party", "Culture"].map((vibe) => (
-          <label key={vibe}>
-            <input
-              type="checkbox"
-              checked={tripVibe.includes(vibe)}
-              onChange={() => handleCheckboxChange(vibe, setTripVibe, tripVibe)}
-            />
-            {vibe}
-          </label>
-        ))}
-      </fieldset>
-
-      <button type="submit">Save Profile</button>
-    </form>
+        <button
+          type="submit"
+          className="w-full p-3 rounded font-medium bg-blue-600 text-white hover:bg-blue-700"
+        >
+          Save Profile
+        </button>
+      </form>
+    </div>
   );
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import BACKEND_URL from "../config";
+import { auth } from "../firebase";
 
 export default function AnchorSelect() {
   const navigate = useNavigate();
@@ -11,6 +12,7 @@ export default function AnchorSelect() {
   const [userData, setUserData] = useState(null);
   const [tripData, setTripData] = useState(null);
   const [tripIntentData, setTripIntentData] = useState(null);
+  const [anchorSelectData, setAnchorSelectData] = useState(null);
 
   // Load data from localStorage on mount
   useEffect(() => {
@@ -19,12 +21,14 @@ export default function AnchorSelect() {
         const user = JSON.parse(localStorage.getItem("userData") || "null");
         const trip = JSON.parse(localStorage.getItem("tripData") || "null");
         const intent = JSON.parse(localStorage.getItem("tripIntentData") || "null");
+        const anchorsLocal = JSON.parse(localStorage.getItem("anchorSelectData") || "null");
         
         setUserData(user);
         setTripData(trip);
         setTripIntentData(intent);
+        setAnchorSelectData(anchorsLocal);
         
-        console.log("🔍 Loaded localStorage data:", { user, trip, intent });
+        console.log("🔍 Loaded localStorage data:", { user, trip, intent, anchorsLocal });
       } catch (err) {
         console.error("❌ Error loading localStorage data:", err);
       }
@@ -35,10 +39,66 @@ export default function AnchorSelect() {
 
   // Call anchor service when we have the data
   useEffect(() => {
-    if (userData && tripData) {
-      loadAnchors();
+    if (!userData || !tripData) return;
+
+    // If anchors already exist in localStorage, skip loading/saving
+    // and go straight to itinerary (overview if we already have one)
+    if (anchorSelectData && Array.isArray(anchorSelectData.anchors) && anchorSelectData.anchors.length > 0) {
+      console.log("✅ Anchors already exist in localStorage, skipping fetch and navigating to itinerary");
+      const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
+      if (itineraryData && itineraryData.itineraryId) {
+        navigate("/tripwell/itineraryupdate");
+      } else {
+        navigate("/tripwell/itinerarybuild");
+      }
+      return;
     }
-  }, [userData, tripData]);
+
+    // Otherwise, verify with server first to avoid re-saving when DB already has anchors
+    (async () => {
+      try {
+        const tripId = tripData.tripId || tripData._id;
+        const token = await auth?.currentUser?.getIdToken();
+
+        // 1) Check anchor selection status on the server
+        const statusRes = await fetch(`${BACKEND_URL}/tripwell/anchorselect/status/${tripId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store"
+        });
+
+        if (statusRes.ok) {
+          const statusData = await statusRes.json();
+          if (statusData?.hasCompletedAnchorSelection) {
+            const titles = Array.isArray(statusData.anchors)
+              ? statusData.anchors.map((a) => a.title).filter(Boolean)
+              : [];
+            localStorage.setItem("anchorSelectData", JSON.stringify({ anchors: titles }));
+            console.log("✅ Server reports anchors completed; saved to localStorage and redirecting");
+
+            // 2) Prefer itinerary overview if itinerary already exists
+            const itinStatusRes = await fetch(`${BACKEND_URL}/tripwell/itinerary/status/${tripId}`, {
+              headers: { Authorization: `Bearer ${token}` },
+              cache: "no-store"
+            });
+
+            if (itinStatusRes.ok) {
+              const itin = await itinStatusRes.json();
+              if (itin?.hasCompletedItinerary) {
+                return navigate("/tripwell/itineraryupdate");
+              }
+            }
+
+            return navigate("/tripwell/itinerarybuild");
+          }
+        }
+      } catch (e) {
+        console.warn("⚠️ Anchor status check failed, falling back to loading suggestions", e);
+      }
+
+      // If server says not completed, load fresh suggestions to pick
+      loadAnchors();
+    })();
+  }, [userData, tripData, anchorSelectData, navigate]);
 
   const loadAnchors = async () => {
     try {
@@ -49,11 +109,16 @@ export default function AnchorSelect() {
       
       const url = `${BACKEND_URL}/tripwell/anchorgpt/${tripId}?userId=${userId}`;
       console.log("🔍 Calling URL:", url);
+
+      const token = await auth?.currentUser?.getIdToken();
+
+      console.log("🔍 Token:", token);
       
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
           tripData: tripData,
@@ -88,11 +153,20 @@ export default function AnchorSelect() {
 
   const handleSubmit = async () => {
     try {
+      // If anchors already saved (from hydration/localflush), don't try to save again
+      const existing = JSON.parse(localStorage.getItem("anchorSelectData") || "null");
+      if (existing && Array.isArray(existing.anchors) && existing.anchors.length > 0) {
+        console.log("✅ Anchors already saved; skipping save and going to itinerary");
+        return navigate(`/tripwell/itinerarybuild`);
+      }
+
+      const token = await auth?.currentUser?.getIdToken();
       const tripId = tripData._id || tripData.tripId;
       const res = await fetch(`${BACKEND_URL}/tripwell/anchorselect/save/${tripId}`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
           userId: userData.firebaseId,
@@ -104,9 +178,27 @@ export default function AnchorSelect() {
         const anchorSelectData = { anchors: selected };
         localStorage.setItem("anchorSelectData", JSON.stringify(anchorSelectData));
         console.log("💾 Saved anchorSelectData to localStorage:", anchorSelectData);
-        navigate(`/tripwell/itinerarybuild`);
+        const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
+        if (itineraryData && itineraryData.itineraryId) {
+          navigate(`/tripwell/itineraryupdate`);
+        } else {
+          navigate(`/tripwell/itinerarybuild`);
+        }
       } else {
-        console.error("❌ Submit Anchor Logic Failed", res.status);
+        // Treat duplicate/exists as success and proceed
+        const text = await res.text().catch(() => "");
+        const isDuplicate = res.status === 409 || (res.status === 500 && /E11000|duplicate key/i.test(text));
+        if (isDuplicate) {
+          console.log("⚠️ Duplicate anchor save detected; proceeding to itinerary");
+          const anchorSelectData = { anchors: selected };
+          localStorage.setItem("anchorSelectData", JSON.stringify(anchorSelectData));
+          const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
+          if (itineraryData && itineraryData.itineraryId) {
+            return navigate(`/tripwell/itineraryupdate`);
+          }
+          return navigate(`/tripwell/itinerarybuild`);
+        }
+        console.error("❌ Submit Anchor Logic Failed", res.status, text);
       }
     } catch (err) {
       console.error("❌ Submit Anchor Logic Failed", err);

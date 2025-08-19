@@ -19,7 +19,7 @@ export default function TripItineraryBuilder() {
   useEffect(() => {
     async function buildItinerary() {
       try {
-        const token = await auth.currentUser.getIdToken();
+        const token = await auth?.currentUser?.getIdToken();
 
         // Step 1: Build itinerary via Angela (GPT)
         const res = await fetch(`${BACKEND_URL}/tripwell/itinerary/build`, {
