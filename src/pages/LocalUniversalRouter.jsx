@@ -228,5 +228,13 @@ export default function LocalUniversalRouter() {
     );
   }
 
-  return null; 
+  return (
+    <h1 className="text-2xl font-bold text-center mt-10">
+      LocalUniversalRouter Loaded Successfully
+      <br />
+      <a href="/"  className="text-blue-600 underline">
+        Home
+      </a>
+    </h1>
+  ); 
 }
