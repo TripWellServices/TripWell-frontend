@@ -34,7 +34,57 @@ export default function HydrateLocal() {
   };
 
   const handleRefreshData = () => {
-    inspectLocalStorage();
+    // Sync from backend, then re-inspect localStorage
+    (async () => {
+      try {
+        setIsLoading(true);
+
+        // Wait for Firebase auth to be ready
+        await new Promise((resolve) => {
+          const unsubscribe = auth.onAuthStateChanged((user) => {
+            unsubscribe();
+            resolve(user);
+          });
+        });
+
+        const firebaseUser = auth.currentUser;
+        if (!firebaseUser) {
+          console.log("❌ No Firebase user; can't refresh from server");
+          inspectLocalStorage();
+          return;
+        }
+
+        const token = await firebaseUser.getIdToken();
+        const res = await fetch(`${BACKEND_URL}/tripwell/localflush`, {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store",
+        });
+
+        if (!res.ok) {
+          console.log("❌ /localflush failed during refresh");
+          inspectLocalStorage();
+          return;
+        }
+
+        const payload = await res.json();
+        console.log("🔄 Refreshed from /localflush:", payload);
+
+        if (payload.userData) localStorage.setItem("userData", JSON.stringify(payload.userData));
+        if (payload.tripData) localStorage.setItem("tripData", JSON.stringify(payload.tripData));
+        if (payload.tripIntentData) localStorage.setItem("tripIntentData", JSON.stringify(payload.tripIntentData));
+        if (payload.anchorSelectData) localStorage.setItem("anchorSelectData", JSON.stringify(payload.anchorSelectData));
+        if (payload.itineraryData) localStorage.setItem("itineraryData", JSON.stringify(payload.itineraryData));
+        if (payload.userData && typeof payload.userData.profileComplete !== "undefined") {
+          localStorage.setItem("profileComplete", String(!!payload.userData.profileComplete));
+        }
+
+        // Re-inspect to update UI
+        inspectLocalStorage();
+      } catch (e) {
+        console.error("❌ Refresh error:", e);
+        inspectLocalStorage();
+      }
+    })();
   };
 
   if (isLoading) {
@@ -119,9 +169,38 @@ export default function HydrateLocal() {
             {/* Anchors & Itinerary */}
             <div className="bg-gray-50 rounded-lg p-4">
               <h3 className="font-semibold text-lg mb-3 text-orange-600">🧭 Anchors & Itinerary</h3>
-              <div className="space-y-2 text-sm">
-                <div><strong>Anchors Selected:</strong> {localStorageData.anchors ? localStorageData.anchors.length : 0} anchors</div>
-                <div><strong>Itinerary Days:</strong> {localStorageData.itinerary ? localStorageData.itinerary.length : 0} days</div>
+              <div className="space-y-4 text-sm">
+                <div>
+                  <strong>Anchors Selected:</strong>{" "}
+                  {Array.isArray(localStorageData.anchors?.anchors)
+                    ? localStorageData.anchors.anchors.length
+                    : 0} anchors
+                  {Array.isArray(localStorageData.anchors?.anchors) &&
+                    localStorageData.anchors.anchors.length > 0 && (
+                      <ul className="mt-2 list-disc list-inside text-gray-700">
+                        {localStorageData.anchors.anchors.map((title, idx) => (
+                          <li key={idx}>{title}</li>
+                        ))}
+                      </ul>
+                    )}
+                </div>
+                <div>
+                  <strong>Itinerary Days:</strong>{" "}
+                  {Array.isArray(localStorageData.itinerary?.days)
+                    ? localStorageData.itinerary.days.length
+                    : 0} days
+                  {Array.isArray(localStorageData.itinerary?.days) &&
+                    localStorageData.itinerary.days.length > 0 && (
+                      <ul className="mt-2 list-decimal list-inside text-gray-700">
+                        {localStorageData.itinerary.days.map((day, idx) => (
+                          <li key={idx}>
+                            Day {day?.dayIndex || idx + 1}
+                            {day?.summary ? `: ${day.summary}` : ""}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                </div>
               </div>
             </div>
           </div>
