@@ -54,7 +54,7 @@ export default function Access() {
       if (userData && userData._id) {
         // User exists - go to hydrate
         console.log("💾 Existing user, routing to hydrate...");
-        navigate("/hydratelocal");
+        navigate("/");
       } else {
         // No user - go to profile setup
         console.log("👋 New user, routing to profile...");

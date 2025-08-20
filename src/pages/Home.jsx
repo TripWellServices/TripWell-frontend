@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
 import { useEffect, useState } from "react";
 import BACKEND_URL from "../config";
+import { PlaneTakeoff, Users, Hammer, CalendarDays, RefreshCcw, NotebookPen, Info } from "lucide-react";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -56,7 +57,7 @@ export default function Home() {
       if (userData && userData._id) {
         // User exists - go to hydrate
         console.log("💾 Existing user, routing to hydrate...");
-        navigate("/hydratelocal");
+        navigate("/");
       } else {
         // No user - go to profile setup
         console.log("👋 New user, routing to profile...");
@@ -69,25 +70,107 @@ export default function Home() {
     }
   };
 
-  // Pure splash screen - no buttons, no interactions
-  return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6">
-      <div className="max-w-2xl w-full text-center space-y-8">
-        <div className="space-y-4">
-          <h1 className="text-4xl font-bold text-gray-800">
-            Welcome to TripWell!
-          </h1>
-          <p className="text-xl text-gray-600">
-            We're here to create memories for you.
-          </p>
+  
+    const navItems = [
+      {
+        icon: <PlaneTakeoff className="w-5 h-5 mr-2" />,
+        label: "Create a Trip",
+        description: "Start from scratch and build something unforgettable.",
+        route: "/pretrip", // ✅ Updated from /tripsetup
+      },
+      {
+        icon: <Users className="w-5 h-5 mr-2" />,
+        label: "Join a Trip",
+        description: "Enter a join code and sync up with your crew.",
+        route: "/join",
+      },
+      {
+        icon: <Hammer className="w-5 h-5 mr-2" />,
+        label: "Build My TripWell Experience",
+        description: "Plan your itinerary, edit blocks, or restart your vibe.",
+        route: "/tripplannerreturn",
+      },
+      {
+        icon: <CalendarDays className="w-5 h-5 mr-2" />,
+        label: "I'm TripWelling!",
+        description: "Start your adventure. We’ll guide you block by block.",
+        route: "/preliveday",
+      },
+      {
+        icon: <RefreshCcw className="w-5 h-5 mr-2" />,
+        label: "Resume My Trip",
+        description: "Jump back in exactly where you left off.",
+        route: "/tripliveblock",
+      },
+      {
+        icon: <NotebookPen className="w-5 h-5 mr-2" />,
+        label: "Trip Reflection",
+        description:
+          "See what you captured, what made you laugh, and what you’ll never forget.",
+        route: "/reflections/",
+      },
+      {
+        icon: <Info className="w-5 h-5 mr-2" />,
+        label: "What is TripWell?",
+        description: "Learn how we turn travel into lasting memories.",
+        route: "/explainer",
+      },
+    ];
+  
+    return (
+      <div className="max-w-2xl mx-auto p-6 space-y-8">
+        <h1 className="text-3xl font-bold text-center">
+          Travel isn’t about going — it’s about building core memories with the
+          ones you love.
+        </h1>
+  
+        <div className="grid gap-4 mt-6">
+          {navItems.map((item) => (
+            <div key={item.label}>
+              <button
+                onClick={() => navigate(item.route)}
+                className="w-full flex items-center justify-start px-4 py-3 text-lg rounded-xl shadow-md bg-blue-300 hover:bg-blue-400"
+              >
+                {item.icon}
+                {item.label}
+              </button>
+              <p className="text-sm text-gray-500 ml-2 mt-1">
+                {item.description}
+              </p>
+            </div>
+          ))}
         </div>
-        
-        <div className="animate-pulse">
-          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-            <span className="text-2xl">🚀</span>
-          </div>
+
+
+        <div>
+
+          {
+            process.env.NODE_ENV === "development" && (
+              <div className="flex flex-col gap-2">
+                <h1>Local for Testing </h1>
+                <button
+                onClick={() => navigate("/hydratelocal")}
+                className="w-full flex items-center justify-start px-4 py-3 text-lg rounded-xl shadow-md bg-blue-300 hover:bg-blue-400"
+              >
+                Hydrate Local
+              </button>
+              <button
+                onClick={() => navigate("/localdebug")}
+                className="w-full flex items-center justify-start px-4 py-3 text-lg rounded-xl shadow-md bg-blue-300 hover:bg-blue-400"
+              >
+                Local Debug
+              </button>
+
+              <button
+                onClick={() => navigate("/localrouter")}
+                className="w-full flex items-center justify-start px-4 py-3 text-lg rounded-xl shadow-md bg-blue-300 hover:bg-blue-400"
+              >
+                Local Router
+              </button>
+              </div>
+            )
+          }
         </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
