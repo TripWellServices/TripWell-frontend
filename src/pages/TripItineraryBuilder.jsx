@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth } from "../firebase";
+import { getAuthConfig } from "../utils/auth";
 import BACKEND_URL from "../config";
 
 export default function TripItineraryBuilder() {
   const navigate = useNavigate();
-  const [itineraryText, setItineraryText] = useState("");
+  const [itineraryDays, setItineraryDays] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -19,14 +19,15 @@ export default function TripItineraryBuilder() {
   useEffect(() => {
     async function buildItinerary() {
       try {
-        const token = await auth?.currentUser?.getIdToken();
+        // ✅ FIX: Use standardized auth utility
+        const authConfig = await getAuthConfig();
 
         // Step 1: Build itinerary via Angela (GPT)
         const res = await fetch(`${BACKEND_URL}/tripwell/itinerary/build`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
+            ...authConfig.headers
           },
           body: JSON.stringify({ tripId: tripData.tripId }),
         });
@@ -38,31 +39,38 @@ export default function TripItineraryBuilder() {
         const buildData = await res.json();
         const { daysSaved } = buildData;
 
-        // Step 2: Summarize it for display
+        // Step 2: Get structured itinerary data
         const savedDaysRes = await fetch(`${BACKEND_URL}/tripwell/itinerary/days/${tripData.tripId}`, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: authConfig.headers
         });
         
         if (savedDaysRes.ok) {
           const savedDays = await savedDaysRes.json();
-          const combinedSummary = savedDays
-            .map((day) => `Day ${day.dayIndex}: ${day.summary}`)
-            .join("\n");
-
-          setItineraryText(combinedSummary || "Angela generated your itinerary.");
+          setItineraryDays(savedDays);
         } else {
-          setItineraryText("Angela generated your itinerary.");
+          // Fallback to basic structure if API fails
+          setItineraryDays([{
+            dayIndex: 1,
+            summary: "Angela generated your itinerary. Check the modify section for details.",
+            blocks: {}
+          }]);
         }
       } catch (err) {
         console.error("Itinerary generation error:", err);
-        setError("Something went wrong while building your itinerary.");
+        // ✅ FIX: Add proper error handling
+        if (err.message.includes("401") || err.message.includes("Unauthorized")) {
+          setError("Authentication error. Please sign in again.");
+          setTimeout(() => navigate("/access"), 2000);
+        } else {
+          setError("Something went wrong while building your itinerary.");
+        }
       } finally {
         setLoading(false);
       }
     }
 
     buildItinerary();
-  }, [tripData.tripId]);
+  }, [tripData.tripId, navigate]);
 
   async function handleSave() {
     try {
@@ -71,10 +79,7 @@ export default function TripItineraryBuilder() {
       // Save to localStorage for test flow
       const itineraryData = {
         itineraryId: "generated-itinerary-id",
-        days: itineraryText.split('\n').filter(day => day.trim()).map((day, index) => ({
-          dayIndex: index + 1,
-          summary: day
-        }))
+        days: itineraryDays
       };
       localStorage.setItem("itineraryData", JSON.stringify(itineraryData));
       console.log("💾 Saved itineraryData to localStorage:", itineraryData);
@@ -89,7 +94,7 @@ export default function TripItineraryBuilder() {
   }
 
   function handleModify() {
-    navigate("/tripwell/itinerary/modify");
+    navigate("/tripwell/itineraryupdate");
   }
 
   // If no localStorage data, show error
@@ -110,38 +115,141 @@ export default function TripItineraryBuilder() {
     );
   }
 
-  if (loading) return <div className="p-4 text-center">Building your itinerary with Angela...</div>;
-  if (error) return <div className="p-4 text-red-500 text-center">{error}</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <h2 className="text-xl font-semibold text-gray-700">Building your itinerary with Angela...</h2>
+          <p className="text-gray-500">This may take a moment</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-100 flex items-center justify-center">
+        <div className="text-center space-y-4 max-w-md">
+          <div className="text-red-500 text-4xl">⚠️</div>
+          <h2 className="text-xl font-semibold text-red-700">{error}</h2>
+          <button 
+            onClick={() => navigate("/")}
+            className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700"
+          >
+            Go Home
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-6">
-      <h1 className="text-3xl font-bold">Your Trip Itinerary</h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="max-w-4xl mx-auto p-6 space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl font-bold text-gray-800">Your Trip Itinerary</h1>
+          <div className="bg-white rounded-2xl shadow-lg p-6 max-w-2xl mx-auto">
+            <h2 className="text-2xl font-semibold text-blue-600 mb-2">{tripData.tripName}</h2>
+            <p className="text-gray-600">
+              <span className="font-medium">{tripData.city}</span> • {tripData.daysTotal} days
+            </p>
+            <p className="text-sm text-gray-500 mt-2">
+              Generated by Angela, your AI travel assistant
+            </p>
+          </div>
+        </div>
 
-      <div className="bg-blue-50 p-4 rounded-lg mb-6">
-        <p className="text-sm text-blue-800">
-          Planning: <strong>{tripData.tripName}</strong> to <strong>{tripData.city}</strong>
-        </p>
-      </div>
+        {/* Itinerary Days */}
+        <div className="space-y-6">
+          {itineraryDays.map((day, index) => (
+            <div key={day.dayIndex || index} className="bg-white rounded-2xl shadow-lg overflow-hidden">
+              {/* Day Header */}
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6">
+                <h3 className="text-2xl font-bold">Day {day.dayIndex || index + 1}</h3>
+                {day.summary && (
+                  <p className="text-blue-100 mt-2 text-lg">{day.summary}</p>
+                )}
+              </div>
 
-      <pre className="whitespace-pre-wrap text-gray-800 bg-white rounded-xl shadow p-4">
-        {itineraryText}
-      </pre>
+              {/* Day Activities */}
+              {day.blocks && Object.keys(day.blocks).length > 0 ? (
+                <div className="p-6 space-y-4">
+                  {Object.entries(day.blocks).map(([timeOfDay, block]) => (
+                    <div key={timeOfDay} className="border-l-4 border-blue-200 pl-4">
+                      <div className="flex items-center mb-2">
+                        <span className="text-sm font-semibold text-blue-600 uppercase tracking-wide">
+                          {timeOfDay}
+                        </span>
+                        {block.timeOfDay && (
+                          <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                            {block.timeOfDay}
+                          </span>
+                        )}
+                      </div>
+                      <h4 className="font-semibold text-gray-800 mb-1">{block.title}</h4>
+                      {block.description && (
+                        <p className="text-gray-600 text-sm mb-2">{block.description}</p>
+                      )}
+                      {block.location && (
+                        <div className="flex items-center text-sm text-gray-500">
+                          <span className="mr-1">📍</span>
+                          {block.location}
+                        </div>
+                      )}
+                      {block.neighborhoodTag && (
+                        <div className="flex items-center text-sm text-gray-500 mt-1">
+                          <span className="mr-1">🏘️</span>
+                          {block.neighborhoodTag}
+                        </div>
+                      )}
+                      {block.isTicketed && (
+                        <span className="inline-block text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full mt-2">
+                          🎫 Ticketed
+                        </span>
+                      )}
+                      {block.isDayTrip && (
+                        <span className="inline-block text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full mt-2 ml-2">
+                          🌅 Full Day Trip
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-6 text-center text-gray-500">
+                  <p>Activities will be available in the modify section</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
 
-      <div className="flex gap-4 justify-center mt-6">
-        <button
-          onClick={handleSave}
-          className="bg-green-600 text-white px-6 py-2 rounded-2xl shadow hover:bg-green-700"
-          disabled={saving}
-        >
-          {saving ? "Saving..." : "✅ This looks great – Save it"}
-        </button>
+        {/* Action Buttons */}
+        <div className="flex gap-4 justify-center pt-8">
+          <button
+            onClick={handleSave}
+            className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-3 rounded-2xl shadow-lg hover:from-green-600 hover:to-emerald-700 transform hover:scale-105 transition-all duration-200 font-semibold"
+            disabled={saving}
+          >
+            {saving ? (
+              <span className="flex items-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Saving...
+              </span>
+            ) : (
+              "✅ This looks great – Save it"
+            )}
+          </button>
 
-        <button
-          onClick={handleModify}
-          className="bg-yellow-500 text-white px-6 py-2 rounded-2xl shadow hover:bg-yellow-600"
-        >
-          🛠 I want to modify
-        </button>
+          <button
+            onClick={handleModify}
+            className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-8 py-3 rounded-2xl shadow-lg hover:from-yellow-600 hover:to-orange-600 transform hover:scale-105 transition-all duration-200 font-semibold"
+          >
+            🛠 I want to modify
+          </button>
+        </div>
       </div>
     </div>
   );

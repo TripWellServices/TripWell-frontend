@@ -46,7 +46,7 @@ export default function TripModifyDay() {
             <p className="text-gray-600 text-sm">{block.desc}</p>
             <button
               onClick={() =>
-                navigate(`/tripwell/modifyblock/${tripId}/${dayIndex}/${part}`)
+                navigate(`/modify/block/${tripId}/${dayIndex}/${part}`)
               }
               className="mt-2 text-sm text-blue-700 underline"
             >
@@ -58,7 +58,7 @@ export default function TripModifyDay() {
 
       <div className="mt-8">
         <button
-          onClick={() => navigate("/tripwell/modifydays")}
+          onClick={() => navigate("/tripwell/itineraryupdate")}
           className="text-sm text-gray-500 underline"
         >
           ← Back to All Days

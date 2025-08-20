@@ -69,7 +69,7 @@ export default function TripItineraryUpdateFromSave() {
 
       <div className="mt-10 flex flex-col gap-3">
         <button
-          onClick={() => navigate("/tripwell/itinerary/modify")}
+          onClick={() => navigate("/tripwell/itineraryupdate")}
           className="bg-yellow-500 text-white px-5 py-2 rounded-lg hover:bg-yellow-600"
         >
           🛠 Modify My Itinerary
