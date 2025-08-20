@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
+import { getAuthConfig, getAuthToken } from "../utils/auth";
 import BACKEND_URL from "../config";
 
 export default function ProfileSetup() {
@@ -24,9 +25,10 @@ export default function ProfileSetup() {
   useEffect(() => {
     const hydrateForm = async () => {
       try {
-        const token = await auth.currentUser.getIdToken();
+        // ✅ FIX: Use standardized auth utility
+        const authConfig = await getAuthConfig();
         const res = await fetch(`${BACKEND_URL}/tripwell/whoami`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: authConfig.headers,
           cache: "no-store"
         });
 
@@ -42,6 +44,12 @@ export default function ProfileSetup() {
         setTripVibe(Array.isArray(user?.tripVibe) ? user.tripVibe : []);
       } catch (err) {
         console.error("Error hydrating user:", err);
+        // ✅ FIX: Add proper error handling
+        if (err.message.includes("401") || err.message.includes("Unauthorized")) {
+          alert("Authentication error. Please sign in again.");
+          navigate("/access");
+          return;
+        }
         setEmail(auth.currentUser?.email || ""); // fallback
       } finally {
         setLoading(false);
@@ -49,7 +57,7 @@ export default function ProfileSetup() {
     };
 
     hydrateForm();
-  }, []);
+  }, [navigate]);
 
   const handleCheckboxChange = (value, setFn, current) => {
     if (current.includes(value)) {
@@ -62,12 +70,13 @@ export default function ProfileSetup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = await auth.currentUser.getIdToken();
+      // ✅ FIX: Use standardized auth utility
+      const authConfig = await getAuthConfig();
       const res = await fetch(`${BACKEND_URL}/tripwell/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          ...authConfig.headers
         },
         body: JSON.stringify({
           firstName,
@@ -100,6 +109,13 @@ export default function ProfileSetup() {
       navigate("/tripsetup");
     } catch (err) {
       console.error("Error submitting profile:", err);
+      // ✅ FIX: Add proper error handling
+      if (err.message.includes("401") || err.message.includes("Unauthorized")) {
+        alert("Authentication error. Please sign in again.");
+        navigate("/access");
+      } else {
+        alert("Failed to save profile. Please try again.");
+      }
     }
   };
 

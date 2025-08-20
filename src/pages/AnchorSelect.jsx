@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { auth } from "../firebase";
+import { getAuthConfig } from "../utils/auth";
 import BACKEND_URL from "../config";
 
 export default function AnchorSelect() {
@@ -128,17 +128,15 @@ export default function AnchorSelect() {
         return navigate(`/tripwell/itinerarybuild`);
       }
 
-      // ✅ FIX: Get Firebase token for authorization
-      const token = await auth.currentUser.getIdToken();
-      console.log("🔍 Token:", token ? "✅ Present" : "❌ Missing");
+      // ✅ FIX: Use standardized auth utility
+      const authConfig = await getAuthConfig();
+      console.log("🔍 Auth config:", authConfig.headers.Authorization ? "✅ Present" : "❌ Missing");
 
       const tripId = tripData._id || tripData.tripId;
       const res = await axios.post(`${BACKEND_URL}/tripwell/anchorselect/save/${tripId}`, {
         userId: userData.firebaseId,
         anchorTitles: selected,
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      }, authConfig);
 
       const anchorSelectData = { anchors: selected };
       localStorage.setItem("anchorSelectData", JSON.stringify(anchorSelectData));
