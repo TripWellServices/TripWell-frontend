@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { auth } from "../firebase";
+import { getAuthConfig } from "../utils/auth";
 import BACKEND_URL from "../config";
 
 export default function LocalUniversalRouter() {
@@ -46,14 +47,20 @@ export default function LocalUniversalRouter() {
             return navigate("/access");
           }
 
-          const token = await firebaseUser.getIdToken();
+          // ✅ FIX: Use standardized auth utility
+          const authConfig = await getAuthConfig();
           const flushRes = await fetch(`${BACKEND_URL}/tripwell/localflush`, {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: authConfig.headers,
             cache: "no-store"
           });
 
           if (!flushRes.ok) {
             console.log("❌ /localflush failed while refreshing");
+            // ✅ FIX: Add proper error handling
+            if (flushRes.status === 401) {
+              console.log("❌ Authentication error, routing to /access");
+              return navigate("/access");
+            }
             return;
           }
 
@@ -95,14 +102,20 @@ export default function LocalUniversalRouter() {
             return navigate("/access");
           }
 
-          const token = await firebaseUser.getIdToken();
+          // ✅ FIX: Use standardized auth utility
+          const authConfig = await getAuthConfig();
           const flushRes = await fetch(`${BACKEND_URL}/tripwell/localflush`, {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: authConfig.headers,
             cache: "no-store"
           });
 
           if (!flushRes.ok) {
             console.log("❌ /localflush failed, routing to /access");
+            // ✅ FIX: Add proper error handling
+            if (flushRes.status === 401) {
+              console.log("❌ Authentication error, routing to /access");
+              return navigate("/access");
+            }
             return navigate("/access");
           }
 

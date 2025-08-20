@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth } from "../firebase";
 import axios from "axios";
+import { auth } from "../firebase";
+import { getAuthConfig } from "../utils/auth";
 import BACKEND_URL from "../config";
 
 export default function TripSetup() {
@@ -164,11 +165,12 @@ export default function TripSetup() {
         partyCount: partyCount ? Number(partyCount) : null,
       };
 
-      const token = await auth.currentUser.getIdToken();
+      // ✅ FIX: Use standardized auth utility
+      const authConfig = await getAuthConfig();
       const res = await axios.post(`${BACKEND_URL}/tripwell/trip-setup`, payload, {
         headers: { 
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          ...authConfig.headers
         },
       });
       
@@ -214,7 +216,7 @@ export default function TripSetup() {
         try {
           console.log("🔍 Calling TripExtra validation...");
           const hydrateRes = await axios.get(`${BACKEND_URL}/tripwell/hydrate`, {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: authConfig.headers,
             cache: "no-store"
           });
           
@@ -258,8 +260,16 @@ export default function TripSetup() {
         alert(data.error || `Create failed (${res.status})`);
       }
     } catch (err) {
-      console.error("❌ Trip setup failed", err);
-      alert("Could not save your trip. Please try again.");
+      console.error("❌ Trip creation failed:", err);
+      // ✅ FIX: Add proper error handling
+      if (err.response?.status === 401) {
+        alert("Authentication error. Please sign in again.");
+        navigate("/access");
+      } else if (err.response?.status === 409) {
+        alert("Join code already taken. Please try a different code.");
+      } else {
+        alert("Failed to create trip. Please try again.");
+      }
     } finally {
       setSubmitting(false);
     }
