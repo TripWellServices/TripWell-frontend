@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
+import axios from "axios";
 import BACKEND_URL from "../config";
 
 export default function TripSetup() {
@@ -52,26 +53,22 @@ export default function TripSetup() {
         }
 
         console.log("🔐 Calling /whoami for hydration");
-        const token = await firebaseUser.getIdToken();
         
         if (!isMounted) return;
         
-        const res = await fetch(`${BACKEND_URL}/tripwell/whoami`, {
-          headers: { Authorization: `Bearer ${token}` },
-          cache: "no-store"
-        });
+        const res = await axios.get(`${BACKEND_URL}/tripwell/whoami`);
         
         if (!isMounted) return;
         
         console.log("whoami status", res.status);
         
-        if (!res.ok) {
+        if (res.status !== 200) {
           console.log("❌ /whoami failed with status:", res.status);
           if (isMounted) navigate("/access");
           return;
         }
         
-        const data = await res.json();
+        const data = res.data;
         console.log("whoami data", data);
         console.log("TripSetup hasTrip?", Boolean(data?.user?.tripId));
         
@@ -123,14 +120,12 @@ export default function TripSetup() {
     }
 
     try {
-      const res = await fetch(`${BACKEND_URL}/tripwell/joincodecheck`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ joinCode: joinCode.trim() }),
+      const res = await axios.post(`${BACKEND_URL}/tripwell/joincodecheck`, {
+        joinCode: joinCode.trim()
       });
 
-      const data = await res.json();
-      if (res.ok && data.available) {
+      const data = res.data;
+      if (res.status === 200 && data.available) {
         setCodeStatus({ msg: "✅ Code is available!", color: "text-green-600" });
         setCodeValid(true);
       } else {
@@ -170,16 +165,14 @@ export default function TripSetup() {
       };
 
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${BACKEND_URL}/tripwell/trip-setup`, {
-        method: "POST",
+      const res = await axios.post(`${BACKEND_URL}/tripwell/trip-setup`, payload, {
         headers: { 
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify(payload),
       });
       
-      const data = await res.json().catch(() => ({}));
+      const data = res.data.catch(() => ({}));
       console.log("create trip resp", res.status, data);
 
       if (res.status === 201 && data.tripId) {
@@ -220,13 +213,13 @@ export default function TripSetup() {
         // 3. Call TripExtra validation and get complete localStorage data
         try {
           console.log("🔍 Calling TripExtra validation...");
-          const hydrateRes = await fetch(`${BACKEND_URL}/tripwell/hydrate`, {
+          const hydrateRes = await axios.get(`${BACKEND_URL}/tripwell/hydrate`, {
             headers: { Authorization: `Bearer ${token}` },
             cache: "no-store"
           });
           
-          if (hydrateRes.ok) {
-            const hydrateData = await hydrateRes.json();
+          if (hydrateRes.status === 200) {
+            const hydrateData = hydrateRes.data;
             console.log("✅ TripExtra validation complete:", hydrateData.validation?.summary);
             
             // 4. Update localStorage with validated data

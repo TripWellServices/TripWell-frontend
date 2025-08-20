@@ -1,17 +1,40 @@
 // src/pages/TripIntentForm.jsx - localStorage-first version
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth } from "../firebase";
+import axios from "axios";
 import BACKEND_URL from "../config";
 
 export default function TripIntentForm() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [userData, setUserData] = useState(null);
+  const [tripData, setTripData] = useState(null);
+  const [formData, setFormData] = useState({
+    priorities: [],
+    vibes: [],
+    mobility: [],
+    travelPace: [],
+    budget: ""
+  });
 
-  const [submitting, setSubmitting] = useState(false);
+  // Load data from localStorage on mount
+  useEffect(() => {
+    const loadLocalData = () => {
+      try {
+        const user = JSON.parse(localStorage.getItem("userData") || "null");
+        const trip = JSON.parse(localStorage.getItem("tripData") || "null");
+        
+        setUserData(user);
+        setTripData(trip);
+        
+        console.log("🔍 Loaded localStorage data:", { user, trip });
+      } catch (err) {
+        console.error("❌ Error loading localStorage data:", err);
+      }
+    };
 
-  // Get data from localStorage
-  const userData = JSON.parse(localStorage.getItem("userData") || "null");
-  const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
+    loadLocalData();
+  }, []);
 
   // Predefined options for better UX
   const priorityOptions = [
@@ -52,108 +75,68 @@ export default function TripIntentForm() {
     "Structured - Like to have a plan"
   ];
 
-  const [priorities, setPriorities] = useState([]);
-  const [vibes, setVibes] = useState([]);
-  const [mobility, setMobility] = useState([]);
-  const [travelPace, setTravelPace] = useState([]);
-  const [budget, setBudget] = useState("");
-
   const togglePriority = (priority) => {
-    setPriorities(prev => 
-      prev.includes(priority) 
-        ? prev.filter(p => p !== priority)
-        : [...prev, priority]
+    setFormData(prev => 
+      prev.priorities.includes(priority) 
+        ? { ...prev, priorities: prev.priorities.filter(p => p !== priority) }
+        : { ...prev, priorities: [...prev.priorities, priority] }
     );
   };
 
   const toggleVibe = (vibe) => {
-    setVibes(prev => 
-      prev.includes(vibe) 
-        ? prev.filter(v => v !== vibe)
-        : [...prev, vibe]
+    setFormData(prev => 
+      prev.vibes.includes(vibe) 
+        ? { ...prev, vibes: prev.vibes.filter(v => v !== vibe) }
+        : { ...prev, vibes: [...prev.vibes, vibe] }
     );
   };
 
   const toggleMobility = (mobilityOption) => {
-    setMobility(prev => 
-      prev.includes(mobilityOption) 
-        ? prev.filter(m => m !== mobilityOption)
-        : [...prev, mobilityOption]
+    setFormData(prev => 
+      prev.mobility.includes(mobilityOption) 
+        ? { ...prev, mobility: prev.mobility.filter(m => m !== mobilityOption) }
+        : { ...prev, mobility: [...prev.mobility, mobilityOption] }
     );
   };
 
   const toggleTravelPace = (paceOption) => {
-    setTravelPace(prev => 
-      prev.includes(paceOption) 
-        ? prev.filter(p => p !== paceOption)
-        : [...prev, paceOption]
+    setFormData(prev => 
+      prev.travelPace.includes(paceOption) 
+        ? { ...prev, travelPace: prev.travelPace.filter(p => p !== paceOption) }
+        : { ...prev, travelPace: [...prev.travelPace, paceOption] }
     );
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (submitting) return;
-
-    setSubmitting(true);
+    setLoading(true);
 
     try {
-      const payload = {
-        tripId: tripData.tripId,
+      const res = await axios.post(`${BACKEND_URL}/tripwell/tripintent`, {
+        tripId: tripData.tripId || tripData._id,
         userId: userData.firebaseId,
-        priorities: priorities,
-        vibes: vibes,
-        mobility: mobility,
-        travelPace: travelPace,
-        budget: budget
-      };
-
-      console.log("🔍 Current state:", { priorities, vibes, mobility, travelPace, budget });
-      console.log("📤 Sending payload:", payload);
-      console.log("🔑 Trip tripId:", tripData.tripId);
-
-      const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`${BACKEND_URL}/tripwell/tripintent`, {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(payload),
+        ...formData
       });
-      
-      const data = await res.json().catch(() => ({}));
-      console.log("tripintent resp", res.status, data);
 
-      if (res.ok) {
-        console.log("✅ Trip intent saved successfully");
+      if (res.status === 200) {
+        // Save to localStorage
+        localStorage.setItem("tripIntentData", JSON.stringify(formData));
+        console.log("💾 Saved tripIntentData to localStorage:", formData);
         
-        // Save to localStorage for test flow
-        const tripIntentData = {
-          tripIntentId: data.tripIntentId || "generated-id",
-          priorities: priorities,
-          vibes: vibes,
-          mobility: mobility,
-          travelPace: travelPace,
-          budget: budget
-        };
-        localStorage.setItem("tripIntentData", JSON.stringify(tripIntentData));
-        console.log("💾 Saved tripIntentData to localStorage:", tripIntentData);
-        
+        // Navigate to next step
         navigate("/anchorselect");
       } else {
-        alert(data.error || `Save failed (${res.status})`);
+        console.error("❌ Submit failed:", res.status);
       }
     } catch (err) {
-      console.error("❌ Failed to save trip intent", err);
-      alert("Could not save your intent. Try again.");
+      console.error("❌ Submit failed:", err);
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
 
   // Check if form has any input
-  const hasInput = priorities.length > 0 || vibes.length > 0 || mobility.length > 0 || travelPace.length > 0;
+  const hasInput = formData.priorities.length > 0 || formData.vibes.length > 0 || formData.mobility.length > 0 || formData.travelPace.length > 0;
 
   // If no localStorage data, show error
   if (!userData || !tripData) {
@@ -200,7 +183,7 @@ export default function TripIntentForm() {
               <label key={option} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
                 <input
                   type="checkbox"
-                  checked={priorities.includes(option)}
+                  checked={formData.priorities.includes(option)}
                   onChange={() => togglePriority(option)}
                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
@@ -208,7 +191,7 @@ export default function TripIntentForm() {
               </label>
             ))}
           </div>
-          {priorities.length === 0 && (
+          {formData.priorities.length === 0 && (
             <p className="text-sm text-gray-500 mt-2">Select at least one priority</p>
           )}
         </div>
@@ -226,7 +209,7 @@ export default function TripIntentForm() {
               <label key={option} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
                 <input
                   type="checkbox"
-                  checked={vibes.includes(option)}
+                  checked={formData.vibes.includes(option)}
                   onChange={() => toggleVibe(option)}
                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
@@ -234,7 +217,7 @@ export default function TripIntentForm() {
               </label>
             ))}
           </div>
-          {vibes.length === 0 && (
+          {formData.vibes.length === 0 && (
             <p className="text-sm text-gray-500 mt-2">Select at least one vibe</p>
           )}
         </div>
@@ -252,7 +235,7 @@ export default function TripIntentForm() {
               <label key={option} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
                 <input
                   type="checkbox"
-                  checked={mobility.includes(option)}
+                  checked={formData.mobility.includes(option)}
                   onChange={() => toggleMobility(option)}
                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
@@ -260,7 +243,7 @@ export default function TripIntentForm() {
               </label>
             ))}
           </div>
-          {mobility.length === 0 && (
+          {formData.mobility.length === 0 && (
             <p className="text-sm text-gray-500 mt-2">Select your mobility preference</p>
           )}
         </div>
@@ -278,7 +261,7 @@ export default function TripIntentForm() {
               <label key={option} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
                 <input
                   type="checkbox"
-                  checked={travelPace.includes(option)}
+                  checked={formData.travelPace.includes(option)}
                   onChange={() => toggleTravelPace(option)}
                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
@@ -286,7 +269,7 @@ export default function TripIntentForm() {
               </label>
             ))}
           </div>
-          {travelPace.length === 0 && (
+          {formData.travelPace.length === 0 && (
             <p className="text-sm text-gray-500 mt-2">Select your travel pace</p>
           )}
         </div>
@@ -301,8 +284,8 @@ export default function TripIntentForm() {
           </p>
           <input
             type="text"
-            value={budget}
-            onChange={(e) => setBudget(e.target.value)}
+            value={formData.budget}
+            onChange={(e) => setFormData(prev => ({ ...prev, budget: e.target.value }))}
             placeholder="e.g., $500-1000, Budget-friendly, Luxury"
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
@@ -310,14 +293,14 @@ export default function TripIntentForm() {
 
         <button
           type="submit"
-          disabled={!hasInput || submitting}
+          disabled={!hasInput || loading}
           className={`w-full py-4 px-6 rounded-lg transition text-lg font-semibold ${
-            hasInput && !submitting
+            hasInput && !loading
               ? 'bg-blue-600 text-white hover:bg-blue-700' 
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
           }`}
         >
-          {submitting ? "Saving..." : (hasInput ? 'Save Trip Intent' : 'Please fill in something first')}
+          {loading ? "Saving..." : (hasInput ? 'Save Trip Intent' : 'Please fill in something first')}
         </button>
 
       </form>

@@ -1,5 +1,5 @@
 import { auth } from "../firebase";
-import { getIdToken } from "firebase/auth";
+import axios from "axios";
 import BACKEND_URL from "../config";
 
 export const getUserAndTrip = async () => {
@@ -7,16 +7,11 @@ export const getUserAndTrip = async () => {
   if (!currentUser) return { user: null, trip: null };
 
   try {
-    const token = await getIdToken(currentUser, true);
-    const res = await fetch(`${BACKEND_URL}/tripwell/whoami`, {
-      method: "GET",
-      headers: { Authorization: `Bearer ${token}` },
-      cache: "no-store"
-    });
+    const res = await axios.get(`${BACKEND_URL}/tripwell/whoami`);
 
-    if (!res.ok) throw new Error("❌ whoami failed");
+    if (res.status !== 200) throw new Error("❌ whoami failed");
 
-    const { user } = await res.json();
+    const { user } = res.data;
     return { user, trip: null }; // whoami only returns user
   } catch (err) {
     console.error("💥 getUserAndTrip failed:", err);
