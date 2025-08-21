@@ -110,38 +110,96 @@ export default function HydrateLocal() {
           <div>⚓ Anchors: {hydratedData.anchorSelectData ? "✅" : "❌"}</div>
           <div>📅 Itinerary: {hydratedData.itineraryData ? "✅" : "❌"}</div>
         </div>
-        {hydratedData.tripData && (
-          <div className="mt-2 text-xs text-gray-600">
-            Trip: {hydratedData.tripData.tripName} ({hydratedData.tripData.city})
-          </div>
-        )}
-        {hydratedData.itineraryData && (
-          <div className="mt-2 text-xs text-gray-600">
-            Days: {hydratedData.itineraryData.days?.length || 0}
-          </div>
-        )}
-        {hydratedData.tripIntentData && (
-          <div className="mt-2 text-xs text-gray-600">
-            <div>Priorities: {hydratedData.tripIntentData.priorities?.join(", ") || "None"}</div>
-            <div>Vibes: {hydratedData.tripIntentData.vibes?.join(", ") || "None"}</div>
-            <div>Mobility: {hydratedData.tripIntentData.mobility?.join(", ") || "None"}</div>
-            <div>Travel Pace: {hydratedData.tripIntentData.travelPace?.join(", ") || "None"}</div>
-            <div>Budget: {hydratedData.tripIntentData.budget || "None"}</div>
-          </div>
-        )}
+                 {hydratedData.tripData && (
+           <div className="mt-2 text-xs text-gray-600">
+             <div>Trip: {hydratedData.tripData.tripName} ({hydratedData.tripData.city})</div>
+             <div>Season: {hydratedData.tripData.season || "Not set"}</div>
+             <div>Days Total: {hydratedData.tripData.daysTotal || "Not set"}</div>
+             <div>Started: {hydratedData.tripData.startedTrip ? "Yes" : "No"}</div>
+             <div>Complete: {hydratedData.tripData.tripComplete ? "Yes" : "No"}</div>
+           </div>
+         )}
+         {hydratedData.itineraryData && (
+           <div className="mt-2 text-xs text-gray-600">
+             <div>Days: {hydratedData.itineraryData.days?.length || 0}</div>
+             <div>Itinerary ID: {hydratedData.itineraryData.itineraryId || "Not set"}</div>
+           </div>
+         )}
+         {hydratedData.userData && (
+           <div className="mt-2 text-xs text-gray-600">
+             <div>Role: {hydratedData.userData.role || "Not set"}</div>
+             <div>Profile Complete: {hydratedData.userData.profileComplete ? "Yes" : "No"}</div>
+           </div>
+         )}
+         {hydratedData.tripIntentData && (
+           <div className="mt-2 text-xs text-gray-600">
+             <div>Priorities: {hydratedData.tripIntentData.priorities?.join(", ") || "None"}</div>
+             <div>Vibes: {hydratedData.tripIntentData.vibes?.join(", ") || "None"}</div>
+             <div>Mobility: {hydratedData.tripIntentData.mobility?.join(", ") || "None"}</div>
+             <div>Travel Pace: {hydratedData.tripIntentData.travelPace?.join(", ") || "None"}</div>
+             <div>Budget: {hydratedData.tripIntentData.budget || "None"}</div>
+           </div>
+         )}
       </div>
       
-      <div className="space-y-2">
-        <button onClick={handleContinue} className="w-full bg-blue-600 text-white py-2 rounded">
-          Continue to Router
-        </button>
-        <button onClick={hydrateData} className="w-full bg-gray-600 text-white py-2 rounded">
-          Refresh Data
-        </button>
-        <button onClick={handleLogout} className="w-full bg-red-600 text-white py-2 rounded">
-          Logout
-        </button>
-      </div>
+             {/* Raw Data Display */}
+       <div className="bg-gray-100 p-4 rounded mb-4">
+         <h3 className="font-semibold mb-2 text-sm">🔍 RAW DATA (All Fields):</h3>
+         <div className="space-y-4 text-xs">
+           {hydratedData.userData && (
+             <div>
+               <h4 className="font-semibold text-blue-600">👤 USER DATA:</h4>
+               <pre className="bg-white p-2 rounded overflow-auto max-h-32">
+                 {JSON.stringify(hydratedData.userData, null, 2)}
+               </pre>
+             </div>
+           )}
+           {hydratedData.tripData && (
+             <div>
+               <h4 className="font-semibold text-green-600">✈️ TRIP DATA:</h4>
+               <pre className="bg-white p-2 rounded overflow-auto max-h-32">
+                 {JSON.stringify(hydratedData.tripData, null, 2)}
+               </pre>
+             </div>
+           )}
+           {hydratedData.tripIntentData && (
+             <div>
+               <h4 className="font-semibold text-purple-600">🎯 TRIP INTENT DATA:</h4>
+               <pre className="bg-white p-2 rounded overflow-auto max-h-32">
+                 {JSON.stringify(hydratedData.tripIntentData, null, 2)}
+               </pre>
+             </div>
+           )}
+           {hydratedData.anchorSelectData && (
+             <div>
+               <h4 className="font-semibold text-orange-600">⚓ ANCHOR DATA:</h4>
+               <pre className="bg-white p-2 rounded overflow-auto max-h-32">
+                 {JSON.stringify(hydratedData.anchorSelectData, null, 2)}
+               </pre>
+             </div>
+           )}
+           {hydratedData.itineraryData && (
+             <div>
+               <h4 className="font-semibold text-indigo-600">📅 ITINERARY DATA:</h4>
+               <pre className="bg-white p-2 rounded overflow-auto max-h-32">
+                 {JSON.stringify(hydratedData.itineraryData, null, 2)}
+               </pre>
+             </div>
+           )}
+         </div>
+       </div>
+       
+       <div className="space-y-2">
+         <button onClick={handleContinue} className="w-full bg-blue-600 text-white py-2 rounded">
+           Continue to Router
+         </button>
+         <button onClick={hydrateData} className="w-full bg-gray-600 text-white py-2 rounded">
+           Refresh Data
+         </button>
+         <button onClick={handleLogout} className="w-full bg-red-600 text-white py-2 rounded">
+           Logout
+         </button>
+       </div>
     </div>
   );
 }
