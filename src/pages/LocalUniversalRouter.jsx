@@ -217,6 +217,12 @@ export default function LocalUniversalRouter() {
           }
         }
 
+        // Step 9: Route to PreTripHub if they have itinerary but haven't started trip
+        if (itineraryData && itineraryData.itineraryId && !currentTripData.startedTrip) {
+          console.log("✅ Itinerary complete, routing to /prephub");
+          return navigate("/prephub");
+        }
+
         // All conditions met - let them continue to their intended route
         console.log("✅ All conditions met, allowing navigation to:", location.pathname);
         setLoading(false);

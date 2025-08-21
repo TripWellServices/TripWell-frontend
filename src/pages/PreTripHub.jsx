@@ -139,6 +139,14 @@ export default function PreTripHub() {
         </button>
         
         <button 
+          onClick={() => navigate("/tripwell/itineraryupdate")}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-4 px-6 rounded-lg transition-colors text-lg flex items-center justify-center space-x-2"
+        >
+          <span>✏️</span>
+          <span>Modify Itinerary</span>
+        </button>
+        
+        <button 
           onClick={() => navigate("/")}
           className="w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-4 px-6 rounded-lg transition-colors text-lg flex items-center justify-center space-x-2"
         >
