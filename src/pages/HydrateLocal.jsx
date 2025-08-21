@@ -76,6 +76,8 @@ export default function HydrateLocal() {
     }
   };
 
+  const loadingUI = isLoading || loading;
+  
   // Debug logging to see what data we have
   console.log("🔍 HydrateLocal data:", {
     userData,
@@ -85,8 +87,6 @@ export default function HydrateLocal() {
     itineraryData,
     loading: loadingUI
   });
-
-  const loadingUI = isLoading || loading;
   if (loadingUI) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center p-6">
