@@ -21,9 +21,25 @@ export default function HydrateLocal() {
       setIsLoading(true);
       setStatus("Hydrating from backend...");
 
-      const authConfig = await getAuthConfig();
+      // Wait for Firebase auth to be ready (same pattern as other components)
+      await new Promise(resolve => {
+        const unsubscribe = auth.onAuthStateChanged(user => {
+          unsubscribe();
+          resolve(user);
+        });
+      });
+
+      const firebaseUser = auth.currentUser;
+      if (!firebaseUser) {
+        throw new Error("No authenticated user");
+      }
+
+      const token = await firebaseUser.getIdToken();
       const response = await fetch(`${BACKEND_URL}/tripwell/hydrate`, {
-        headers: authConfig.headers,
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
         cache: "no-store"
       });
 
