@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
 import { signOut } from "firebase/auth";
-import { getAuthConfig } from "../utils/auth";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "https://gofastbackend.onrender.com";
 
