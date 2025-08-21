@@ -9,16 +9,48 @@ export default function PreTripHub() {
   const anchorSelectData = JSON.parse(localStorage.getItem("anchorSelectData") || "null");
   const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
 
-  const startTrip = () => {
-    // Update tripData to mark trip as started
-    const updatedTripData = {
-      ...tripData,
-      startedTrip: true
-    };
-    localStorage.setItem("tripData", JSON.stringify(updatedTripData));
-    console.log("💾 Updated tripData - startedTrip: true");
-    
-    navigate("/tripcomplete"); // For now, just go to completion
+  const startTrip = async () => {
+    try {
+      // Update tripData to mark trip as started
+      const updatedTripData = {
+        ...tripData,
+        startedTrip: true
+      };
+      localStorage.setItem("tripData", JSON.stringify(updatedTripData));
+      console.log("💾 Updated tripData - startedTrip: true");
+      
+      // Auto-determine current day index based on trip dates
+      const today = new Date();
+      const startDate = new Date(tripData.startDate);
+      const endDate = new Date(tripData.endDate);
+      
+      // Calculate which day of the trip we're on
+      let currentDayIndex = 1; // Default to day 1
+      
+      if (today >= startDate && today <= endDate) {
+        // We're within the trip dates
+        const diffTime = Math.abs(today - startDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        currentDayIndex = diffDays + 1; // +1 because day 1 is the first day
+      } else if (today < startDate) {
+        // Trip hasn't started yet
+        currentDayIndex = 1;
+      } else {
+        // Trip is over
+        currentDayIndex = itineraryData.days.length;
+      }
+      
+      // Save current day index to localStorage for the live flow
+      localStorage.setItem("currentDayIndex", currentDayIndex.toString());
+      console.log("💾 Current day index:", currentDayIndex);
+      
+      // Navigate to the live day experience
+      navigate(`/tripliveday/${tripData.tripId || tripData._id}`);
+      
+    } catch (error) {
+      console.error("❌ Error starting trip:", error);
+      alert("There was an error starting your trip. Please try again.");
+    }
   };
 
   // If no localStorage data, show error

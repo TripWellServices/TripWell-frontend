@@ -71,17 +71,26 @@ export function AppDataProvider({ children }) {
       if (!res.ok) throw new Error(`Refresh failed (${res.status})`);
       const payload = await res.json();
 
+      console.log("🔍 AppDataContext - Hydration payload:", {
+        hasUserData: !!payload.userData,
+        hasTripData: !!payload.tripData,
+        hasTripIntentData: !!payload.tripIntentData,
+        userDataKeys: payload.userData ? Object.keys(payload.userData) : [],
+        tripDataKeys: payload.tripData ? Object.keys(payload.tripData) : [],
+        tripIntentDataKeys: payload.tripIntentData ? Object.keys(payload.tripIntentData) : []
+      });
+
       // Persist and update state
       saveAllToLocal(payload);
       setState((s) => ({
         ...s,
-        userData: payload.userData ?? s.userData,
-        tripData: payload.tripData ?? s.tripData,
-        tripIntentData: payload.tripIntentData ?? s.tripIntentData,
-        anchorSelectData: payload.anchorSelectData ?? s.anchorSelectData,
-        itineraryData: payload.itineraryData ?? s.itineraryData,
-        profileComplete: payload.userData?.profileComplete ?? s.profileComplete,
-        validation: payload.validation ?? s.validation,
+        userData: payload.userData !== undefined ? payload.userData : s.userData,
+        tripData: payload.tripData !== undefined ? payload.tripData : s.tripData,
+        tripIntentData: payload.tripIntentData !== undefined ? payload.tripIntentData : s.tripIntentData,
+        anchorSelectData: payload.anchorSelectData !== undefined ? payload.anchorSelectData : s.anchorSelectData,
+        itineraryData: payload.itineraryData !== undefined ? payload.itineraryData : s.itineraryData,
+        profileComplete: payload.userData?.profileComplete !== undefined ? payload.userData.profileComplete : s.profileComplete,
+        validation: payload.validation !== undefined ? payload.validation : s.validation,
         loading: false,
         error: null,
       }));

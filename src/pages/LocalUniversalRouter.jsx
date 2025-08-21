@@ -49,13 +49,13 @@ export default function LocalUniversalRouter() {
 
           // ✅ FIX: Use standardized auth utility
           const authConfig = await getAuthConfig();
-          const flushRes = await fetch(`${BACKEND_URL}/tripwell/localflush`, {
+          const flushRes = await fetch(`${BACKEND_URL}/tripwell/hydrate`, {
             headers: authConfig.headers,
             cache: "no-store"
           });
 
           if (!flushRes.ok) {
-            console.log("❌ /localflush failed while refreshing");
+            console.log("❌ /hydrate failed while refreshing");
             // ✅ FIX: Add proper error handling
             if (flushRes.status === 401) {
               console.log("❌ Authentication error, routing to /access");
@@ -65,7 +65,7 @@ export default function LocalUniversalRouter() {
           }
 
           const localStorageData = await flushRes.json();
-          console.log("🔄 Refreshed from /localflush:", localStorageData);
+          console.log("🔄 Refreshed from /hydrate:", localStorageData);
 
           if (localStorageData.userData) {
             localStorage.setItem("userData", JSON.stringify(localStorageData.userData));
@@ -104,13 +104,13 @@ export default function LocalUniversalRouter() {
 
           // ✅ FIX: Use standardized auth utility
           const authConfig = await getAuthConfig();
-          const flushRes = await fetch(`${BACKEND_URL}/tripwell/localflush`, {
+          const flushRes = await fetch(`${BACKEND_URL}/tripwell/hydrate`, {
             headers: authConfig.headers,
             cache: "no-store"
           });
 
           if (!flushRes.ok) {
-            console.log("❌ /localflush failed, routing to /access");
+            console.log("❌ /hydrate failed, routing to /access");
             // ✅ FIX: Add proper error handling
             if (flushRes.status === 401) {
               console.log("❌ Authentication error, routing to /access");
@@ -120,7 +120,7 @@ export default function LocalUniversalRouter() {
           }
 
           const localStorageData = await flushRes.json();
-          console.log("🔍 /localflush response:", localStorageData);
+          console.log("🔍 /hydrate response:", localStorageData);
 
           // Save all data to localStorage
           if (localStorageData.userData) {

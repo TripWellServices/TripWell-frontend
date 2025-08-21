@@ -44,6 +44,7 @@ import TripIntentForm from "./pages/TripIntentForm";
 import AnchorSelectPage from "./pages/AnchorSelect";
 import TripItineraryBuild from "./pages/TripItineraryBuilder";
 import TripDayOverview from "./pages/TripDaysOverview";
+import TripItineraryComplete from "./pages/TripItineraryComplete";
 import ModifyDay from "./pages/TripModifyDay";
 import ModifyBlock from "./pages/TripModifyBlock";
 import TripPlannerReturn from "./pages/TripPlannerReturn";
@@ -124,6 +125,7 @@ export default function App() {
       <Route path="/anchorselect" element={<AnchorSelectPage />} />
       <Route path="/tripwell/itinerarybuild" element={<TripItineraryBuild />} />
       <Route path="/tripwell/itineraryupdate" element={<TripDayOverview />} />
+      <Route path="/tripwell/itinerarycomplete" element={<TripItineraryComplete />} />
       <Route path="/modify/day/:tripId?/:dayIndex?" element={<ModifyDay />} />
       <Route path="/modify/block/:tripId?/:dayIndex?/:timeOfDay?" element={<ModifyBlock />} />
       <Route path="/modifyblock/:tripId/:dayIndex/:blockName" element={<ModifyBlock />} />

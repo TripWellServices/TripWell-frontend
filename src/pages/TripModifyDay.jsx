@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
 
 export default function TripModifyDay() {
   const { tripId, dayIndex } = useParams();
@@ -11,20 +10,39 @@ export default function TripModifyDay() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    async function hydrate() {
+    function hydrate() {
       try {
-        const res = await axios.get(`/tripwell/modifyday/${tripId}/${dayIndex}`);
-        setTripDay(res.data);
+        // Get itinerary data from localStorage
+        const itineraryData = localStorage.getItem("itineraryData");
+        if (!itineraryData) {
+          setError("No itinerary data found.");
+          setLoading(false);
+          return;
+        }
+
+        const parsedItinerary = JSON.parse(itineraryData);
+        const days = parsedItinerary.days || [];
+        
+        // Find the specific day by dayIndex
+        const targetDay = days.find(day => day.dayIndex === parseInt(dayIndex));
+        
+        if (!targetDay) {
+          setError(`Day ${dayIndex} not found.`);
+          setLoading(false);
+          return;
+        }
+
+        setTripDay(targetDay);
       } catch (err) {
-        console.error("❌ Failed to hydrate day", err);
-        setError("Could not load day.");
+        console.error("❌ Failed to hydrate day from localStorage", err);
+        setError("Could not load day data.");
       } finally {
         setLoading(false);
       }
     }
 
     hydrate();
-  }, [tripId, dayIndex]);
+  }, [dayIndex]);
 
   if (loading) return <div className="p-6">Loading...</div>;
   if (error) return <div className="p-6 text-red-600">{error}</div>;
@@ -43,7 +61,7 @@ export default function TripModifyDay() {
           <div key={part} className="mb-6 p-4 border rounded-xl shadow">
             <h3 className="font-semibold capitalize mb-1">{part}</h3>
             <p className="text-gray-800 text-sm font-medium">{block.title}</p>
-            <p className="text-gray-600 text-sm">{block.desc}</p>
+            <p className="text-gray-600 text-sm">{block.description}</p>
             <button
               onClick={() =>
                 navigate(`/modify/block/${tripId}/${dayIndex}/${part}`)

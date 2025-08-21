@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAuthConfig } from "../utils/auth";
-import BACKEND_URL from "../config";
 
 export default function TripDaysOverview() {
   const [days, setDays] = useState([]);
@@ -10,48 +8,36 @@ export default function TripDaysOverview() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    async function fetchDays() {
+    function fetchDays() {
       try {
-        // ✅ RESTORE: Get tripData from localStorage (the correct breadcrumb!)
-        const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
-        const tripId = tripData?.tripId || tripData?._id;
-
-        if (!tripId) {
-          navigate("/tripwell/tripitineraryrequired");
+        // Get itinerary data from localStorage
+        const itineraryData = localStorage.getItem("itineraryData");
+        if (!itineraryData) {
+          setError("No itinerary data found.");
+          setLoading(false);
           return;
         }
 
-        // ✅ FIX: Use standardized auth utility for API calls
-        const authConfig = await getAuthConfig();
+        const parsedItinerary = JSON.parse(itineraryData);
+        const days = parsedItinerary.days || [];
+        
+        if (days.length === 0) {
+          setError("No days found in itinerary.");
+          setLoading(false);
+          return;
+        }
 
-        // Fetch days from backend (itinerary days endpoint)
-        const daysRes = await fetch(`${BACKEND_URL}/tripwell/itinerary/days/${tripId}`, {
-          headers: authConfig.headers,
-          cache: "no-store",
-        });
-        
-        if (!daysRes.ok) {
-          throw new Error(`Days fetch failed: ${daysRes.status}`);
-        }
-        
-        const data = await daysRes.json();
-        setDays(data || []);
+        setDays(days);
       } catch (err) {
-        console.error("Failed to fetch trip days for overview:", err);
-        // ✅ FIX: Add proper error handling
-        if (err.message.includes("401") || err.message.includes("Unauthorized")) {
-          setError("Authentication error. Please sign in again.");
-          setTimeout(() => navigate("/access"), 2000);
-        } else {
-          setError("Could not load trip days.");
-        }
+        console.error("Failed to load trip days from localStorage:", err);
+        setError("Could not load trip days.");
       } finally {
         setLoading(false);
       }
     }
 
     fetchDays();
-  }, [navigate]);
+  }, []);
 
   if (loading) {
     return (
@@ -173,20 +159,28 @@ export default function TripDaysOverview() {
           ))}
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col gap-4 items-center pt-8">
-          <button
-            onClick={() => navigate("/prephub")}
-            className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-3 rounded-2xl shadow-lg hover:from-green-600 hover:to-emerald-700 transform hover:scale-105 transition-all duration-200 font-semibold"
-          >
-            ✅ Done - Return to Trip Hub
-          </button>
+                 {/* Action Buttons */}
+         <div className="flex flex-col gap-4 items-center pt-8">
+           <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
+             <button
+               onClick={() => navigate("/tripwell/itinerarycomplete")}
+               className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-2xl shadow-lg hover:from-green-600 hover:to-emerald-700 transform hover:scale-105 transition-all duration-200 font-semibold"
+             >
+               ✅ I'm Finished
+             </button>
+             <button
+               onClick={() => navigate("/prephub")}
+               className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-3 rounded-2xl shadow-lg hover:from-blue-600 hover:to-indigo-700 transform hover:scale-105 transition-all duration-200 font-semibold"
+             >
+               💾 Save & Continue
+             </button>
+           </div>
 
-          <div className="w-full max-w-xl bg-blue-50 text-blue-800 rounded-lg p-4 text-center text-sm">
-            <p className="font-semibold">Ready to start your trip?</p>
-            <p className="text-xs mt-1">Go to the Trip Hub and click <span className="font-semibold">"Start My Trip"</span> when you're ready to begin your adventure!</p>
-          </div>
-        </div>
+           <div className="w-full max-w-xl bg-blue-50 text-blue-800 rounded-lg p-4 text-center text-sm">
+             <p className="font-semibold">Ready to start your trip?</p>
+             <p className="text-xs mt-1">Go to the Trip Hub and click <span className="font-semibold">"Start My Trip"</span> when you're ready to begin your adventure!</p>
+           </div>
+         </div>
       </div>
     </div>
   );

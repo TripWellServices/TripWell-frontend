@@ -15,14 +15,26 @@ export default function CurrentTripReflection() {
   useEffect(() => {
     async function hydrate() {
       try {
-        const tripRes = await axios.get(`/tripwell/tripbase/${tripId}`);
-        setCity(tripRes.data.city || "");
-        setTripName(tripRes.data.name || "Your Trip");
+        // Get trip data from localStorage first
+        const tripData = localStorage.getItem("tripData");
+        if (tripData) {
+          const parsedTripData = JSON.parse(tripData);
+          setCity(parsedTripData.city || "");
+          setTripName(parsedTripData.tripName || "Your Trip");
+        }
 
+        // Get reflections from backend
         const reflRes = await axios.get(`/tripwell/reflections/${tripId}`);
         setReflections(reflRes.data || []);
       } catch (err) {
         console.error("Reflection hydration error:", err);
+        // Fallback to localStorage if backend fails
+        const tripData = localStorage.getItem("tripData");
+        if (tripData) {
+          const parsedTripData = JSON.parse(tripData);
+          setCity(parsedTripData.city || "");
+          setTripName(parsedTripData.tripName || "Your Trip");
+        }
       } finally {
         setLoading(false);
       }
@@ -37,7 +49,7 @@ export default function CurrentTripReflection() {
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
       <h1 className="text-3xl font-bold text-center">✨ Memories from {tripName}</h1>
-      <p className="text-center text-gray-600">Here’s what made your time in {city} unforgettable.</p>
+      <p className="text-center text-gray-600">Here's what made your time in {city} unforgettable.</p>
 
       <div className="bg-white shadow-md rounded-xl p-4 border">
         {reflections.map((ref, i) => (

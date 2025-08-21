@@ -47,10 +47,28 @@ export default function TripDayLookback() {
 
   const handleSave = async () => {
     try {
+      // Save to backend
       await axios.post(`/tripwell/reflection/${tripId}/${dayIndex}`, {
         moodTag,
         journalText
       });
+
+      // Save to localStorage
+      const existingReflections = localStorage.getItem("reflectionData");
+      const reflections = existingReflections ? JSON.parse(existingReflections) : [];
+      
+      // Add new reflection
+      const newReflection = {
+        dayIndex: dayIndex,
+        moodTag: moodTag,
+        journalText: journalText,
+        summary: `Day ${dayIndex} reflection` // We could get this from TripDay if needed
+      };
+      
+      reflections.push(newReflection);
+      localStorage.setItem("reflectionData", JSON.stringify(reflections));
+      
+      console.log("💾 Saved reflection to localStorage:", newReflection);
 
       if (tripComplete) {
         navigate("/tripcomplete");

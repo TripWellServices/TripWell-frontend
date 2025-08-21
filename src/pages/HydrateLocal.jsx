@@ -76,6 +76,16 @@ export default function HydrateLocal() {
     }
   };
 
+  // Debug logging to see what data we have
+  console.log("🔍 HydrateLocal data:", {
+    userData,
+    tripData,
+    tripIntentData,
+    anchorSelectData,
+    itineraryData,
+    loading: loadingUI
+  });
+
   const loadingUI = isLoading || loading;
   if (loadingUI) {
     return (
@@ -138,6 +148,7 @@ export default function HydrateLocal() {
           <div><strong>Name:</strong> {userData.firstName} {userData.lastName}</div>
           <div><strong>Hometown:</strong> {userData.hometownCity || "Not set"}</div>
           <div><strong>Profile Complete:</strong> {userData.profileComplete ? "Yes" : "No"}</div>
+          <div><strong>Role:</strong> {userData.role || "Not set"}</div>
                 </div>
               ) : (
                 <p className="text-gray-500 italic">No user data found</p>
@@ -156,6 +167,7 @@ export default function HydrateLocal() {
           <div><strong>Dates:</strong> {tripData.startDate ? new Date(tripData.startDate).toLocaleDateString() : "Not set"} - {tripData.endDate ? new Date(tripData.endDate).toLocaleDateString() : "Not set"}</div>
           <div><strong>Who With:</strong> {Array.isArray(tripData.whoWith) ? tripData.whoWith.join(", ") : "Not set"}</div>
           <div><strong>Season:</strong> {tripData.season || "Not set"}</div>
+          <div><strong>Days Total:</strong> {tripData.daysTotal || "Not set"}</div>
                 </div>
               ) : (
                 <p className="text-gray-500 italic">No trip data found</p>

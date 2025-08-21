@@ -76,10 +76,14 @@ export default function TripItineraryBuilder() {
     try {
       setSaving(true);
       
-      // Save to localStorage for test flow
+      // Save to localStorage using the data that was already saved to backend TripDay model
       const itineraryData = {
-        itineraryId: "generated-itinerary-id",
-        days: itineraryDays
+        itineraryId: tripData.tripId, // Use the real tripId as itineraryId
+        tripId: tripData.tripId,
+        tripName: tripData.tripName,
+        city: tripData.city,
+        daysTotal: tripData.daysTotal,
+        days: itineraryDays // This is the data from the backend TripDay model
       };
       localStorage.setItem("itineraryData", JSON.stringify(itineraryData));
       console.log("💾 Saved itineraryData to localStorage:", itineraryData);
