@@ -1,16 +1,15 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 
 export default function TripDayLookback() {
-  const [userId, setUserId] = useState(null);
-  const [tripId, setTripId] = useState(null);
-  const [dayIndex, setDayIndex] = useState(null);
-  const [tripComplete, setTripComplete] = useState(false);
-  const [city, setCity] = useState("");
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { tripId, dayIndex, tripComplete } = location.state || {};
+
+  const [city, setCity] = useState("your destination");
   const [moodTag, setMoodTag] = useState("");
   const [journalText, setJournalText] = useState("");
-  const navigate = useNavigate();
 
   const moodOptions = [
     "😄 Full of Memories",
@@ -27,54 +26,31 @@ export default function TripDayLookback() {
   useEffect(() => {
     const hydrate = async () => {
       try {
-        const whoRes = await axios.get("/tripwell/whoami");
-        setUserId(whoRes.data.userId);
-
-        const tripStatus = await axios.get(`/tripwell/lookback/${whoRes.data.userId}`);
-        const { tripId, dayIndex, tripComplete, city } = tripStatus.data;
-
-        setTripId(tripId);
-        setDayIndex(dayIndex);
-        setTripComplete(tripComplete);
-        setCity(city || "your destination");
+        const res = await axios.get(`/tripwell/lookback/${tripId}/${dayIndex}`);
+        if (res.data.city) setCity(res.data.city);
       } catch (err) {
-        console.error("Lookback hydration error:", err);
+        console.error("Lookback hydrate error:", err);
       }
     };
-
     hydrate();
-  }, []);
+  }, [tripId, dayIndex]);
 
   const handleSave = async () => {
     try {
-      // Save to backend
+      // 1. Save to backend
       await axios.post(`/tripwell/reflection/${tripId}/${dayIndex}`, {
         moodTag,
-        journalText
+        journalText,
       });
 
-      // Save to localStorage
-      const existingReflections = localStorage.getItem("reflectionData");
-      const reflections = existingReflections ? JSON.parse(existingReflections) : [];
-      
-      // Add new reflection
-      const newReflection = {
-        dayIndex: dayIndex,
-        moodTag: moodTag,
-        journalText: journalText,
-        summary: `Day ${dayIndex} reflection` // We could get this from TripDay if needed
-      };
-      
-      reflections.push(newReflection);
-      localStorage.setItem("reflectionData", JSON.stringify(reflections));
-      
-      console.log("💾 Saved reflection to localStorage:", newReflection);
+      // 2. Mirror to localStorage
+      const existingReflections = JSON.parse(localStorage.getItem("reflectionData") || "[]");
+      const newReflection = { dayIndex, moodTag, journalText, summary: `Day ${dayIndex} reflection` };
+      localStorage.setItem("reflectionData", JSON.stringify([...existingReflections, newReflection]));
 
-      if (tripComplete) {
-        navigate("/tripcomplete");
-      } else {
-        navigate("/previewliveday");
-      }
+      // 3. Navigate
+      if (tripComplete) navigate("/tripcomplete");
+      else navigate("/previewliveday");
     } catch (err) {
       console.error("Reflection save failed:", err);
       alert("Could not save your reflection.");
@@ -86,9 +62,7 @@ export default function TripDayLookback() {
       <h1 className="text-3xl font-bold text-center text-green-700">
         🎉 You just finished another day in {city}!
       </h1>
-      <p className="text-center text-gray-600">
-        Take a moment to reflect on what made today special.
-      </p>
+      <p className="text-center text-gray-600">Take a moment to reflect on what made today special.</p>
 
       <div className="bg-white p-4 rounded-xl shadow space-y-4">
         <h2 className="text-lg font-semibold">What vibe captures today?</h2>
@@ -120,7 +94,7 @@ export default function TripDayLookback() {
           <textarea
             value={journalText}
             onChange={(e) => setJournalText(e.target.value)}
-            placeholder="Write down your thoughts, highlights, or any funny moments..."
+            placeholder="Write down your thoughts..."
             className="w-full border rounded-lg p-3 mt-4"
             rows={6}
           />

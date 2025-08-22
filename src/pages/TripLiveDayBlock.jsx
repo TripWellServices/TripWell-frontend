@@ -1,79 +1,49 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
 import axios from "axios";
 
-export default function TripLiveDayBlock() {
+export default function TripLiveBlock() {
   const navigate = useNavigate();
-  const [tripId, setTripId] = useState(null);
-  const [dayIndex, setDayIndex] = useState(null);
-  const [blockName, setBlockName] = useState(null);
+  const location = useLocation();
+  const { tripId, currentDay, currentBlock, totalDays } = location.state || {};
+
   const [blockData, setBlockData] = useState(null);
   const [feedback, setFeedback] = useState("");
   const [ask, setAsk] = useState("");
   const [answer, setAnswer] = useState("");
 
   useEffect(() => {
-    const hydrateLiveStatus = async () => {
+    const hydrateBlock = async () => {
       try {
-        // Wait for Firebase auth to be ready
-        await new Promise(resolve => {
-          const unsubscribe = auth.onAuthStateChanged(user => {
-            unsubscribe();
-            resolve(user);
-          });
+        const token = await auth.currentUser.getIdToken();
+        const res = await axios.get(`/tripwell/itinerary/day/${tripId}/${currentDay}`, {
+          headers: { Authorization: `Bearer ${token}` },
         });
-
-        const firebaseUser = auth.currentUser;
-        if (!firebaseUser) {
-          console.error("❌ No authenticated user");
-          navigate("/access");
-          return;
-        }
-
-        const token = await firebaseUser.getIdToken();
-        const res = await axios.get(`/tripwell/livestatus`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const { tripId, dayIndex, blockInProgress } = res.data;
-        if (!tripId || dayIndex == null || !blockInProgress) {
-          navigate("/access");
-          return;
-        }
-
-        setTripId(tripId);
-        setDayIndex(dayIndex);
-        setBlockName(blockInProgress);
-
-        // hydrate itinerary block data
-        const itinRes = await axios.get(`/tripwell/itinerary/day/${tripId}/${dayIndex}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const block = itinRes.data?.blocks?.[blockInProgress];
-        setBlockData(block);
+        setBlockData(res.data?.blocks?.[currentBlock]);
       } catch (err) {
-        console.error("LiveDayBlock hydration error:", err);
+        console.error("Hydrate block error:", err);
         navigate("/access");
       }
     };
 
-    hydrateLiveStatus();
-  }, [navigate]);
+    hydrateBlock();
+  }, [tripId, currentDay, currentBlock, navigate]);
 
   const handleSubmitFeedback = async () => {
     try {
       const token = await auth.currentUser.getIdToken();
       const res = await axios.post(`/tripwell/livedaygpt/block`, {
         tripId,
-        dayIndex,
-        block: blockName,
+        dayIndex: currentDay,
+        block: currentBlock,
         feedback,
       }, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       setBlockData(res.data.updatedBlock);
     } catch (err) {
-      console.error("GPT feedback error:", err);
+      console.error("Feedback error:", err);
     }
   };
 
@@ -82,52 +52,51 @@ export default function TripLiveDayBlock() {
       const token = await auth.currentUser.getIdToken();
       const res = await axios.post(`/tripwell/livedaygpt/ask`, {
         tripId,
-        dayIndex,
-        blockName,
+        dayIndex: currentDay,
+        blockName: currentBlock,
         question: ask,
       }, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       setAnswer(res.data.answer);
     } catch (err) {
-      console.error("Ask Angela error:", err);
+      console.error("Ask error:", err);
     }
   };
 
-  const handleMarkComplete = async () => {
-    try {
-      const token = await auth.currentUser.getIdToken();
-      const res = await axios.post(`/tripwell/doallcomplete`, {
-        tripId,
-        dayIndex,
-        blockName,
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+  const handleMarkComplete = () => {
+    let nextBlock = "morning";
+    let nextDay = currentDay;
 
-      if (res.data.next === "lookback") {
-        navigate("/daylookback");
-      } else {
-        navigate("/tripliveblock"); // reloads the next block
+    if (currentBlock === "morning") nextBlock = "afternoon";
+    if (currentBlock === "afternoon") nextBlock = "evening";
+    if (currentBlock === "evening") {
+      // if final day → reflection / complete
+      if (currentDay === totalDays) {
+        navigate("/tripdaylookback", { state: { tripId, dayIndex: currentDay, tripComplete: true } });
+        return;
       }
-    } catch (err) {
-      console.error("Mark complete error:", err);
-      alert("Unable to complete this block.");
+      // otherwise → lookback for day
+      navigate("/tripdaylookback", { state: { tripId, dayIndex: currentDay, tripComplete: false } });
+      return;
     }
+
+    // move to next block
+    navigate("/tripliveblock", { state: { tripId, currentDay: nextDay, currentBlock: nextBlock, totalDays } });
   };
 
-  if (!blockData) return <div className="p-6">Loading your day...</div>;
+  if (!blockData) return <div className="p-6">Loading block...</div>;
 
   return (
     <div className="p-6 max-w-2xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold">Let’s make your {blockName} memorable!</h1>
+      <h1 className="text-2xl font-bold">Let’s make your {currentBlock} memorable!</h1>
 
       <div className="bg-white shadow rounded-xl p-4">
         <h2 className="text-xl font-semibold">{blockData.title}</h2>
         <p className="text-gray-700 mt-2">{blockData.desc}</p>
       </div>
 
-      {/* Feedback / GPT block fix */}
+      {/* Feedback */}
       <div>
         <h3 className="font-semibold">Want to change something?</h3>
         <textarea
@@ -144,14 +113,14 @@ export default function TripLiveDayBlock() {
         </button>
       </div>
 
-      {/* Ask Angela Q&A */}
+      {/* Ask */}
       <div>
         <h3 className="font-semibold">Ask Angela a question</h3>
         <input
           value={ask}
           onChange={(e) => setAsk(e.target.value)}
           className="w-full border p-2 rounded mt-2"
-          placeholder="e.g., Is there a nearby rooftop for drinks?"
+          placeholder="e.g., Is there a rooftop bar nearby?"
         />
         <button
           onClick={handleAskAngela}
@@ -159,18 +128,16 @@ export default function TripLiveDayBlock() {
         >
           💬 Ask Angela
         </button>
-        {answer && (
-          <p className="mt-2 text-gray-800 italic bg-gray-50 p-2 rounded">{answer}</p>
-        )}
+        {answer && <p className="mt-2 italic bg-gray-50 p-2 rounded">{answer}</p>}
       </div>
 
-      {/* Final CTA */}
+      {/* CTA */}
       <div className="pt-4 border-t">
         <button
           onClick={handleMarkComplete}
-          className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl text-lg"
+          className="w-full bg-green-600 text-white py-3 rounded-xl text-lg"
         >
-          ✅ Mark {blockName} Complete
+          ✅ Mark {currentBlock} Complete
         </button>
       </div>
     </div>
