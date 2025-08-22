@@ -66,9 +66,9 @@ export default function HydrateTest() {
         console.log("💾 Saved tripIntentData to localStorage:", data.tripIntentData);
       }
 
-      if (data.anchorSelectData) {
-        localStorage.setItem("anchorSelectData", JSON.stringify(data.anchorSelectData));
-        console.log("💾 Saved anchorSelectData to localStorage:", data.anchorSelectData);
+      if (data.anchorLogicData) {
+        localStorage.setItem("anchorLogic", JSON.stringify(data.anchorLogicData));
+        console.log("💾 Saved anchorLogicData to localStorage as anchorLogic:", data.anchorLogicData);
       }
 
       if (data.itineraryData) {
@@ -93,7 +93,7 @@ export default function HydrateTest() {
     localStorage.removeItem("profileComplete");
     localStorage.removeItem("tripData");
     localStorage.removeItem("tripIntentData");
-    localStorage.removeItem("anchorSelectData");
+    localStorage.removeItem("anchorLogic");
     localStorage.removeItem("itineraryData");
     setLocalStorageData(null);
     setStatus("🗑️ localStorage cleared");

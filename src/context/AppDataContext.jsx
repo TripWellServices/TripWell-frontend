@@ -23,7 +23,7 @@ export function AppDataProvider({ children }) {
       const userData = JSON.parse(localStorage.getItem("userData") || "null");
       const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
       const tripIntentData = JSON.parse(localStorage.getItem("tripIntentData") || "null");
-      const anchorSelectData = JSON.parse(localStorage.getItem("anchorSelectData") || "null");
+      const anchorSelectData = JSON.parse(localStorage.getItem("anchorLogic") || "null");
       const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
       const profileComplete = localStorage.getItem("profileComplete") === "true";
       setState((s) => ({ ...s, userData, tripData, tripIntentData, anchorSelectData, itineraryData, profileComplete }));
@@ -40,7 +40,7 @@ export function AppDataProvider({ children }) {
     }
     if (payload.tripData) localStorage.setItem("tripData", JSON.stringify(payload.tripData));
     if (payload.tripIntentData) localStorage.setItem("tripIntentData", JSON.stringify(payload.tripIntentData));
-    if (payload.anchorSelectData) localStorage.setItem("anchorSelectData", JSON.stringify(payload.anchorSelectData));
+            if (payload.anchorSelectData) localStorage.setItem("anchorLogic", JSON.stringify(payload.anchorSelectData));
     if (payload.itineraryData) localStorage.setItem("itineraryData", JSON.stringify(payload.itineraryData));
   }, []);
 

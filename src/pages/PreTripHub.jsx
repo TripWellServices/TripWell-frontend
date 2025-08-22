@@ -6,7 +6,7 @@ export default function PreTripHub() {
   // Get data from localStorage
   const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
   const tripIntentData = JSON.parse(localStorage.getItem("tripIntentData") || "null");
-  const anchorSelectData = JSON.parse(localStorage.getItem("anchorSelectData") || "null");
+  const anchorSelectData = JSON.parse(localStorage.getItem("anchorLogic") || "null");
   const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
 
   const startTrip = async () => {

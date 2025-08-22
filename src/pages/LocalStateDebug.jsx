@@ -12,7 +12,7 @@ export default function LocalStateDebug() {
         profileComplete: localStorage.getItem("profileComplete"),
         tripData: localStorage.getItem("tripData"),
         tripIntentData: localStorage.getItem("tripIntentData"),
-        anchorSelectData: localStorage.getItem("anchorSelectData"),
+        anchorSelectData: localStorage.getItem("anchorLogic"),
         itineraryData: localStorage.getItem("itineraryData"),
       };
       setLocalState(state);
@@ -32,13 +32,13 @@ export default function LocalStateDebug() {
   const resetTrip = () => {
     localStorage.removeItem("tripData");
     localStorage.removeItem("tripIntentData");
-    localStorage.removeItem("anchorSelectData");
+    localStorage.removeItem("anchorLogic");
     localStorage.removeItem("itineraryData");
     setLocalState({
       userData: localStorage.getItem("userData"),
       tripData: localStorage.getItem("tripData"),
       tripIntentData: localStorage.getItem("tripIntentData"),
-      anchorSelectData: localStorage.getItem("anchorSelectData"),
+      anchorSelectData: localStorage.getItem("anchorLogic"),
       itineraryData: localStorage.getItem("itineraryData"),
     });
     console.log("🔄 Reset trip data");
@@ -48,13 +48,13 @@ export default function LocalStateDebug() {
     localStorage.removeItem("userData");
     localStorage.removeItem("tripData");
     localStorage.removeItem("tripIntentData");
-    localStorage.removeItem("anchorSelectData");
+    localStorage.removeItem("anchorLogic");
     localStorage.removeItem("itineraryData");
     setLocalState({
       userData: localStorage.getItem("userData"),
       tripData: localStorage.getItem("tripData"),
       tripIntentData: localStorage.getItem("tripIntentData"),
-      anchorSelectData: localStorage.getItem("anchorSelectData"),
+      anchorSelectData: localStorage.getItem("anchorLogic"),
       itineraryData: localStorage.getItem("itineraryData"),
     });
     console.log("🔄 Reset user data");

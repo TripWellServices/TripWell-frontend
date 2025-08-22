@@ -109,10 +109,10 @@ export default function Access() {
         console.log("💾 Saved tripIntentData to localStorage:", localStorageData.tripIntentData);
       }
 
-      if (localStorageData.anchorSelectData) {
-        localStorage.setItem("anchorSelectData", JSON.stringify(localStorageData.anchorSelectData));
-        console.log("💾 Saved anchorSelectData to localStorage:", localStorageData.anchorSelectData);
-      }
+                if (localStorageData.anchorLogicData) {
+            localStorage.setItem("anchorLogic", JSON.stringify(localStorageData.anchorLogicData));
+            console.log("💾 Saved anchorLogicData to localStorage as anchorLogic:", localStorageData.anchorLogicData);
+          }
 
       if (localStorageData.itineraryData) {
         localStorage.setItem("itineraryData", JSON.stringify(localStorageData.itineraryData));

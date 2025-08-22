@@ -22,7 +22,7 @@ export default function AnchorSelect() {
         const user = JSON.parse(localStorage.getItem("userData") || "null");
         const trip = JSON.parse(localStorage.getItem("tripData") || "null");
         const intent = JSON.parse(localStorage.getItem("tripIntentData") || "null");
-        const anchorsLocal = JSON.parse(localStorage.getItem("anchorSelectData") || "null");
+        const anchorsLocal = JSON.parse(localStorage.getItem("anchorLogic") || "null");
         
         setUserData(user);
         setTripData(trip);
@@ -104,7 +104,7 @@ export default function AnchorSelect() {
       }, authConfig);
 
       const anchorSelectData = { anchors: selected };
-      localStorage.setItem("anchorSelectData", JSON.stringify(anchorSelectData));
+              localStorage.setItem("anchorLogic", JSON.stringify(anchorSelectData));
       console.log("💾 Saved anchorSelectData to localStorage:", anchorSelectData);
       const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
       if (itineraryData && itineraryData.itineraryId) {

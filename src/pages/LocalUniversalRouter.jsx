@@ -34,7 +34,7 @@ export default function LocalUniversalRouter() {
           profileComplete: profileComplete,
           tripData: !!tripData,
           tripIntentData: !!tripIntentData,
-          anchorSelectData: !!anchorSelectData,
+          anchorLogic: !!anchorLogic,
           itineraryData: !!itineraryData
         });
 
@@ -83,8 +83,9 @@ export default function LocalUniversalRouter() {
           if (localStorageData.tripIntentData) {
             localStorage.setItem("tripIntentData", JSON.stringify(localStorageData.tripIntentData));
           }
-          if (localStorageData.anchorSelectData) {
-            localStorage.setItem("anchorSelectData", JSON.stringify(localStorageData.anchorSelectData));
+          if (localStorageData.anchorLogicData) {
+            localStorage.setItem("anchorLogic", JSON.stringify(localStorageData.anchorLogicData));
+            console.log("💾 Saved anchorLogicData to localStorage as anchorLogic:", localStorageData.anchorLogicData);
           }
           if (localStorageData.itineraryData) {
             localStorage.setItem("itineraryData", JSON.stringify(localStorageData.itineraryData));
@@ -145,9 +146,9 @@ export default function LocalUniversalRouter() {
             console.log("💾 Saved tripIntentData to localStorage:", localStorageData.tripIntentData);
           }
 
-          if (localStorageData.anchorSelectData) {
-            localStorage.setItem("anchorSelectData", JSON.stringify(localStorageData.anchorSelectData));
-            console.log("💾 Saved anchorSelectData to localStorage:", localStorageData.anchorSelectData);
+          if (localStorageData.anchorLogicData) {
+            localStorage.setItem("anchorLogic", JSON.stringify(localStorageData.anchorLogicData));
+            console.log("💾 Saved anchorLogicData to localStorage as anchorLogic:", localStorageData.anchorLogicData);
           }
 
           if (localStorageData.itineraryData) {
@@ -201,14 +202,14 @@ export default function LocalUniversalRouter() {
         }
 
         // Step 7: Check anchors (trust localStorage after hydration)
-        console.log("🔍 DEEP DEBUG - anchorSelectData:", anchorSelectData);
-        console.log("🔍 DEEP DEBUG - anchorSelectData.anchors:", anchorSelectData?.anchors);
-        console.log("🔍 DEEP DEBUG - anchorSelectData.anchors?.length:", anchorSelectData?.anchors?.length);
+        console.log("🔍 DEEP DEBUG - anchorLogic:", anchorLogic);
+        console.log("🔍 DEEP DEBUG - anchorLogic.anchors:", anchorLogic?.anchors);
+        console.log("🔍 DEEP DEBUG - anchorLogic.anchors?.length:", anchorLogic?.anchors?.length);
         
         // Handle both data structures: full objects vs just titles
-        const hasAnchors = anchorSelectData && 
-          anchorSelectData.anchors && 
-          anchorSelectData.anchors.length > 0;
+        const hasAnchors = anchorLogic && 
+          anchorLogic.anchors && 
+          anchorLogic.anchors.length > 0;
         
         if (!hasAnchors) {
           console.log("❌ No anchors in localStorage, routing to /anchorselect");
@@ -217,10 +218,10 @@ export default function LocalUniversalRouter() {
         
         // Log what we found for debugging
         console.log("✅ Found anchors in localStorage:", {
-          count: anchorSelectData.anchors.length,
-          firstAnchor: anchorSelectData.anchors[0],
-          isTitleString: typeof anchorSelectData.anchors[0] === 'string',
-          isObject: typeof anchorSelectData.anchors[0] === 'object'
+          count: anchorLogic.anchors.length,
+          firstAnchor: anchorLogic.anchors[0],
+          isTitleString: typeof anchorLogic.anchors[0] === 'string',
+          isObject: typeof anchorLogic.anchors[0] === 'object'
         });
 
         // Step 8: Check itinerary (trust localStorage after hydration)

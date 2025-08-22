@@ -234,8 +234,8 @@ export default function TripSetup() {
             if (hydrateData.tripIntentData) {
               localStorage.setItem("tripIntentData", JSON.stringify(hydrateData.tripIntentData));
             }
-            if (hydrateData.anchorSelectData) {
-              localStorage.setItem("anchorSelectData", JSON.stringify(hydrateData.anchorSelectData));
+                    if (hydrateData.anchorLogicData) {
+          localStorage.setItem("anchorLogic", JSON.stringify(hydrateData.anchorLogicData));
             }
             if (hydrateData.itineraryData) {
               localStorage.setItem("itineraryData", JSON.stringify(hydrateData.itineraryData));

@@ -14,7 +14,7 @@ export default function TripItineraryBuilder() {
   const userData = JSON.parse(localStorage.getItem("userData") || "null");
   const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
   const tripIntentData = JSON.parse(localStorage.getItem("tripIntentData") || "null");
-  const anchorSelectData = JSON.parse(localStorage.getItem("anchorSelectData") || "null");
+  const anchorSelectData = JSON.parse(localStorage.getItem("anchorLogic") || "null");
 
   useEffect(() => {
     async function buildItinerary() {
