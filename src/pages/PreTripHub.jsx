@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
 import axios from "axios";
+import BACKEND_URL from "../config";
 
 export default function PreTripHub() {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ export default function PreTripHub() {
       
       // 🚨 PLANT THE FLAG IN BACKEND FIRST!
       console.log("🚨 Planting trip start flag in backend...");
-      const startRes = await axios.patch(`/tripwell/starttrip/${tripData.tripId || tripData._id}`, {}, {
+      const startRes = await axios.patch(`${BACKEND_URL}/tripwell/starttrip/${tripData.tripId || tripData._id}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       console.log("✅ Backend trip start flag planted:", startRes.data);

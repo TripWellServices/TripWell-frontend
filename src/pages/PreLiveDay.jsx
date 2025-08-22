@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import BACKEND_URL from "../config";
 
 export default function PreLiveDay() {
   const { tripId } = useParams();
@@ -13,8 +14,8 @@ export default function PreLiveDay() {
     const hydrate = async () => {
       try {
         const [{ data: whoami }, { data: status }] = await Promise.all([
-          axios.get("/tripwell/whoami"),
-          axios.get("/tripwell/tripstatus"),
+          axios.get(`${BACKEND_URL}/tripwell/whoami`),
+          axios.get(`${BACKEND_URL}/tripwell/tripstatus`),
         ]);
 
         setRole(whoami.role);
@@ -43,7 +44,7 @@ export default function PreLiveDay() {
 
   const handleStart = async () => {
     try {
-      await axios.patch(`/tripwell/starttrip/${tripId}`);
+      await axios.patch(`${BACKEND_URL}/tripwell/starttrip/${tripId}`);
       navigate(
         role === "originator"
           ? `/tripwell/live/${tripId}`

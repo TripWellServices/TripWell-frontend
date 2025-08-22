@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import BACKEND_URL from "../config";
 
 export default function TripDayLookback() {
   const [tripData, setTripData] = useState(null);
@@ -18,20 +19,37 @@ export default function TripDayLookback() {
   useEffect(() => {
     const hydrate = async () => {
       try {
-        const res = await axios.get("/tripwell/livestatus");
-        localStorage.setItem("tripData", JSON.stringify(res.data));
-        setTripData(res.data);
+        // Get tripId from localStorage
+        const localTripData = JSON.parse(localStorage.getItem("tripData") || "null");
+        if (!localTripData?.tripId) {
+          console.error("❌ No tripId found in localStorage");
+          navigate("/");
+          return;
+        }
+
+        const res = await axios.get(`${BACKEND_URL}/tripwell/livestatus/${localTripData.tripId}`);
+        const updatedTripData = {
+          tripId: res.data.tripId,
+          currentDay: res.data.currentDayIndex,
+          currentBlock: res.data.currentBlock,
+          tripComplete: res.data.tripComplete,
+          totalDays: res.data.totalDays,
+          dayData: res.data.dayData
+        };
+        localStorage.setItem("tripData", JSON.stringify(updatedTripData));
+        setTripData(updatedTripData);
       } catch {
         setTripData(JSON.parse(localStorage.getItem("tripData") || "null"));
       }
     };
     hydrate();
-  }, []);
+  }, [navigate]);
 
   const handleSave = async () => {
     if (!tripData) return;
     try {
-      await axios.post(`/tripwell/reflection/${tripData.tripId}/${tripData.currentDay}`, {
+      await axios.post(`${BACKEND_URL}/tripwell/reflection/${tripData.tripId}/${tripData.currentDay}`, {
+        summary: tripData.dayData?.summary || `Day ${tripData.currentDay} reflection`,
         moodTag,
         journalText
       });

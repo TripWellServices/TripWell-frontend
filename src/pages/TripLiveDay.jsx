@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import BACKEND_URL from "../config";
 
 export default function TripLiveDay() {
   const [tripData, setTripData] = useState(null);
@@ -10,9 +11,25 @@ export default function TripLiveDay() {
   useEffect(() => {
     const hydrate = async () => {
       try {
-        const res = await axios.get("/tripwell/livestatus");
-        localStorage.setItem("tripData", JSON.stringify(res.data));
-        setTripData(res.data);
+        // Get tripId from localStorage
+        const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
+        if (!tripData?.tripId) {
+          console.error("❌ No tripId found in localStorage");
+          navigate("/");
+          return;
+        }
+
+        const res = await axios.get(`${BACKEND_URL}/tripwell/livestatus/${tripData.tripId}`);
+        const updatedTripData = {
+          tripId: res.data.tripId,
+          currentDay: res.data.currentDayIndex,
+          currentBlock: res.data.currentBlock,
+          tripComplete: res.data.tripComplete,
+          totalDays: res.data.totalDays,
+          dayData: res.data.dayData
+        };
+        localStorage.setItem("tripData", JSON.stringify(updatedTripData));
+        setTripData(updatedTripData);
       } catch (err) {
         console.warn("⚠️ Backend hydrate failed:", err);
         const local = JSON.parse(localStorage.getItem("tripData") || "null");
@@ -20,7 +37,7 @@ export default function TripLiveDay() {
       }
     };
     hydrate();
-  }, []);
+  }, [navigate]);
 
   if (!tripData) return <p>Loading...</p>;
 
@@ -34,6 +51,18 @@ export default function TripLiveDay() {
       >
         Start {tripData.currentBlock}
       </button>
+      
+      {tripData.tripComplete && (
+        <div className="mt-4 p-4 bg-green-100 rounded-lg">
+          <p className="text-green-800">🎉 Trip Complete!</p>
+          <button
+            onClick={() => navigate("/tripcomplete")}
+            className="mt-2 bg-green-600 text-white py-2 px-4 rounded"
+          >
+            View Completion
+          </button>
+        </div>
+      )}
     </div>
   );
 }

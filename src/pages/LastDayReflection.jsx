@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import BACKEND_URL from "../config";
 
 export default function LastDayReflection() {
   const navigate = useNavigate();
@@ -16,8 +17,8 @@ export default function LastDayReflection() {
   useEffect(() => {
     async function hydrate() {
       try {
-        const whoRes = await axios.get("/tripwell/whoami");
-        const statusRes = await axios.get("/tripwell/tripstatus");
+        const whoRes = await axios.get(`${BACKEND_URL}/tripwell/whoami`);
+        const statusRes = await axios.get(`${BACKEND_URL}/tripwell/tripstatus`);
 
         if (whoRes.data && statusRes.data) {
           setTripId(statusRes.data.tripId);
@@ -49,7 +50,8 @@ ${finalThoughts.trim()}
     `.trim();
 
     try {
-      await axios.post(`/tripwell/reflection/${tripId}/${dayIndex}`, {
+      await axios.post(`${BACKEND_URL}/tripwell/reflection/${tripId}/${dayIndex}`, {
+        summary: `Final reflection for day ${dayIndex}`,
         journalText,
         moodTag: "reflective",
       });

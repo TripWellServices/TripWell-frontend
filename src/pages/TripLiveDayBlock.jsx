@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import BACKEND_URL from "../config";
 
 export default function TripLiveBlock() {
   const [loading, setLoading] = useState(false);
@@ -12,7 +13,7 @@ export default function TripLiveBlock() {
   const handleCompleteBlock = async () => {
     setLoading(true);
     try {
-      const res = await axios.post("/tripwell/doallcomplete", {
+      const res = await axios.post(`${BACKEND_URL}/tripwell/doallcomplete`, {
         tripId: tripData.tripId,
         dayIndex: tripData.currentDay,
         blockName: tripData.currentBlock

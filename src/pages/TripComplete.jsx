@@ -1,26 +1,22 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import BACKEND_URL from "../config";
 
 export default function TripComplete() {
   const navigate = useNavigate();
   const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
 
   useEffect(() => {
-    const markComplete = async () => {
-      if (tripData && !tripData.tripComplete) {
-        try {
-          await axios.post(`/tripwell/tripcomplete/${tripData.tripId}`);
-          const updated = { ...tripData, tripComplete: true };
-          localStorage.setItem("tripData", JSON.stringify(updated));
-          console.log("💾 Trip marked complete backend+local");
-        } catch (err) {
-          console.error("❌ Failed to mark trip complete:", err);
-        }
-      }
-    };
-    markComplete();
-  }, []);
+    // No need to call separate tripcomplete endpoint
+    // Trip completion is handled by doallcomplete route
+    // Just ensure localStorage is updated
+    if (tripData && !tripData.tripComplete) {
+      const updated = { ...tripData, tripComplete: true };
+      localStorage.setItem("tripData", JSON.stringify(updated));
+      console.log("💾 Trip marked complete in localStorage");
+    }
+  }, [tripData]);
 
   return (
     <div className="p-8 max-w-2xl mx-auto text-center space-y-6">

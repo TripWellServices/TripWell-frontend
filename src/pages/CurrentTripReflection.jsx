@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import BACKEND_URL from "../config";
 
 export default function CurrentTripReflection() {
   const { tripId } = useParams();
@@ -24,7 +25,7 @@ export default function CurrentTripReflection() {
         }
 
         // Get reflections from backend
-        const reflRes = await axios.get(`/tripwell/reflections/${tripId}`);
+        const reflRes = await axios.get(`${BACKEND_URL}/tripwell/reflections/${tripId}`);
         setReflections(reflRes.data || []);
       } catch (err) {
         console.error("Reflection hydration error:", err);
