@@ -14,13 +14,39 @@ export default function PreTripHub() {
 
   const startTrip = async () => {
     try {
-      // Update tripData to mark trip as started in frontend
+      // Wait for Firebase auth to be ready
+      await new Promise(resolve => {
+        const unsubscribe = auth.onAuthStateChanged(user => {
+          unsubscribe();
+          resolve(user);
+        });
+      });
+
+      const firebaseUser = auth.currentUser;
+      if (!firebaseUser) {
+        console.error("❌ No authenticated user");
+        alert("Please sign in to start your trip.");
+        return;
+      }
+
+      const token = await firebaseUser.getIdToken();
+      
+      // 🚨 PLANT THE FLAG IN BACKEND FIRST!
+      console.log("🚨 Planting trip start flag in backend...");
+      const startRes = await axios.post(`${BACKEND_URL}/tripwell/starttrip/${tripData.tripId || tripData._id}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      console.log("✅ Backend trip start flag planted:", startRes.data);
+
+      // Update tripData with backend response and mark as started
       const updatedTripData = {
         ...tripData,
-        startedTrip: true
+        startedTrip: true,
+        tripStartedByOriginator: startRes.data.tripStartedByOriginator,
+        tripStartedByParticipant: startRes.data.tripStartedByParticipant
       };
       localStorage.setItem("tripData", JSON.stringify(updatedTripData));
-      console.log("💾 Updated tripData - startedTrip: true");
+      console.log("💾 Updated tripData with backend flags");
       
       // Auto-determine current day index based on trip dates
       const today = new Date();
@@ -47,7 +73,7 @@ export default function PreTripHub() {
       localStorage.setItem("currentDayIndex", currentDayIndex.toString());
       console.log("💾 Current day index:", currentDayIndex);
       
-      // Navigate directly to the live day experience - NO BACKEND FLAG NEEDED!
+      // Navigate directly to the live day experience!
       console.log("🚀 Navigating to live day experience:", `/tripliveday/${tripData.tripId || tripData._id}`);
       window.location.href = `/tripliveday/${tripData.tripId || tripData._id}`;
       
