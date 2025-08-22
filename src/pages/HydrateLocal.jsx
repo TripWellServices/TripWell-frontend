@@ -48,11 +48,20 @@ export default function HydrateLocal() {
 
       const freshData = await response.json();
       
+      // 🔍 DEBUG: Log what backend sent
+      console.log("🔍 Backend sent anchorSelectData:", freshData.anchorSelectData);
+      console.log("🔍 Backend sent anchorSelectData?.anchors:", freshData.anchorSelectData?.anchors);
+      
       // Save all data to localStorage
       if (freshData.userData) localStorage.setItem("userData", JSON.stringify(freshData.userData));
       if (freshData.tripData) localStorage.setItem("tripData", JSON.stringify(freshData.tripData));
       if (freshData.tripIntentData) localStorage.setItem("tripIntentData", JSON.stringify(freshData.tripIntentData));
-      if (freshData.anchorSelectData) localStorage.setItem("anchorSelectData", JSON.stringify(freshData.anchorSelectData));
+      if (freshData.anchorSelectData) {
+        console.log("🔍 Setting anchorSelectData to localStorage:", freshData.anchorSelectData);
+        localStorage.setItem("anchorSelectData", JSON.stringify(freshData.anchorSelectData));
+      } else {
+        console.log("🔍 No anchorSelectData from backend!");
+      }
       if (freshData.itineraryData) localStorage.setItem("itineraryData", JSON.stringify(freshData.itineraryData));
 
       // Get what's actually in localStorage after hydration

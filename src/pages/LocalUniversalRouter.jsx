@@ -21,6 +21,13 @@ export default function LocalUniversalRouter() {
         const tripIntentData = JSON.parse(localStorage.getItem("tripIntentData") || "null");
         let anchorSelectData = JSON.parse(localStorage.getItem("anchorSelectData") || "null");
         let itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
+        
+        // 🔍 DEBUG: Log the exact localStorage data
+        console.log("🔍 UniversalRouter - Raw anchorSelectData from localStorage:", anchorSelectData);
+        console.log("🔍 UniversalRouter - anchorSelectData type:", typeof anchorSelectData);
+        console.log("🔍 UniversalRouter - anchorSelectData.anchors:", anchorSelectData?.anchors);
+        console.log("🔍 UniversalRouter - anchorSelectData.anchors type:", typeof anchorSelectData?.anchors);
+        console.log("🔍 UniversalRouter - anchorSelectData.anchors length:", anchorSelectData?.anchors?.length);
 
         console.log("🔍 Current localStorage state:", {
           userData: !!userData,
@@ -194,6 +201,10 @@ export default function LocalUniversalRouter() {
         }
 
         // Step 7: Check anchors (trust localStorage after hydration)
+        console.log("🔍 DEEP DEBUG - anchorSelectData:", anchorSelectData);
+        console.log("🔍 DEEP DEBUG - anchorSelectData.anchors:", anchorSelectData?.anchors);
+        console.log("🔍 DEEP DEBUG - anchorSelectData.anchors?.length:", anchorSelectData?.anchors?.length);
+        
         if (!anchorSelectData || !anchorSelectData.anchors || anchorSelectData.anchors.length === 0) {
           console.log("❌ No anchors in localStorage, routing to /anchorselect");
           return navigate("/anchorselect");
