@@ -48,9 +48,9 @@ export default function HydrateLocal() {
 
       const freshData = await response.json();
       
-      // 🔍 DEBUG: Log what backend sent
-      console.log("🔍 Backend sent anchorSelectData:", freshData.anchorSelectData);
-      console.log("🔍 Backend sent anchorSelectData?.anchors:", freshData.anchorSelectData?.anchors);
+             // 🔍 DEBUG: Log what backend sent
+       console.log("🔍 Backend sent anchorLogicData:", freshData.anchorLogicData);
+       console.log("🔍 Backend sent anchorLogicData?.anchors:", freshData.anchorLogicData?.anchors);
       
       // Save all data to localStorage
       if (freshData.userData) localStorage.setItem("userData", JSON.stringify(freshData.userData));
@@ -64,15 +64,15 @@ export default function HydrateLocal() {
               }
       if (freshData.itineraryData) localStorage.setItem("itineraryData", JSON.stringify(freshData.itineraryData));
 
-      // Get what's actually in localStorage after hydration
-      const localStorageData = {
-        userData: JSON.parse(localStorage.getItem("userData") || "null"),
-        tripData: JSON.parse(localStorage.getItem("tripData") || "null"),
-        tripIntentData: JSON.parse(localStorage.getItem("tripIntentData") || "null"),
-        anchorSelectData: JSON.parse(localStorage.getItem("anchorSelectData") || "null"),
-        itineraryData: JSON.parse(localStorage.getItem("itineraryData") || "null"),
-        profileComplete: localStorage.getItem("profileComplete") === "true"
-      };
+             // Get what's actually in localStorage after hydration
+       const localStorageData = {
+         userData: JSON.parse(localStorage.getItem("userData") || "null"),
+         tripData: JSON.parse(localStorage.getItem("tripData") || "null"),
+         tripIntentData: JSON.parse(localStorage.getItem("tripIntentData") || "null"),
+         anchorLogic: JSON.parse(localStorage.getItem("anchorLogic") || "null"),
+         itineraryData: JSON.parse(localStorage.getItem("itineraryData") || "null"),
+         profileComplete: localStorage.getItem("profileComplete") === "true"
+       };
       
       setHydratedData(localStorageData);
       setStatus(`✅ Hydrated: ${Object.keys(localStorageData).filter(k => localStorageData[k]).length} models`);
