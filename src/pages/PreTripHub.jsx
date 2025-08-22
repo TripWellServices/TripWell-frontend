@@ -70,7 +70,7 @@ export default function PreTripHub() {
       localStorage.setItem("currentDayIndex", currentDayIndex.toString());
       console.log("💾 Current day index:", currentDayIndex);
       
-      // Navigate directly to the live day experience
+      // Navigate directly to the live day experience - BYPASS ALL ROUTING!
       console.log("🚀 Navigating to live day experience:", `/tripliveday/${tripData.tripId || tripData._id}`);
       window.location.href = `/tripliveday/${tripData.tripId || tripData._id}`;
       

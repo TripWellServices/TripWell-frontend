@@ -11,55 +11,135 @@ export default function TripLiveDay() {
   const [dayData, setDayData] = useState(null);
   const [currentBlock, setCurrentBlock] = useState(null);
   const [currentDayIndex, setCurrentDayIndex] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    async function hydrate() {
-      try {
-        // Wait for Firebase auth to be ready
-        await new Promise(resolve => {
-          const unsubscribe = auth.onAuthStateChanged(user => {
-            unsubscribe();
-            resolve(user);
-          });
-        });
-
-        const firebaseUser = auth.currentUser;
-        if (!firebaseUser) {
-          console.error("❌ No authenticated user");
-          navigate("/access");
-          return;
-        }
-
-        const token = await firebaseUser.getIdToken();
-        const res = await axios.get(`/tripwell/livestatus/${tripId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const { currentDayIndex, currentBlock, dayData, tripComplete } = res.data;
-
-        if (tripComplete) {
-          navigate("/tripcomplete");
-          return;
-        }
-
-        setCurrentDayIndex(currentDayIndex);
-        setCurrentBlock(currentBlock);
-        setDayData(dayData);
-        
-        // Save to localStorage for test flow
-        localStorage.setItem("lastDayVisited", currentDayIndex.toString());
-        console.log("💾 Saved lastDayVisited to localStorage:", currentDayIndex);
-      } catch (err) {
-        console.error("❌ Live day hydration failed:", err);
-      } finally {
-        setLoading(false);
+    // 🚨 SIMULATE BACKEND CALL WITH FRONTEND DATA!
+    console.log("🚀 Simulating /tripwell/livestatus/${tripId} call with frontend data");
+    
+    try {
+      // Get data from localStorage
+      const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
+      const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
+      
+      console.log("🔍 localStorage tripData:", tripData);
+      console.log("🔍 localStorage itineraryData:", itineraryData);
+      
+      if (!tripData || !itineraryData) {
+        throw new Error("Missing trip or itinerary data in localStorage");
       }
-    }
 
-    hydrate();
+      // 🚨 SIMULATE BACKEND RESPONSE STRUCTURE
+      // Since we don't have completion tracking, we'll simulate a fresh trip start
+      
+      // Get current day index from localStorage (set by PreTripHub)
+      const currentDayIndex = parseInt(localStorage.getItem("currentDayIndex") || "1");
+      const totalDays = itineraryData.days.length;
+      
+      // Find the current day data
+      const currentDay = itineraryData.days.find(day => day.dayIndex === currentDayIndex);
+      if (!currentDay) {
+        throw new Error(`No data found for day ${currentDayIndex}`);
+      }
+      
+      // Since we don't have completion tracking, always start with morning block
+      let currentBlock = "morning";
+      
+      // Check if trip is complete (only if we're past the last day)
+      const isLastDay = currentDayIndex === totalDays;
+      const tripComplete = false; // No completion tracking yet, so always false
+      
+      // Build day data (mimics the backend structure)
+      const dayData = {
+        city: tripData.city,
+        dateStr: new Date(tripData.startDate).toLocaleDateString('en-US', { 
+          month: 'long', 
+          day: 'numeric', 
+          year: 'numeric' 
+        }),
+        summary: currentDay.summary || "Ready for your adventure!",
+        blocks: currentDay.blocks || {}
+      };
+      
+      // Simulate the exact backend response structure
+      const simulatedBackendResponse = {
+        tripId: tripData.tripId || tripData._id,
+        currentDayIndex,
+        currentBlock,
+        totalDays,
+        tripComplete,
+        dayData
+      };
+
+      // Extract data from simulated backend response (like the real component would)
+      const { currentDayIndex, currentBlock, dayData, tripComplete } = simulatedBackendResponse;
+
+      if (tripComplete) {
+        navigate("/tripcomplete");
+        return;
+      }
+
+      setCurrentDayIndex(currentDayIndex);
+      setCurrentBlock(currentBlock);
+      setDayData(dayData);
+      
+      console.log("✅ Simulated backend response:", simulatedBackendResponse);
+      
+    } catch (err) {
+      console.error("❌ Backend simulation failed:", err);
+      setError(err.message || "Failed to simulate backend call");
+    } finally {
+      setLoading(false);
+    }
   }, [tripId, navigate]);
 
-  if (loading) return <div className="p-6 text-center">Loading today’s plan...</div>;
-  if (!dayData) return <div className="p-6 text-center">Couldn’t load today’s itinerary.</div>;
+  if (loading) return <div className="p-6 text-center">Loading today's plan...</div>;
+  
+  if (error) {
+    return (
+      <div className="p-6 max-w-2xl mx-auto text-center space-y-4">
+        <h1 className="text-2xl font-bold text-red-600">❌ Error Loading Live Day</h1>
+        <p className="text-gray-600">{error}</p>
+        <div className="space-y-2">
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg mr-2"
+          >
+            🔄 Try Again
+          </button>
+          <button 
+            onClick={() => window.location.href = "/prephub"} 
+            className="bg-gray-600 text-white px-4 py-2 rounded-lg"
+          >
+            🏠 Back to Trip Hub
+          </button>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!dayData) {
+    return (
+      <div className="p-6 max-w-2xl mx-auto text-center space-y-4">
+        <h1 className="text-2xl font-bold text-red-600">❌ No Itinerary Data</h1>
+        <p className="text-gray-600">Couldn't load today's itinerary.</p>
+        <div className="space-y-2">
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg mr-2"
+          >
+            🔄 Try Again
+          </button>
+          <button 
+            onClick={() => navigate("/prephub")} 
+            className="bg-gray-600 text-white px-4 py-2 rounded-lg"
+          >
+            🏠 Back to Trip Hub
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const { city, dateStr, summary, blocks } = dayData;
 

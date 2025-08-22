@@ -8,8 +8,15 @@ export default function Home() {
   const [hasRouted, setHasRouted] = useState(false);
 
   useEffect(() => {
-             // Show splash screen for 1000ms
-         const timer = setTimeout(() => {
+    // Check if we're already on a live day route - if so, don't interfere
+    const currentPath = window.location.pathname;
+    if (currentPath.startsWith('/tripliveday') || currentPath.startsWith('/tripliveblock')) {
+      console.log("🚀 Already on live day route, not interfering:", currentPath);
+      return;
+    }
+
+    // Show splash screen for 1000ms
+    const timer = setTimeout(() => {
       // Then check auth state and route appropriately
       const unsub = auth.onAuthStateChanged(async (firebaseUser) => {
         if (hasRouted) return; // Prevent multiple routing attempts
@@ -19,12 +26,12 @@ export default function Home() {
           console.log("🔐 User authenticated, checking access...");
           setHasRouted(true);
           await checkUserAccess(firebaseUser);
-                 } else {
-           // User not authenticated - go to access page for sign-in
-           console.log("🔐 User not authenticated, routing to access...");
-           setHasRouted(true);
-           navigate("/access");
-         }
+        } else {
+          // User not authenticated - go to access page for sign-in
+          console.log("🔐 User not authenticated, routing to access...");
+          setHasRouted(true);
+          navigate("/access");
+        }
       });
 
       return () => unsub();
