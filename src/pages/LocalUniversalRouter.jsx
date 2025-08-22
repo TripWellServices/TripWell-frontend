@@ -19,15 +19,15 @@ export default function LocalUniversalRouter() {
         const profileComplete = localStorage.getItem("profileComplete") === "true";
         const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
         const tripIntentData = JSON.parse(localStorage.getItem("tripIntentData") || "null");
-        let anchorSelectData = JSON.parse(localStorage.getItem("anchorSelectData") || "null");
+        let anchorLogic = JSON.parse(localStorage.getItem("anchorLogic") || "null");
         let itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
         
         // 🔍 DEBUG: Log the exact localStorage data
-        console.log("🔍 UniversalRouter - Raw anchorSelectData from localStorage:", anchorSelectData);
-        console.log("🔍 UniversalRouter - anchorSelectData type:", typeof anchorSelectData);
-        console.log("🔍 UniversalRouter - anchorSelectData.anchors:", anchorSelectData?.anchors);
-        console.log("🔍 UniversalRouter - anchorSelectData.anchors type:", typeof anchorSelectData?.anchors);
-        console.log("🔍 UniversalRouter - anchorSelectData.anchors length:", anchorSelectData?.anchors?.length);
+        console.log("🔍 UniversalRouter - Raw anchorLogic from localStorage:", anchorLogic);
+        console.log("🔍 UniversalRouter - anchorLogic type:", typeof anchorLogic);
+        console.log("🔍 UniversalRouter - anchorLogic.anchors:", anchorLogic?.anchors);
+        console.log("🔍 UniversalRouter - anchorLogic.anchors type:", typeof anchorLogic?.anchors);
+        console.log("🔍 UniversalRouter - anchorLogic.anchors length:", anchorLogic?.anchors?.length);
 
         console.log("🔍 Current localStorage state:", {
           userData: !!userData,
@@ -205,10 +205,23 @@ export default function LocalUniversalRouter() {
         console.log("🔍 DEEP DEBUG - anchorSelectData.anchors:", anchorSelectData?.anchors);
         console.log("🔍 DEEP DEBUG - anchorSelectData.anchors?.length:", anchorSelectData?.anchors?.length);
         
-        if (!anchorSelectData || !anchorSelectData.anchors || anchorSelectData.anchors.length === 0) {
+        // Handle both data structures: full objects vs just titles
+        const hasAnchors = anchorSelectData && 
+          anchorSelectData.anchors && 
+          anchorSelectData.anchors.length > 0;
+        
+        if (!hasAnchors) {
           console.log("❌ No anchors in localStorage, routing to /anchorselect");
           return navigate("/anchorselect");
         }
+        
+        // Log what we found for debugging
+        console.log("✅ Found anchors in localStorage:", {
+          count: anchorSelectData.anchors.length,
+          firstAnchor: anchorSelectData.anchors[0],
+          isTitleString: typeof anchorSelectData.anchors[0] === 'string',
+          isObject: typeof anchorSelectData.anchors[0] === 'object'
+        });
 
         // Step 8: Check itinerary (trust localStorage after hydration)
         if (!itineraryData || !itineraryData.itineraryId) {

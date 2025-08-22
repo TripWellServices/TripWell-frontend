@@ -56,12 +56,12 @@ export default function HydrateLocal() {
       if (freshData.userData) localStorage.setItem("userData", JSON.stringify(freshData.userData));
       if (freshData.tripData) localStorage.setItem("tripData", JSON.stringify(freshData.tripData));
       if (freshData.tripIntentData) localStorage.setItem("tripIntentData", JSON.stringify(freshData.tripIntentData));
-      if (freshData.anchorSelectData) {
-        console.log("🔍 Setting anchorSelectData to localStorage:", freshData.anchorSelectData);
-        localStorage.setItem("anchorSelectData", JSON.stringify(freshData.anchorSelectData));
-      } else {
-        console.log("🔍 No anchorSelectData from backend!");
-      }
+                    if (freshData.anchorLogicData) {
+                console.log("🔍 Setting anchorLogic to localStorage:", freshData.anchorLogicData);
+                localStorage.setItem("anchorLogic", JSON.stringify(freshData.anchorLogicData));
+              } else {
+                console.log("🔍 No anchorLogicData from backend!");
+              }
       if (freshData.itineraryData) localStorage.setItem("itineraryData", JSON.stringify(freshData.itineraryData));
 
       // Get what's actually in localStorage after hydration
@@ -116,7 +116,7 @@ export default function HydrateLocal() {
           <div>👤 User: {hydratedData.userData ? "✅" : "❌"}</div>
           <div>✈️ Trip: {hydratedData.tripData ? "✅" : "❌"}</div>
           <div>🎯 Intent: {hydratedData.tripIntentData ? "✅" : "❌"}</div>
-          <div>⚓ Anchors: {hydratedData.anchorSelectData ? "✅" : "❌"}</div>
+                            <div>⚓ Anchors: {hydratedData.anchorLogicData ? "✅" : "❌"}</div>
           <div>📅 Itinerary: {hydratedData.itineraryData ? "✅" : "❌"}</div>
         </div>
       </div>

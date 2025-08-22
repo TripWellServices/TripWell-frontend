@@ -42,51 +42,16 @@ export default function AnchorSelect() {
   useEffect(() => {
     if (!userData || !tripData) return;
 
-    // If anchors already exist in localStorage, skip loading/saving
-    // and go straight to itinerary (overview if we already have one)
-    if (anchorSelectData && Array.isArray(anchorSelectData.anchors) && anchorSelectData.anchors.length > 0) {
-      console.log("✅ Anchors already exist in localStorage, skipping fetch and navigating to itinerary");
-      const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
-      if (itineraryData && itineraryData.itineraryId) {
-        navigate("/tripwell/itineraryupdate");
-      } else {
-        navigate("/tripwell/itinerarybuild");
-      }
-      return;
-    }
-
-    // Otherwise, verify with server first to avoid re-saving when DB already has anchors
-    (async () => {
-      try {
-        const tripId = tripData.tripId || tripData._id;
-
-        // 1) Check anchor selection status on the server
-        const statusRes = await axios.get(`${BACKEND_URL}/tripwell/anchorselect/status/${tripId}`);
-
-        if (statusRes.data?.hasCompletedAnchorSelection) {
-          const titles = Array.isArray(statusRes.data.anchors)
-            ? statusRes.data.anchors.map((a) => a.title).filter(Boolean)
-            : [];
-          localStorage.setItem("anchorSelectData", JSON.stringify({ anchors: titles }));
-          console.log("✅ Server reports anchors completed; saved to localStorage and redirecting");
-
-          // 2) Prefer itinerary overview if itinerary already exists
-          const itinStatusRes = await axios.get(`${BACKEND_URL}/tripwell/itinerary/status/${tripId}`);
-
-          if (itinStatusRes.data?.hasCompletedItinerary) {
-            return navigate("/tripwell/itineraryupdate");
-          }
-
-          return navigate("/tripwell/itinerarybuild");
-        }
-      } catch (e) {
-        console.warn("⚠️ Anchor status check failed, falling back to loading suggestions", e);
-      }
-
-      // If server says not completed, load fresh suggestions to pick
+    // ✅ FIX: Remove AnchorSelect router logic - let UniversalRouter handle routing!
+    // Just load anchors if we don't have them
+    if (!anchorSelectData || !Array.isArray(anchorSelectData.anchors) || anchorSelectData.anchors.length === 0) {
+      console.log("🔍 No anchors in localStorage, loading fresh suggestions");
       loadAnchors();
-    })();
-  }, [userData, tripData, anchorSelectData, navigate]);
+    } else {
+      console.log("✅ Anchors already exist in localStorage, showing selection interface");
+      setLoading(false);
+    }
+  }, [userData, tripData, anchorSelectData]);
 
   const loadAnchors = async () => {
     try {
