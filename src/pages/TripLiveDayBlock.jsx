@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { auth } from "../firebase";
 import axios from "axios";
 
 export default function TripLiveDayBlock() {
@@ -15,7 +16,25 @@ export default function TripLiveDayBlock() {
   useEffect(() => {
     const hydrateLiveStatus = async () => {
       try {
-        const res = await axios.get(`/tripwell/livestatus`);
+        // Wait for Firebase auth to be ready
+        await new Promise(resolve => {
+          const unsubscribe = auth.onAuthStateChanged(user => {
+            unsubscribe();
+            resolve(user);
+          });
+        });
+
+        const firebaseUser = auth.currentUser;
+        if (!firebaseUser) {
+          console.error("❌ No authenticated user");
+          navigate("/access");
+          return;
+        }
+
+        const token = await firebaseUser.getIdToken();
+        const res = await axios.get(`/tripwell/livestatus`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         const { tripId, dayIndex, blockInProgress } = res.data;
         if (!tripId || dayIndex == null || !blockInProgress) {
           navigate("/access");
@@ -27,7 +46,9 @@ export default function TripLiveDayBlock() {
         setBlockName(blockInProgress);
 
         // hydrate itinerary block data
-        const itinRes = await axios.get(`/tripwell/itinerary/day/${tripId}/${dayIndex}`);
+        const itinRes = await axios.get(`/tripwell/itinerary/day/${tripId}/${dayIndex}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         const block = itinRes.data?.blocks?.[blockInProgress];
         setBlockData(block);
       } catch (err) {
@@ -41,11 +62,14 @@ export default function TripLiveDayBlock() {
 
   const handleSubmitFeedback = async () => {
     try {
+      const token = await auth.currentUser.getIdToken();
       const res = await axios.post(`/tripwell/livedaygpt/block`, {
         tripId,
         dayIndex,
         block: blockName,
         feedback,
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
       });
       setBlockData(res.data.updatedBlock);
     } catch (err) {
@@ -55,11 +79,14 @@ export default function TripLiveDayBlock() {
 
   const handleAskAngela = async () => {
     try {
+      const token = await auth.currentUser.getIdToken();
       const res = await axios.post(`/tripwell/livedaygpt/ask`, {
         tripId,
         dayIndex,
         blockName,
         question: ask,
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
       });
       setAnswer(res.data.answer);
     } catch (err) {
@@ -69,10 +96,13 @@ export default function TripLiveDayBlock() {
 
   const handleMarkComplete = async () => {
     try {
+      const token = await auth.currentUser.getIdToken();
       const res = await axios.post(`/tripwell/doallcomplete`, {
         tripId,
         dayIndex,
         blockName,
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       if (res.data.next === "lookback") {

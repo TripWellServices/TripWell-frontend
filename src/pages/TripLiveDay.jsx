@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { auth } from "../firebase";
 import axios from "axios";
 
 export default function TripLiveDay() {
@@ -14,7 +15,25 @@ export default function TripLiveDay() {
   useEffect(() => {
     async function hydrate() {
       try {
-        const res = await axios.get(`/tripwell/livestatus/${tripId}`);
+        // Wait for Firebase auth to be ready
+        await new Promise(resolve => {
+          const unsubscribe = auth.onAuthStateChanged(user => {
+            unsubscribe();
+            resolve(user);
+          });
+        });
+
+        const firebaseUser = auth.currentUser;
+        if (!firebaseUser) {
+          console.error("❌ No authenticated user");
+          navigate("/access");
+          return;
+        }
+
+        const token = await firebaseUser.getIdToken();
+        const res = await axios.get(`/tripwell/livestatus/${tripId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         const { currentDayIndex, currentBlock, dayData, tripComplete } = res.data;
 
         if (tripComplete) {

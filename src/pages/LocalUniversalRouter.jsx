@@ -195,9 +195,18 @@ export default function LocalUniversalRouter() {
 
         // Step 5: Check if trip has started
         console.log("🔍 DEBUG - currentTripData.startedTrip:", currentTripData.startedTrip);
+        console.log("🔍 DEBUG - Current pathname:", location.pathname);
         if (currentTripData.startedTrip === true) {
-          console.log("✅ Trip has started, routing to /prephub");
-          return navigate("/prephub");
+          // If trip has started, allow navigation to live day routes
+          if (location.pathname.startsWith('/tripliveday') || location.pathname.startsWith('/tripliveblock')) {
+            console.log("✅ Trip has started and navigating to live day, allowing navigation");
+            console.log("✅ Pathname matches live day route, setting loading to false");
+            setLoading(false);
+            return;
+          } else {
+            console.log("✅ Trip has started, routing to /prephub");
+            return navigate("/prephub");
+          }
         }
 
         // Step 6: Check trip intent

@@ -75,7 +75,7 @@ import HydrateLocal from "./pages/HydrateLocal";
 import HydrateTest from "./pages/HydrateTest";
 import PreTripHub from "./pages/PreTripHub";
 import ReflectionHub from "./pages/ReflectionHub";
-import LiveDay from "./pages/LiveDay";
+
 import LocalStateDebug from "./pages/LocalStateDebug";
 
 export default function App() {
@@ -118,7 +118,7 @@ export default function App() {
       <Route path="/hydratetest" element={<HydrateTest />} />
       <Route path="/prephub" element={<PreTripHub />} />
       <Route path="/reflectionhub" element={<ReflectionHub />} />
-      <Route path="/liveday/:dayNumber" element={<LiveDay />} />
+
       <Route path="/localdebug" element={<LocalStateDebug />} />
 
       <Route path="/tripintent" element={<TripIntentForm />} />
@@ -134,7 +134,7 @@ export default function App() {
 
       {/* ✅ Execution Phase (Shared) */}
       <Route path="/preliveday" element={<PreLiveDay />} />
-      <Route path="/tripliveday" element={<TripLiveDay />} />
+      <Route path="/tripliveday/:tripId" element={<TripLiveDay />} />
       <Route path="/tripliveblock" element={<TripLiveDayBlock />} />
       <Route path="/previewliveday" element={<PreviewLiveDay />} />
       <Route path="/tripcomplete" element={<TripComplete />} />
