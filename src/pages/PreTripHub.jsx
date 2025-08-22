@@ -100,7 +100,9 @@ export default function PreTripHub() {
           </div>
           <div>
             <span className="font-medium text-gray-600">Dates:</span>
-            <p className="text-gray-900">{tripData.startDate} to {tripData.endDate}</p>
+            <p className="text-gray-900">
+              {new Date(tripData.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} to {new Date(tripData.endDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            </p>
           </div>
           <div>
             <span className="font-medium text-gray-600">Travelers:</span>
@@ -139,7 +141,7 @@ export default function PreTripHub() {
         </button>
         
         <button 
-          onClick={() => navigate("/tripwell/itineraryupdate")}
+          onClick={() => navigate("/tripdaysoverview")}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-4 px-6 rounded-lg transition-colors text-lg flex items-center justify-center space-x-2"
         >
           <span>✏️</span>

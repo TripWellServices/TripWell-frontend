@@ -57,9 +57,18 @@ export default function HydrateLocal() {
 
       const freshData = await response.json();
       
-             // 🔍 DEBUG: Log what backend sent
-       console.log("🔍 Backend sent anchorLogicData:", freshData.anchorLogicData);
-       console.log("🔍 Backend sent anchorLogicData?.anchors:", freshData.anchorLogicData?.anchors);
+      // 🔍 DEBUG: Log what backend sent
+      console.log("🔍 Backend sent userData:", freshData.userData);
+      console.log("🔍 Backend sent tripData:", freshData.tripData);
+      console.log("🔍 Backend sent tripIntentData:", freshData.tripIntentData);
+      console.log("🔍 Backend sent anchorLogicData:", freshData.anchorLogicData);
+      console.log("🔍 Backend sent anchorLogicData?.anchors:", freshData.anchorLogicData?.anchors);
+      console.log("🔍 Backend sent itineraryData:", freshData.itineraryData);
+      
+      // 🔍 DEBUG: Log authentication info
+      console.log("🔐 User authenticated, checking access...");
+      console.log("🔍 User check response:", freshData.userData);
+      console.log("💾 Existing user, routing to hydrate...");
       
       // Save all data to localStorage
       if (freshData.userData) localStorage.setItem("userData", JSON.stringify(freshData.userData));

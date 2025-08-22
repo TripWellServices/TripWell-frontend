@@ -125,6 +125,7 @@ export default function App() {
       <Route path="/anchorselect" element={<AnchorSelectPage />} />
       <Route path="/tripwell/itinerarybuild" element={<TripItineraryBuild />} />
       <Route path="/tripwell/itineraryupdate" element={<TripDayOverview />} />
+      <Route path="/tripdaysoverview" element={<TripDayOverview />} />
       <Route path="/tripwell/itinerarycomplete" element={<TripItineraryComplete />} />
       <Route path="/modify/day/:tripId?/:dayIndex?" element={<ModifyDay />} />
       <Route path="/modify/block/:tripId?/:dayIndex?/:timeOfDay?" element={<ModifyBlock />} />
