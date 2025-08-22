@@ -193,28 +193,16 @@ export default function LocalUniversalRouter() {
           return navigate("/tripintent");
         }
 
-        // Step 7: Check anchors (refresh from server if missing locally)
+        // Step 7: Check anchors (trust localStorage after hydration)
         if (!anchorSelectData || !anchorSelectData.anchors || anchorSelectData.anchors.length === 0) {
-          console.log("❌ No anchors in localStorage; refreshing from server before routing");
-          await refreshFromServer();
-          anchorSelectData = JSON.parse(localStorage.getItem("anchorSelectData") || "null");
-          itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
-
-          if (!anchorSelectData || !anchorSelectData.anchors || anchorSelectData.anchors.length === 0) {
-            console.log("❌ Still no anchors after refresh, routing to /anchorselect");
-            return navigate("/anchorselect");
-          }
+          console.log("❌ No anchors in localStorage, routing to /anchorselect");
+          return navigate("/anchorselect");
         }
 
-        // Step 8: Check itinerary (refresh first if missing)
+        // Step 8: Check itinerary (trust localStorage after hydration)
         if (!itineraryData || !itineraryData.itineraryId) {
-          console.log("❌ No itinerary in localStorage; refreshing from server before routing");
-          await refreshFromServer();
-          itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
-          if (!itineraryData || !itineraryData.itineraryId) {
-            console.log("❌ Still no itinerary, routing to /itinerarybuild");
-            return navigate("/itinerarybuild");
-          }
+          console.log("❌ No itinerary in localStorage, routing to /itinerarybuild");
+          return navigate("/itinerarybuild");
         }
 
         // Step 9: Route to PreTripHub if they have itinerary but haven't started trip
