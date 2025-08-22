@@ -1,62 +1,38 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth } from "../firebase";
 import axios from "axios";
 
 export default function TripLiveDay() {
+  const [tripData, setTripData] = useState(null);
   const navigate = useNavigate();
-  const [tripId, setTripId] = useState(null);
-  const [currentDay, setCurrentDay] = useState(1);
-  const [currentBlock, setCurrentBlock] = useState("morning"); // morning → afternoon → evening
-  const [totalDays, setTotalDays] = useState(0);
 
+  // Hydrate trip status (backend → local)
   useEffect(() => {
     const hydrate = async () => {
       try {
-        const user = await new Promise(resolve => {
-          const unsub = auth.onAuthStateChanged(u => {
-            unsub();
-            resolve(u);
-          });
-        });
-        if (!user) {
-          navigate("/access");
-          return;
-        }
-
-        const token = await user.getIdToken();
-        // hydrate trip
-        const res = await axios.get("/tripwell/tripstatus", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        const { tripId, totalDays, currentDay, currentBlock } = res.data;
-        setTripId(tripId);
-        setTotalDays(totalDays);
-        setCurrentDay(currentDay || 1);
-        setCurrentBlock(currentBlock || "morning");
+        const res = await axios.get("/tripwell/livestatus");
+        localStorage.setItem("tripData", JSON.stringify(res.data));
+        setTripData(res.data);
       } catch (err) {
-        console.error("TripLiveDay hydrate error:", err);
-        navigate("/access");
+        console.warn("⚠️ Backend hydrate failed:", err);
+        const local = JSON.parse(localStorage.getItem("tripData") || "null");
+        setTripData(local || { currentDay: 1, currentBlock: "morning", tripComplete: false });
       }
     };
-
     hydrate();
-  }, [navigate]);
+  }, []);
 
-  if (!tripId) return <div className="p-6">Loading trip...</div>;
+  if (!tripData) return <p>Loading...</p>;
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold">Day {currentDay} of {totalDays}</h1>
-      <p className="mt-2">Current block: {currentBlock}</p>
+    <div className="p-8 max-w-2xl mx-auto text-center">
+      <h1 className="text-3xl font-bold">Day {tripData.currentDay}</h1>
+      <p className="text-lg text-gray-600">Block: {tripData.currentBlock}</p>
       <button
-        onClick={() =>
-          navigate("/tripliveblock", { state: { tripId, currentDay, currentBlock, totalDays } })
-        }
-        className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-xl"
+        onClick={() => navigate("/tripliveblock")}
+        className="mt-6 bg-blue-600 text-white py-3 px-6 rounded-lg"
       >
-        🚀 Start {currentBlock}
+        Start {tripData.currentBlock}
       </button>
     </div>
   );

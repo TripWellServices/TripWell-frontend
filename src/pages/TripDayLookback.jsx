@@ -1,80 +1,76 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 export default function TripDayLookback() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { tripId, dayIndex, tripComplete } = location.state || {};
-
-  const [city, setCity] = useState("your destination");
+  const [tripData, setTripData] = useState(null);
   const [moodTag, setMoodTag] = useState("");
   const [journalText, setJournalText] = useState("");
+  const navigate = useNavigate();
 
   const moodOptions = [
-    "😄 Full of Memories",
-    "😩 Exhausted",
-    "😌 Exhausted in a Good Way",
-    "🍕 Ate Too Much",
-    "😋 Ate Too Much in a Good Way",
-    "🧘 Reflective",
-    "🤯 Mind Blown",
-    "💤 Chill Day",
-    "🎢 Rollercoaster"
+    "😄 Full of Memories", "😩 Exhausted", "😌 Exhausted in a Good Way",
+    "🍕 Ate Too Much", "😋 Ate Too Much in a Good Way", "🧘 Reflective",
+    "🤯 Mind Blown", "💤 Chill Day", "🎢 Rollercoaster"
   ];
 
+  // Hydrate tripData
   useEffect(() => {
     const hydrate = async () => {
       try {
-        const res = await axios.get(`/tripwell/lookback/${tripId}/${dayIndex}`);
-        if (res.data.city) setCity(res.data.city);
-      } catch (err) {
-        console.error("Lookback hydrate error:", err);
+        const res = await axios.get("/tripwell/livestatus");
+        localStorage.setItem("tripData", JSON.stringify(res.data));
+        setTripData(res.data);
+      } catch {
+        setTripData(JSON.parse(localStorage.getItem("tripData") || "null"));
       }
     };
     hydrate();
-  }, [tripId, dayIndex]);
+  }, []);
 
   const handleSave = async () => {
+    if (!tripData) return;
     try {
-      // 1. Save to backend
-      await axios.post(`/tripwell/reflection/${tripId}/${dayIndex}`, {
+      await axios.post(`/tripwell/reflection/${tripData.tripId}/${tripData.currentDay}`, {
         moodTag,
-        journalText,
+        journalText
       });
 
-      // 2. Mirror to localStorage
-      const existingReflections = JSON.parse(localStorage.getItem("reflectionData") || "[]");
-      const newReflection = { dayIndex, moodTag, journalText, summary: `Day ${dayIndex} reflection` };
-      localStorage.setItem("reflectionData", JSON.stringify([...existingReflections, newReflection]));
+      // Save locally too
+      const existing = localStorage.getItem("reflectionData");
+      const reflections = existing ? JSON.parse(existing) : [];
+      reflections.push({
+        dayIndex: tripData.currentDay,
+        moodTag,
+        journalText,
+        summary: `Day ${tripData.currentDay} reflection`
+      });
+      localStorage.setItem("reflectionData", JSON.stringify(reflections));
 
-      // 3. Navigate
-      if (tripComplete) navigate("/tripcomplete");
-      else navigate("/previewliveday");
+      if (tripData.tripComplete) navigate("/tripcomplete");
+      else navigate("/tripliveday");
     } catch (err) {
-      console.error("Reflection save failed:", err);
+      console.error("❌ Reflection save failed:", err);
       alert("Could not save your reflection.");
     }
   };
 
+  if (!tripData) return <p>Loading...</p>;
+
   return (
     <div className="p-6 max-w-2xl mx-auto space-y-6">
       <h1 className="text-3xl font-bold text-center text-green-700">
-        🎉 You just finished another day in {city}!
+        🎉 You finished Day {tripData.currentDay}!
       </h1>
-      <p className="text-center text-gray-600">Take a moment to reflect on what made today special.</p>
 
       <div className="bg-white p-4 rounded-xl shadow space-y-4">
         <h2 className="text-lg font-semibold">What vibe captures today?</h2>
-
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {moodOptions.map((mood) => (
             <label
               key={mood}
               className={`border rounded-xl px-3 py-2 text-center cursor-pointer ${
-                moodTag === mood
-                  ? "bg-green-100 border-green-600 font-semibold"
-                  : "bg-gray-50 hover:bg-gray-100"
+                moodTag === mood ? "bg-green-100 border-green-600 font-semibold" : "bg-gray-50"
               }`}
             >
               <input
@@ -90,15 +86,13 @@ export default function TripDayLookback() {
           ))}
         </div>
 
-        <div>
-          <textarea
-            value={journalText}
-            onChange={(e) => setJournalText(e.target.value)}
-            placeholder="Write down your thoughts..."
-            className="w-full border rounded-lg p-3 mt-4"
-            rows={6}
-          />
-        </div>
+        <textarea
+          value={journalText}
+          onChange={(e) => setJournalText(e.target.value)}
+          placeholder="Write down your thoughts..."
+          className="w-full border rounded-lg p-3 mt-4"
+          rows={6}
+        />
 
         <button
           onClick={handleSave}
