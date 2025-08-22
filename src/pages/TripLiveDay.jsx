@@ -24,6 +24,9 @@ export default function TripLiveDay() {
       
       console.log("🔍 localStorage tripData:", tripData);
       console.log("🔍 localStorage itineraryData:", itineraryData);
+      console.log("🔍 SURGICAL - itineraryData.days structure:", itineraryData.days);
+      console.log("🔍 SURGICAL - first day sample:", itineraryData.days?.[0]);
+      console.log("🔍 SURGICAL - all day indices:", itineraryData.days?.map(d => ({ dayIndex: d.dayIndex, summary: d.summary?.substring(0, 50) })));
       
       if (!tripData || !itineraryData) {
         throw new Error("Missing trip or itinerary data in localStorage");
@@ -36,10 +39,32 @@ export default function TripLiveDay() {
       const currentDayIndex = parseInt(localStorage.getItem("currentDayIndex") || "1");
       const totalDays = itineraryData.days.length;
       
+      console.log("🔍 SURGICAL DEBUG:");
+      console.log("  - currentDayIndex from localStorage:", currentDayIndex);
+      console.log("  - totalDays:", totalDays);
+      console.log("  - itineraryData.days:", itineraryData.days);
+      
       // Find the current day data
       const currentDay = itineraryData.days.find(day => day.dayIndex === currentDayIndex);
+      console.log("  - currentDay found:", currentDay);
+      
       if (!currentDay) {
-        throw new Error(`No data found for day ${currentDayIndex}`);
+        console.log("❌ SURGICAL ERROR: No day found for index", currentDayIndex);
+        console.log("  - Available day indices:", itineraryData.days.map(d => d.dayIndex));
+        console.log("  - SURGICAL FIX: Using first available day instead");
+        
+        // FALLBACK: Use the first available day if there's a mismatch
+        const fallbackDay = itineraryData.days[0];
+        if (fallbackDay) {
+          console.log("  - Using fallback day:", fallbackDay);
+          const actualDayIndex = fallbackDay.dayIndex;
+          console.log("  - Actual day index in data:", actualDayIndex);
+          // Update localStorage to match the actual data
+          localStorage.setItem("currentDayIndex", actualDayIndex.toString());
+          currentDayIndex = actualDayIndex;
+        } else {
+          throw new Error(`No data found for day ${currentDayIndex} and no fallback available`);
+        }
       }
       
       // Since we don't have completion tracking, always start with morning block
