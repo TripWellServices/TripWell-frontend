@@ -178,18 +178,23 @@ export default function LocalUniversalRouter() {
         }
 
         // Step 3: Check trip data
+        console.log("🔍 DEBUG - currentTripData:", currentTripData);
+        console.log("🔍 DEBUG - currentTripData?.tripId:", currentTripData?.tripId);
+        
         if (!currentTripData || !currentTripData.tripId) {
           console.log("❌ No tripId found, routing to /tripsetup");
           return navigate("/tripsetup");
         }
 
         // Step 4: Check if trip is complete
+        console.log("🔍 DEBUG - currentTripData.tripComplete:", currentTripData.tripComplete);
         if (currentTripData.tripComplete === true) {
           console.log("✅ Trip is complete, routing to /tripcomplete");
           return navigate("/tripcomplete");
         }
 
         // Step 5: Check if trip has started
+        console.log("🔍 DEBUG - currentTripData.startedTrip:", currentTripData.startedTrip);
         if (currentTripData.startedTrip === true) {
           console.log("✅ Trip has started, routing to /prephub");
           return navigate("/prephub");
@@ -225,6 +230,10 @@ export default function LocalUniversalRouter() {
         });
 
         // Step 8: Check itinerary (trust localStorage after hydration)
+        console.log("🔍 DEBUG - itineraryData:", itineraryData);
+        console.log("🔍 DEBUG - itineraryData?.itineraryId:", itineraryData?.itineraryId);
+        console.log("🔍 DEBUG - currentTripData.startedTrip:", currentTripData?.startedTrip);
+        
         if (!itineraryData || !itineraryData.itineraryId) {
           console.log("❌ No itinerary in localStorage, routing to /itinerarybuild");
           return navigate("/itinerarybuild");
