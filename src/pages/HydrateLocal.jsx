@@ -12,11 +12,20 @@ export default function HydrateLocal() {
   const [hydratedData, setHydratedData] = useState({});
 
   useEffect(() => {
-    hydrateData();
+    // Only hydrate if we haven't already
+    if (isLoading) {
+      hydrateData();
+    }
   }, []);
 
   const hydrateData = async () => {
     try {
+      // Prevent double hydration
+      if (isLoading === false) {
+        console.log("🔍 HydrateLocal - Already hydrated, skipping...");
+        return;
+      }
+      
       setIsLoading(true);
       setStatus("Hydrating from backend...");
 
@@ -116,7 +125,7 @@ export default function HydrateLocal() {
           <div>👤 User: {hydratedData.userData ? "✅" : "❌"}</div>
           <div>✈️ Trip: {hydratedData.tripData ? "✅" : "❌"}</div>
           <div>🎯 Intent: {hydratedData.tripIntentData ? "✅" : "❌"}</div>
-                            <div>⚓ Anchors: {hydratedData.anchorLogicData ? "✅" : "❌"}</div>
+                            <div>⚓ Anchors: {hydratedData.anchorLogic ? "✅" : "❌"}</div>
           <div>📅 Itinerary: {hydratedData.itineraryData ? "✅" : "❌"}</div>
         </div>
       </div>
