@@ -96,7 +96,7 @@ export default function LiveDayReturner() {
   };
 
   const handlePickDay = () => {
-    navigate("/tripdaysoverview");
+    navigate("/pickliveday");
   };
 
   const handleStartOver = () => {
@@ -191,9 +191,9 @@ export default function LiveDayReturner() {
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                   Loading...
                 </span>
-              ) : (
-                "🚀 Take Me Back to My Trip"
-              )}
+                             ) : (
+                 "🚀 Take Me Where I Left Off"
+               )}
             </button>
 
             <button

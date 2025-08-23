@@ -91,9 +91,63 @@ export default function TripLiveDay() {
         {/* Day Summary */}
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">Today's Plan</h2>
-          <p className="text-gray-600 text-lg leading-relaxed">
+          <p className="text-gray-600 text-lg leading-relaxed mb-6">
             {tripData.dayData.summary}
           </p>
+          
+          {/* Full Day Overview - All Blocks */}
+          <div className="grid gap-4 md:grid-cols-3">
+            {["morning", "afternoon", "evening"].map((timeOfDay) => {
+              const block = tripData.dayData.blocks?.[timeOfDay];
+              const isMorning = timeOfDay === "morning";
+              
+              return (
+                <div
+                  key={timeOfDay}
+                  className={`rounded-xl p-4 border-2 transition-all duration-200 ${
+                    isMorning 
+                      ? "border-green-300 bg-green-50 hover:border-green-400 cursor-pointer" 
+                      : "border-gray-200 bg-gray-50"
+                  }`}
+                  onClick={isMorning ? handleStartDay : undefined}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className={`font-semibold text-sm uppercase tracking-wide ${
+                      isMorning ? "text-green-700" : "text-gray-500"
+                    }`}>
+                      {timeOfDay}
+                    </span>
+                    {isMorning && (
+                      <span className="text-green-600 text-xs">🚀 Start Here</span>
+                    )}
+                  </div>
+                  
+                  {block ? (
+                    <div>
+                      <h4 className={`font-semibold text-sm mb-1 ${
+                        isMorning ? "text-gray-800" : "text-gray-600"
+                      }`}>
+                        {block.title}
+                      </h4>
+                      {block.description && (
+                        <p className={`text-xs line-clamp-2 ${
+                          isMorning ? "text-gray-600" : "text-gray-500"
+                        }`}>
+                          {block.description}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className={`text-xs ${
+                      isMorning ? "text-gray-600" : "text-gray-500"
+                    }`}>
+                      No activity planned
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* Start Button */}

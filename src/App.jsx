@@ -52,6 +52,7 @@ import PlannerParticipantHub from "./pages/PlannerParticipantHub";
 import CuratedHighlights from "./pages/CuratedHighlights";
 import LiveDayReturner from "./pages/LiveDayReturner";
 import DayIndexTest from "./pages/DayIndexTest";
+import PickLiveDay from "./pages/PickLiveDay";
 import TripLiveDay from "./pages/TripLiveDay";
 import TripLiveDayBlock from "./pages/TripLiveDayBlock";
 import TripLiveDayParticipant from "./pages/TripLiveDayParticipant";
@@ -138,6 +139,7 @@ export default function App() {
       {/* ✅ Execution Phase (Shared) */}
              <Route path="/livedayreturner" element={<LiveDayReturner />} />
        <Route path="/dayindextest" element={<DayIndexTest />} />
+      <Route path="/pickliveday" element={<PickLiveDay />} />
       <Route path="/tripliveday" element={<TripLiveDay />} />
       <Route path="/tripliveblock" element={<TripLiveDayBlock />} />
       <Route path="/previewliveday" element={<PreviewLiveDay />} />
