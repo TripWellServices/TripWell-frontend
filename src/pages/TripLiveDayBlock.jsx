@@ -106,7 +106,7 @@ export default function TripLiveDayBlock() {
       }
       
       const token = await user.getIdToken();
-      await axios.patch(`${BACKEND_URL}/tripwell/block/complete`, {
+      await axios.post(`${BACKEND_URL}/tripwell/block/complete`, {
         tripId: tripData.tripId,
         dayIndex: currentDay,
         blockName: currentBlock
