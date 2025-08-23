@@ -167,68 +167,69 @@ export default function TripLiveDayBlock() {
         throw new Error("No authenticated user");
       }
       
-      const token = await user.getIdToken();
-      const { currentDayIndex, currentBlockName } = getCurrentState();
-      
-      // 🔴 SAVE TO BACKEND: Mark block complete
-      await axios.post(`${BACKEND_URL}/tripwell/block/complete`, {
-        tripId: tripData.tripId,
-        dayIndex: currentDayIndex,
-        blockName: currentBlockName
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      console.log("✅ Block completed on backend:", currentBlockName);
-      
-      // 🔴 ADVANCE: Move to next block or day
-      const advanceBlock = () => {
-        const { currentDayIndex, currentBlockName } = getCurrentState();
-        const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
-        const currentDayData = itineraryData.days.find(day => day.dayIndex === currentDayIndex);
-        
-        let nextDayIndex = currentDayIndex;
-        let nextBlockName = "morning";
-        
-        if (currentBlockName === "morning") {
-          nextBlockName = "afternoon";
-        } else if (currentBlockName === "afternoon") {
-          nextBlockName = "evening";
-        } else if (currentBlockName === "evening") {
-          // Move to next day
-          nextDayIndex = currentDayIndex + 1;
-          nextBlockName = "morning";
-        }
-        
-        console.log("✅ Advanced to:", nextBlockName, "Day", nextDayIndex);
-        setCurrentState(nextDayIndex, nextBlockName);
-        
-        // Check if we've completed all days
-        if (nextDayIndex > itineraryData.days.length) {
-          console.log("✅ Trip complete!");
-          navigate("/tripcomplete");
-          return;
-        }
-        
-        // Check if next block exists
-        const nextDayData = itineraryData.days.find(day => day.dayIndex === nextDayIndex);
-        if (!nextDayData?.blocks?.[nextBlockName]) {
-          console.log("✅ No more blocks, trip complete!");
-          navigate("/tripcomplete");
-          return;
-        }
-        
-        // Navigate to next block or day lookback
+             const token = await user.getIdToken();
+       const { currentDayIndex, currentBlockName } = getCurrentState();
+       
+       // 🔴 SAVE TO BACKEND: Mark block complete
+       await axios.post(`${BACKEND_URL}/tripwell/block/complete`, {
+         tripId: tripData.tripId,
+         dayIndex: currentDayIndex,
+         blockName: currentBlockName
+       }, {
+         headers: { Authorization: `Bearer ${token}` }
+       });
+       
+       console.log("✅ Block completed on backend:", currentBlockName);
+       
+       // 🔴 ADVANCE: Move to next block or day
+       
+       let nextDayIndex = currentDayIndex;
+       let nextBlockName = "morning";
+       
+       if (currentBlockName === "morning") {
+         nextBlockName = "afternoon";
+       } else if (currentBlockName === "afternoon") {
+         nextBlockName = "evening";
+       } else if (currentBlockName === "evening") {
+         // Move to next day
+         nextDayIndex = currentDayIndex + 1;
+         nextBlockName = "morning";
+       }
+       
+       console.log("✅ Advanced to:", nextBlockName, "Day", nextDayIndex);
+       setCurrentState(nextDayIndex, nextBlockName);
+       
+       // Check if we've completed all days
+       const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
+       if (nextDayIndex > itineraryData.days.length) {
+         console.log("✅ Trip complete!");
+         navigate("/tripcomplete");
+         return;
+       }
+       
+               // Navigate to next block or day lookback
         if (nextBlockName === "morning" && nextDayIndex > currentDayIndex) {
           // New day - go to day lookback first
+          console.log("🔄 Navigating to day lookback for new day");
           navigate("/daylookback");
         } else {
-          // Same day, next block
-          navigate("/tripliveblock");
+          // Same day, next block - update component state directly
+          console.log("🔄 Updating component for next block:", nextBlockName);
+          
+          // Update the block data for the new block
+          const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
+          const nextDayData = itineraryData.days.find(day => day.dayIndex === nextDayIndex);
+          const nextBlock = nextDayData?.blocks?.[nextBlockName];
+          
+          if (nextBlock) {
+            setBlockData(nextBlock);
+            setLoading(false);
+            console.log("✅ Component updated for new block");
+          } else {
+            console.log("🔄 Navigating to next block (fallback):", nextBlockName);
+            navigate("/tripliveblock");
+          }
         }
-      };
-      
-      advanceBlock();
       
     } catch (error) {
       console.error("❌ Error completing block:", error);
