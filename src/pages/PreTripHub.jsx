@@ -74,8 +74,8 @@ export default function PreTripHub() {
       console.log("💾 Current day index:", currentDayIndex);
       
       // Navigate directly to the live day experience!
-      console.log("🚀 Navigating to live day experience:", `/tripliveday/${tripData.tripId || tripData._id}`);
-      window.location.href = `/tripliveday/${tripData.tripId || tripData._id}`;
+      console.log("🚀 Navigating to live day experience");
+      navigate("/tripliveday");
       
     } catch (error) {
       console.error("❌ Error starting trip:", error);
