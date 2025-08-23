@@ -64,12 +64,16 @@ export default function TripLiveDay() {
     // Get current block from localStorage
     const { currentBlockName } = getCurrentState();
     
+    console.log("🔍 TripLiveDay handleStartDay - currentBlockName:", currentBlockName);
+    console.log("🔍 TripLiveDay handleStartDay - tripData.currentDay:", tripData.currentDay);
+    
     // If we're already on a specific block, continue from there
     if (currentBlockName && currentBlockName !== "morning") {
       console.log("✅ Continuing from current block:", currentBlockName);
       navigate("/tripliveblock");
     } else {
       // Start with morning block
+      console.log("✅ Starting with morning block for day:", tripData.currentDay);
       setCurrentState(tripData.currentDay, "morning");
       navigate("/tripliveblock");
     }
@@ -104,49 +108,35 @@ export default function TripLiveDay() {
             {tripData.dayData.summary}
           </p>
           
-          {/* Full Day Overview - All Blocks */}
+          {/* Full Day Overview - All Blocks (Static) */}
           <div className="grid gap-4 md:grid-cols-3">
             {["morning", "afternoon", "evening"].map((timeOfDay) => {
               const block = tripData.dayData.blocks?.[timeOfDay];
-              const isMorning = timeOfDay === "morning";
               
               return (
                 <div
                   key={timeOfDay}
-                  className={`rounded-xl p-4 border-2 transition-all duration-200 ${
-                    isMorning 
-                      ? "border-green-300 bg-green-50 hover:border-green-400 cursor-pointer" 
-                      : "border-gray-200 bg-gray-50"
-                  }`}
-                  onClick={isMorning ? handleStartDay : undefined}
+                  className="rounded-xl p-4 border-2 border-gray-200 bg-gray-50"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className={`font-semibold text-sm uppercase tracking-wide ${
-                      isMorning ? "text-green-700" : "text-gray-500"
-                    }`}>
+                    <span className="font-semibold text-sm uppercase tracking-wide text-gray-500">
                       {timeOfDay}
                     </span>
                   </div>
                   
                   {block ? (
                     <div>
-                      <h4 className={`font-semibold text-sm mb-1 ${
-                        isMorning ? "text-gray-800" : "text-gray-600"
-                      }`}>
+                      <h4 className="font-semibold text-sm mb-1 text-gray-600">
                         {block.title}
                       </h4>
                       {block.description && (
-                        <p className={`text-xs line-clamp-2 ${
-                          isMorning ? "text-gray-600" : "text-gray-500"
-                        }`}>
+                        <p className="text-xs line-clamp-2 text-gray-500">
                           {block.description}
                         </p>
                       )}
                     </div>
                   ) : (
-                    <p className={`text-xs ${
-                      isMorning ? "text-gray-600" : "text-gray-500"
-                    }`}>
+                    <p className="text-xs text-gray-500">
                       No activity planned
                     </p>
                   )}
