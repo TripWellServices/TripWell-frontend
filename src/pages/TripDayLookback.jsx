@@ -75,6 +75,14 @@ export default function TripDayLookback() {
     
     try {
       // 🔴 SAVE TO BACKEND: Save reflection
+      // Wait for Firebase auth to be ready
+      await new Promise(resolve => {
+        const unsubscribe = auth.onAuthStateChanged(user => {
+          unsubscribe();
+          resolve(user);
+        });
+      });
+
       const user = auth.currentUser;
       if (!user) {
         throw new Error("No authenticated user");
