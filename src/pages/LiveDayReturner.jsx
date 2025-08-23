@@ -21,51 +21,49 @@ export default function LiveDayReturner() {
   const [loading, setLoading] = useState(true);
   const [hydrating, setHydrating] = useState(false);
   const [tripData, setTripData] = useState(null);
-  const [itineraryData, setItineraryData] = useState(null);
   const [backendState, setBackendState] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const checkTripStatus = async () => {
       try {
-        // Get local data
+        // Get local trip data for the API call
         const localTripData = JSON.parse(localStorage.getItem("tripData") || "null");
-        const localItineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
         
-        if (!localTripData || !localItineraryData) {
-          console.log("❌ No local trip data found");
+        if (!localTripData?.tripId) {
+          console.log("❌ No tripId found in localStorage");
           navigate("/");
           return;
         }
 
-        setTripData(localTripData);
-        setItineraryData(localItineraryData);
+        // 🔴 SOURCE OF TRUTH: Hydrate from backend
+        const user = auth.currentUser;
+        if (!user) {
+          console.log("❌ No Firebase user");
+          setError("Authentication required");
+          setLoading(false);
+          return;
+        }
 
-        // Try to hydrate from backend
-        try {
-          const user = auth.currentUser;
-          if (!user) {
-            console.log("❌ No Firebase user");
-            setLoading(false);
-            return;
-          }
+        const token = await user.getIdToken();
+        const response = await axios.get(`${BACKEND_URL}/tripwell/livestatus/${localTripData.tripId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
 
-          const token = await user.getIdToken();
-          const response = await axios.get(`${BACKEND_URL}/tripwell/livestatus/${localTripData.tripId}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-
-          if (response.data) {
-            setBackendState(response.data);
-            console.log("✅ Backend state loaded:", response.data);
-          }
-        } catch (error) {
-          console.log("⚠️ Backend hydration failed, using local state:", error.message);
+        if (response.data) {
+          // ✅ Backend hydration successful - this is our source of truth
+          setBackendState(response.data);
+          setTripData(localTripData);
+          console.log("✅ Backend state loaded:", response.data);
+        } else {
+          throw new Error("No data from backend");
         }
 
         setLoading(false);
       } catch (error) {
-        console.error("❌ Error in checkTripStatus:", error);
-        navigate("/");
+        console.error("❌ Backend hydration failed:", error);
+        setError(error.message || "Failed to load trip status");
+        setLoading(false);
       }
     };
 
@@ -73,13 +71,17 @@ export default function LiveDayReturner() {
   }, [navigate]);
 
   const handleTakeMeBack = async () => {
+    if (!backendState) {
+      console.error("❌ No backend state available");
+      return;
+    }
+
     setHydrating(true);
     
     try {
-      // For test trips, don't overwrite localStorage with backend data
-      // Just use local state and let TripLiveDay handle the logic
-      const localState = getCurrentState();
-      console.log("✅ Using local state:", localState);
+      // Use backend state as source of truth
+      setCurrentState(backendState.currentDayIndex, backendState.currentBlock);
+      console.log("✅ Set state from backend:", backendState);
       
       navigate("/tripliveday");
     } catch (error) {
@@ -103,17 +105,38 @@ export default function LiveDayReturner() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <h2 className="text-xl font-semibold text-gray-700">Welcome back! Loading your trip...</h2>
+          <h2 className="text-xl font-semibold text-gray-700">Loading your trip status...</h2>
         </div>
       </div>
     );
   }
 
-  const currentState = getCurrentState();
-  const lastSavedState = backendState || { 
-    currentDayIndex: currentState.dayIndex, 
-    currentBlock: currentState.blockName 
-  };
+  if (error || !backendState) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="max-w-2xl mx-auto p-8 bg-white rounded-3xl shadow-2xl text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">⚠️ Unable to Load Trip Status</h1>
+          <p className="text-gray-600 mb-6">
+            {error || "Failed to connect to the server. Please try again."}
+          </p>
+          <div className="space-y-4">
+            <button
+              onClick={() => window.location.reload()}
+              className="w-full bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700"
+            >
+              🔄 Try Again
+            </button>
+            <button
+              onClick={handleStartOver}
+              className="w-full bg-gray-100 text-gray-700 px-6 py-3 rounded-xl hover:bg-gray-200"
+            >
+              🏠 Start Over
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
@@ -137,17 +160,16 @@ export default function LiveDayReturner() {
             </div>
           )}
 
-          {/* Last Saved State */}
+          {/* Backend State - Source of Truth */}
           <div className="bg-green-50 rounded-2xl p-6 text-left">
             <h3 className="text-lg font-semibold text-green-800 mb-3">📍 Where you left off:</h3>
             <div className="space-y-2">
               <p className="text-gray-700">
-                <span className="font-medium">Day {lastSavedState.currentDayIndex}</span> • {lastSavedState.currentBlock.charAt(0).toUpperCase() + lastSavedState.currentBlock.slice(1)}
+                <span className="font-medium">Day {backendState.currentDayIndex}</span> • {backendState.currentBlock.charAt(0).toUpperCase() + backendState.currentBlock.slice(1)}
               </p>
-              {backendState ? (
-                <p className="text-sm text-green-600">✅ Synced with server</p>
-              ) : (
-                <p className="text-sm text-yellow-600">⚠️ Using local state</p>
+              <p className="text-sm text-green-600">✅ Synced with server</p>
+              {backendState.tripComplete && (
+                <p className="text-sm text-orange-600">🎉 Trip Complete!</p>
               )}
             </div>
           </div>
