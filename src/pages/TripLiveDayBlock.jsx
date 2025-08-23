@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { auth } from "../firebase";
@@ -17,157 +17,223 @@ const setCurrentState = (dayIndex, blockName) => {
   localStorage.setItem("currentBlockName", blockName);
 };
 
-const advanceBlock = () => {
-  const { currentDayIndex, currentBlockName } = getCurrentState();
-  
-  if (currentBlockName === "morning") {
-    setCurrentState(currentDayIndex, "afternoon");
-  } else if (currentBlockName === "afternoon") {
-    setCurrentState(currentDayIndex, "evening");
-  } else if (currentBlockName === "evening") {
-    // Move to next day, reset to morning
-    setCurrentState(currentDayIndex + 1, "morning");
-  }
-};
-
 export default function TripLiveDayBlock() {
-  const [tripData, setTripData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
+  const [tripData, setTripData] = useState(null);
+  const [blockData, setBlockData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [completing, setCompleting] = useState(false);
+  const [feedback, setFeedback] = useState("");
+  const [ask, setAsk] = useState("");
+  const [answer, setAnswer] = useState("");
 
   useEffect(() => {
-    const loadTripData = () => {
-      // Load trip data from localStorage
-      const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
-      const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
-      
-      if (!tripData?.tripId || !itineraryData?.days) {
-        console.error("❌ Missing trip data or itinerary data");
-        navigate("/");
-        return;
-      }
+    const hydrateBlock = async () => {
+      try {
+        // 🔴 HYDRATE: Get current state and trip data
+        const { currentDayIndex, currentBlockName } = getCurrentState();
+        const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
+        const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
+        
+        console.log("🔍 TripLiveDayBlock - currentDayIndex:", currentDayIndex);
+        console.log("🔍 TripLiveDayBlock - currentBlockName:", currentBlockName);
+        
+        if (!tripData?.tripId || !itineraryData?.days) {
+          console.error("❌ Missing trip or itinerary data");
+          navigate("/");
+          return;
+        }
 
-      // Get current state
-      const { currentDayIndex, currentBlockName } = getCurrentState();
-      
-      // Find the current day data
-      const currentDayData = itineraryData.days.find(day => day.dayIndex === currentDayIndex);
-      
-      if (!currentDayData) {
-        console.error("❌ Current day not found in itinerary");
-        navigate("/");
-        return;
-      }
+        // Find the current day data
+        const currentDayData = itineraryData.days.find(day => day.dayIndex === currentDayIndex);
+        
+        if (!currentDayData) {
+          console.error("❌ Current day not found in itinerary");
+          navigate("/");
+          return;
+        }
 
-      // Get the current block data
-      console.log("🔍 Debug - currentDayData:", currentDayData);
-      console.log("🔍 Debug - currentBlockName:", currentBlockName);
-      console.log("🔍 Debug - currentDayData.blocks:", currentDayData.blocks);
-      
-      const currentBlockData = currentDayData.blocks?.[currentBlockName];
-      
-      if (!currentBlockData) {
-        console.error("❌ Current block not found for:", currentBlockName);
-        console.error("❌ Available blocks:", Object.keys(currentDayData.blocks || {}));
-        navigate("/");
-        return;
-      }
+        // Get the current block data
+        const block = currentDayData.blocks?.[currentBlockName];
+        
+        if (!block) {
+          console.error("❌ Current block not found");
+          navigate("/");
+          return;
+        }
 
-      // Set trip data
-      setTripData({
-        ...tripData,
-        currentDay: currentDayIndex,
-        currentBlock: currentBlockName,
-        totalDays: itineraryData.days.length,
-        dayData: currentDayData,
-        blockData: currentBlockData
-      });
-      
-      setLoading(false);
-      console.log("✅ TripLiveDayBlock loaded - Day", currentDayIndex, currentBlockName);
+        setTripData(tripData);
+        setBlockData(block);
+        setLoading(false);
+        
+        console.log("✅ TripLiveDayBlock loaded - Day", currentDayIndex, currentBlockName);
+      } catch (error) {
+        console.error("❌ TripLiveDayBlock hydration error:", error);
+        navigate("/");
+      }
     };
 
-    loadTripData();
+    hydrateBlock();
   }, [navigate]);
 
-  const handleCompleteBlock = async () => {
-    setSaving(true);
+  const handleSubmitFeedback = async () => {
+    if (!feedback.trim()) return;
     
     try {
-      // Check current state before advancing
-      const currentBlock = tripData.currentBlock;
-      const currentDay = tripData.currentDay;
-      
-      // 🔴 SAVE TO BACKEND: Mark block as complete
+      // Wait for Firebase auth to be ready
+      await new Promise(resolve => {
+        const unsubscribe = auth.onAuthStateChanged(user => {
+          unsubscribe();
+          resolve(user);
+        });
+      });
+
       const user = auth.currentUser;
       if (!user) {
         throw new Error("No authenticated user");
       }
       
       const token = await user.getIdToken();
-      await axios.post(`${BACKEND_URL}/tripwell/block/complete`, {
+      
+      const res = await axios.post(`${BACKEND_URL}/tripwell/livedaygpt/block`, {
         tripId: tripData.tripId,
-        dayIndex: currentDay,
-        blockName: currentBlock
+        dayIndex: getCurrentState().currentDayIndex,
+        block: getCurrentState().currentBlockName,
+        feedback,
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      console.log("✅ Block completed on backend:", currentBlock);
-      
-      // Advance the progressive navigation pointer
-      advanceBlock();
-      
-      // Check if we just completed the evening block (end of day)
-      const isEndOfDay = currentBlock === "evening";
-      const isEndOfTrip = currentDay >= tripData.totalDays;
-
-      // Navigate based on state
-      if (isEndOfDay) {
-        setSaving(false);
-        navigate("/tripdaylookback"); // Day complete, do reflection
-      } else if (isEndOfTrip) {
-        setSaving(false);
-        navigate("/tripcomplete"); // Trip complete
-      } else {
-        // 🔴 CLEAN REACT STATE UPDATE: Load new block data directly
-        const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
-        const { currentDayIndex, currentBlockName } = getCurrentState();
-        
-        // Find the new day data
-        const newDayData = itineraryData.days.find(day => day.dayIndex === currentDayIndex);
-        const newBlockData = newDayData?.blocks?.[currentBlockName];
-        
-        if (newDayData && newBlockData) {
-          // Update state directly without triggering useEffect
-          setTripData({
-            ...tripData,
-            currentDay: currentDayIndex,
-            currentBlock: currentBlockName,
-            dayData: newDayData,
-            blockData: newBlockData
-          });
-          setSaving(false);
-          console.log("✅ Advanced to:", currentBlockName, "Day", currentDayIndex);
-        } else {
-          console.error("❌ Failed to load next block data");
-          setSaving(false);
-        }
-      }
-    } catch (error) {
-      console.error("❌ Error completing block:", error);
-      setSaving(false);
+      setBlockData(res.data.updatedBlock);
+      setFeedback("");
+      console.log("✅ Block updated with feedback");
+    } catch (err) {
+      console.error("❌ GPT feedback error:", err);
     }
   };
 
-  const getBlockTitle = (blockName) => {
-    const titles = {
-      morning: "🌅 Morning",
-      afternoon: "☀️ Afternoon", 
-      evening: "🌙 Evening"
-    };
-    return titles[blockName] || blockName;
+  const handleAskAngela = async () => {
+    if (!ask.trim()) return;
+    
+    try {
+      // Wait for Firebase auth to be ready
+      await new Promise(resolve => {
+        const unsubscribe = auth.onAuthStateChanged(user => {
+          unsubscribe();
+          resolve(user);
+        });
+      });
+
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error("No authenticated user");
+      }
+      
+      const token = await user.getIdToken();
+      
+      const res = await axios.post(`${BACKEND_URL}/tripwell/livedaygpt/ask`, {
+        tripId: tripData.tripId,
+        dayIndex: getCurrentState().currentDayIndex,
+        blockName: getCurrentState().currentBlockName,
+        question: ask,
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setAnswer(res.data.answer);
+      setAsk("");
+      console.log("✅ Angela answered question");
+    } catch (err) {
+      console.error("❌ Ask Angela error:", err);
+    }
+  };
+
+  const handleMarkComplete = async () => {
+    if (!tripData || !blockData) return;
+    
+    setCompleting(true);
+    
+    try {
+      // Wait for Firebase auth to be ready
+      await new Promise(resolve => {
+        const unsubscribe = auth.onAuthStateChanged(user => {
+          unsubscribe();
+          resolve(user);
+        });
+      });
+
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error("No authenticated user");
+      }
+      
+      const token = await user.getIdToken();
+      const { currentDayIndex, currentBlockName } = getCurrentState();
+      
+      // 🔴 SAVE TO BACKEND: Mark block complete
+      await axios.post(`${BACKEND_URL}/tripwell/block/complete`, {
+        tripId: tripData.tripId,
+        dayIndex: currentDayIndex,
+        blockName: currentBlockName
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      console.log("✅ Block completed on backend:", currentBlockName);
+      
+      // 🔴 ADVANCE: Move to next block or day
+      const advanceBlock = () => {
+        const { currentDayIndex, currentBlockName } = getCurrentState();
+        const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
+        const currentDayData = itineraryData.days.find(day => day.dayIndex === currentDayIndex);
+        
+        let nextDayIndex = currentDayIndex;
+        let nextBlockName = "morning";
+        
+        if (currentBlockName === "morning") {
+          nextBlockName = "afternoon";
+        } else if (currentBlockName === "afternoon") {
+          nextBlockName = "evening";
+        } else if (currentBlockName === "evening") {
+          // Move to next day
+          nextDayIndex = currentDayIndex + 1;
+          nextBlockName = "morning";
+        }
+        
+        console.log("✅ Advanced to:", nextBlockName, "Day", nextDayIndex);
+        setCurrentState(nextDayIndex, nextBlockName);
+        
+        // Check if we've completed all days
+        if (nextDayIndex > itineraryData.days.length) {
+          console.log("✅ Trip complete!");
+          navigate("/tripcomplete");
+          return;
+        }
+        
+        // Check if next block exists
+        const nextDayData = itineraryData.days.find(day => day.dayIndex === nextDayIndex);
+        if (!nextDayData?.blocks?.[nextBlockName]) {
+          console.log("✅ No more blocks, trip complete!");
+          navigate("/tripcomplete");
+          return;
+        }
+        
+        // Navigate to next block or day lookback
+        if (nextBlockName === "morning" && nextDayIndex > currentDayIndex) {
+          // New day - go to day lookback first
+          navigate("/daylookback");
+        } else {
+          // Same day, next block
+          navigate("/tripliveblock");
+        }
+      };
+      
+      advanceBlock();
+      
+    } catch (error) {
+      console.error("❌ Error completing block:", error);
+      setCompleting(false);
+    }
   };
 
   if (loading) {
@@ -175,11 +241,29 @@ export default function TripLiveDayBlock() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-xl font-semibold text-gray-700">Loading your activity...</p>
+          <p className="text-xl font-semibold text-gray-700">Loading your block...</p>
         </div>
       </div>
     );
   }
+
+  if (!blockData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <p className="text-xl font-semibold text-red-600">Block not found</p>
+          <button
+            onClick={() => navigate("/tripliveday")}
+            className="bg-blue-600 text-white px-6 py-3 rounded-xl"
+          >
+            Back to Day Overview
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const { currentBlockName } = getCurrentState();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -187,38 +271,83 @@ export default function TripLiveDayBlock() {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
-            {getBlockTitle(tripData.currentBlock)}
+            Let's make your {currentBlockName} memorable!
           </h1>
           <p className="text-xl text-gray-600">
-            Day {tripData.currentDay} of {tripData.totalDays} • {tripData.tripName}
+            {tripData.tripName} • Day {getCurrentState().currentDayIndex}
           </p>
         </div>
 
-        {/* Activity Card */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">Your Activity</h2>
-          <p className="text-gray-600 text-lg leading-relaxed">
-            {tripData.blockData.title}
-          </p>
+        {/* Current Block Info */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4">{blockData.title}</h2>
+          {blockData.description && (
+            <p className="text-gray-700 text-lg leading-relaxed">{blockData.description}</p>
+          )}
         </div>
 
-        {/* Action Buttons */}
-        <div className="text-center space-y-4">
+        {/* Feedback / GPT block fix */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+          <h3 className="text-xl font-semibold text-gray-800 mb-4">Want to change something?</h3>
+          <textarea
+            value={feedback}
+            onChange={(e) => setFeedback(e.target.value)}
+            className="w-full border-2 border-gray-200 rounded-xl p-4 text-lg focus:border-blue-500 focus:outline-none resize-none"
+            placeholder="Tell Angela what to improve about this activity..."
+            rows={3}
+          />
           <button
-            onClick={handleCompleteBlock}
-            disabled={saving}
+            onClick={handleSubmitFeedback}
+            disabled={!feedback.trim()}
+            className="mt-4 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            🔁 Fix the Itinerary
+          </button>
+        </div>
+
+        {/* Ask Angela Q&A */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+          <h3 className="text-xl font-semibold text-gray-800 mb-4">Ask Angela a question</h3>
+          <input
+            value={ask}
+            onChange={(e) => setAsk(e.target.value)}
+            className="w-full border-2 border-gray-200 rounded-xl p-4 text-lg focus:border-purple-500 focus:outline-none"
+            placeholder="e.g., Is there a nearby rooftop for drinks? What's the best time to visit?"
+          />
+          <button
+            onClick={handleAskAngela}
+            disabled={!ask.trim()}
+            className="mt-4 bg-purple-600 text-white px-6 py-3 rounded-xl hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            💬 Ask Angela
+          </button>
+          {answer && (
+            <div className="mt-4 p-4 bg-purple-50 rounded-xl border border-purple-200">
+              <p className="text-gray-800 italic">{answer}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Final CTA */}
+        <div className="text-center">
+          <button
+            onClick={handleMarkComplete}
+            disabled={completing}
             className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-12 py-4 rounded-2xl hover:from-green-600 hover:to-emerald-700 transform hover:scale-105 transition-all duration-200 font-semibold text-xl disabled:opacity-50 disabled:cursor-not-allowed"
           >
-                         {saving ? (
-               <span className="flex items-center justify-center">
-                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                 Loading...
-               </span>
-             ) : (
-               "🚀 Ready for Next Block"
-             )}
+            {completing ? (
+              <span className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                Completing...
+              </span>
+            ) : (
+              `✅ Mark ${currentBlockName} Complete`
+            )}
           </button>
+        </div>
 
+        {/* Navigation */}
+        <div className="mt-8 text-center">
           <button
             onClick={() => navigate("/tripliveday")}
             className="text-blue-600 hover:text-blue-800 underline"
