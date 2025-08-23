@@ -50,7 +50,7 @@ import ModifyBlock from "./pages/TripModifyBlock";
 import TripPlannerReturn from "./pages/TripPlannerReturn";
 import PlannerParticipantHub from "./pages/PlannerParticipantHub";
 import CuratedHighlights from "./pages/CuratedHighlights";
-import PreLiveDay from "./pages/PreLiveDay";
+import LiveDayReturner from "./pages/LiveDayReturner";
 import TripLiveDay from "./pages/TripLiveDay";
 import TripLiveDayBlock from "./pages/TripLiveDayBlock";
 import TripLiveDayParticipant from "./pages/TripLiveDayParticipant";
@@ -77,6 +77,7 @@ import PreTripHub from "./pages/PreTripHub";
 import ReflectionHub from "./pages/ReflectionHub";
 
 import LocalStateDebug from "./pages/LocalStateDebug";
+import LiveTripHydrator from "./pages/LiveTripHydrator";
 
 export default function App() {
   return (
@@ -116,8 +117,9 @@ export default function App() {
       <Route path="/localrouter" element={<LocalUniversalRouter />} />
       <Route path="/hydratelocal" element={<HydrateLocal />} />
       <Route path="/hydratetest" element={<HydrateTest />} />
-      <Route path="/prephub" element={<PreTripHub />} />
+             <Route path="/pretriphub" element={<PreTripHub />} />
       <Route path="/reflectionhub" element={<ReflectionHub />} />
+      <Route path="/livetriphydrator" element={<LiveTripHydrator />} />
 
       <Route path="/localdebug" element={<LocalStateDebug />} />
 
@@ -133,8 +135,8 @@ export default function App() {
       <Route path="/tripplannerreturn" element={<TripPlannerReturn />} />
 
       {/* ✅ Execution Phase (Shared) */}
-      <Route path="/preliveday" element={<PreLiveDay />} />
-      <Route path="/tripliveday/:tripId" element={<TripLiveDay />} />
+             <Route path="/livedayreturner" element={<LiveDayReturner />} />
+      <Route path="/tripliveday" element={<TripLiveDay />} />
       <Route path="/tripliveblock" element={<TripLiveDayBlock />} />
       <Route path="/previewliveday" element={<PreviewLiveDay />} />
       <Route path="/tripcomplete" element={<TripComplete />} />

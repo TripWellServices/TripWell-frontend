@@ -74,12 +74,40 @@ export default function TripLiveDay() {
       return;
     }
 
-    // 🟢 Default local boot - safe defaults
-    const defaultState = getDefaultState();
-    const { currentDayIndex, currentBlockName } = getCurrentState();
+    // 🟢 Recalculate current day based on trip dates (handles refresh)
+    const today = new Date();
+    const startDate = new Date(tripData.startDate);
+    const endDate = new Date(tripData.endDate);
+    
+    let calculatedDayIndex = 1; // Default to day 1
+    
+    console.log("🔍 TripLiveDay date calculation:", {
+      today: today.toISOString(),
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString()
+    });
+    
+    if (today >= startDate && today <= endDate) {
+      // We're within the trip dates
+      const diffTime = today.getTime() - startDate.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      calculatedDayIndex = diffDays + 1; // +1 because day 1 is the first day
+      console.log("📅 Within trip dates - Day", calculatedDayIndex);
+    } else if (today < startDate) {
+      // Trip hasn't started yet
+      calculatedDayIndex = 1;
+      console.log("📅 Trip hasn't started - Day 1");
+    } else {
+      // Trip is over
+      calculatedDayIndex = itineraryData.days.length;
+      console.log("📅 Trip is over - Day", calculatedDayIndex);
+    }
+    
+    // Update localStorage with calculated day
+    setCurrentState(calculatedDayIndex, "morning");
     
     // Find the current day from itinerary data
-    const currentDayData = itineraryData.days.find(day => day.dayIndex === currentDayIndex);
+    const currentDayData = itineraryData.days.find(day => day.dayIndex === calculatedDayIndex);
     
     if (!currentDayData) {
       console.error("❌ Current day not found in itinerary");
@@ -88,20 +116,20 @@ export default function TripLiveDay() {
     }
 
     // Check if trip is complete (past last day)
-    const isTripComplete = currentDayIndex > itineraryData.days.length;
+    const isTripComplete = calculatedDayIndex > itineraryData.days.length;
 
-    // Use progressive navigation state with safe defaults
+    // Use recalculated progressive navigation state
     const liveTripData = {
       ...tripData,
-      currentDay: currentDayIndex,
-      currentBlock: currentBlockName,
+      currentDay: calculatedDayIndex,
+      currentBlock: "morning", // Always reset to morning on refresh
       tripComplete: isTripComplete,
       totalDays: itineraryData.days.length,
       dayData: currentDayData // Real day data from itinerary
     };
     
     setTripData(liveTripData);
-    console.log("💾 Loaded trip data with progressive state:", liveTripData);
+    console.log("💾 Loaded trip data with recalculated state:", liveTripData);
     
     // 🟡 Backend checkpoint happens on first "Complete Block" action
     // No backend call here - just local defaults

@@ -88,7 +88,7 @@ export default function TripItineraryBuilder() {
       localStorage.setItem("itineraryData", JSON.stringify(itineraryData));
       console.log("💾 Saved itineraryData to localStorage:", itineraryData);
       
-      navigate("/prephub");
+      navigate("/pretriphub");
     } catch (err) {
       console.error("Save error:", err);
       setError("Could not save itinerary.");

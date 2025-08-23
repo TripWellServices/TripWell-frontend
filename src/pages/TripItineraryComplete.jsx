@@ -11,7 +11,7 @@ export default function TripItineraryComplete() {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          navigate("/prephub");
+          navigate("/pretriphub");
           return 0;
         }
         return prev - 1;
@@ -74,7 +74,7 @@ export default function TripItineraryComplete() {
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
-            onClick={() => navigate("/prephub")}
+            onClick={() => navigate("/pretriphub")}
             className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-8 py-3 rounded-2xl hover:from-blue-600 hover:to-indigo-700 transform hover:scale-105 transition-all duration-200 font-semibold"
           >
             🏠 Go to Trip Hub Now
