@@ -12,6 +12,26 @@ export default function LocalUniversalRouter() {
   useEffect(() => {
     async function universalRouter() {
       try {
+        // Check if we're already on a live day route or debug route - if so, don't interfere
+        const currentPath = location.pathname;
+        console.log("🔍 LocalUniversalRouter checking path:", currentPath);
+        
+        const bypassPaths = [
+          '/tripliveday',
+          '/tripliveblock', 
+          '/dayindextest',
+          '/livedayreturner',
+          '/tripdaylookback'
+        ];
+        
+        const shouldBypass = bypassPaths.some(path => currentPath.startsWith(path) || currentPath === path);
+        
+        if (shouldBypass) {
+          console.log("🚀 LocalUniversalRouter - Already on live day route, not interfering:", currentPath);
+          setLoading(false);
+          return;
+        }
+        
         console.log("🔍 LocalUniversalRouter - Starting universal routing check");
 
         // Get all localStorage data

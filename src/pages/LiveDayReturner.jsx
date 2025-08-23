@@ -37,27 +37,18 @@ export default function LiveDayReturner() {
           return;
         }
 
-        // 🔴 SOURCE OF TRUTH: Hydrate from backend
-        if (!user) {
-          console.log("❌ No Firebase user");
-          setError("Authentication required");
-          setLoading(false);
-          return;
-        }
-
-        const token = await user.getIdToken();
-        const response = await axios.get(`${BACKEND_URL}/tripwell/livestatus/${localTripData.tripId}`, {
-          headers: { Authorization: `Bearer ${token}` }
+        // 🔴 TEMPORARILY DISABLE BACKEND HYDRATION UNTIL CORS IS FIXED
+        console.log("🔧 Backend hydration temporarily disabled - using local state");
+        setTripData(localTripData);
+        
+        // Use local state for now
+        const localState = getCurrentState();
+        setBackendState({
+          currentDayIndex: localState.dayIndex,
+          currentBlock: localState.blockName,
+          totalDays: localTripData.daysTotal,
+          tripComplete: false
         });
-
-        if (response.data) {
-          // ✅ Backend hydration successful - this is our source of truth
-          setBackendState(response.data);
-          setTripData(localTripData);
-          console.log("✅ Backend state loaded:", response.data);
-        } else {
-          throw new Error("No data from backend");
-        }
 
         setLoading(false);
       } catch (error) {

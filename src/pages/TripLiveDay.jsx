@@ -61,9 +61,18 @@ export default function TripLiveDay() {
   }, [navigate]);
 
   const handleStartDay = () => {
-    // Always start with morning block
-    setCurrentState(tripData.currentDay, "morning");
-    navigate("/tripliveblock");
+    // Get current block from localStorage
+    const { currentBlockName } = getCurrentState();
+    
+    // If we're already on a specific block, continue from there
+    if (currentBlockName && currentBlockName !== "morning") {
+      console.log("✅ Continuing from current block:", currentBlockName);
+      navigate("/tripliveblock");
+    } else {
+      // Start with morning block
+      setCurrentState(tripData.currentDay, "morning");
+      navigate("/tripliveblock");
+    }
   };
 
   if (loading) {
@@ -153,7 +162,18 @@ export default function TripLiveDay() {
             onClick={handleStartDay}
             className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-12 py-4 rounded-2xl hover:from-green-600 hover:to-emerald-700 transform hover:scale-105 transition-all duration-200 font-semibold text-xl"
           >
-            🌅 Let's Start the Day!
+            {(() => {
+              const { currentBlockName } = getCurrentState();
+              if (currentBlockName === "morning") {
+                return "🌅 Let's Start the Day!";
+              } else if (currentBlockName === "afternoon") {
+                return "☀️ Continue to Afternoon!";
+              } else if (currentBlockName === "evening") {
+                return "🌆 Continue to Evening!";
+              } else {
+                return "🚀 Continue Your Day!";
+              }
+            })()}
           </button>
         </div>
 

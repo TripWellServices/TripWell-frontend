@@ -10,10 +10,26 @@ export default function Home() {
   useEffect(() => {
     // Check if we're already on a live day route or debug route - if so, don't interfere
     const currentPath = window.location.pathname;
-    if (currentPath.startsWith('/tripliveday') || currentPath.startsWith('/tripliveblock') || currentPath === '/dayindextest') {
+    console.log("🔍 Home.jsx checking path:", currentPath);
+    
+    const bypassPaths = [
+      '/tripliveday',
+      '/tripliveblock', 
+      '/dayindextest',
+      '/livedayreturner',
+      '/tripdaylookback'
+    ];
+    
+    const shouldBypass = bypassPaths.some(path => currentPath.startsWith(path) || currentPath === path);
+    
+    console.log("🔍 Should bypass:", shouldBypass, "for path:", currentPath);
+    
+    if (shouldBypass) {
       console.log("🚀 Already on live day route or debug route, not interfering:", currentPath);
       return;
     }
+    
+    console.log("🔍 Proceeding with normal routing logic...");
 
     // Show splash screen for 1000ms
     const timer = setTimeout(() => {

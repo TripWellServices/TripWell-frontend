@@ -21,7 +21,8 @@ export default function TripDayLookback() {
   const [tripData, setTripData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [moodTag, setMoodTag] = useState("");
+  const [error, setError] = useState(null);
+  const [moodTags, setMoodTags] = useState([]);
   const [journalText, setJournalText] = useState("");
   const navigate = useNavigate();
 
@@ -33,15 +34,23 @@ export default function TripDayLookback() {
 
   useEffect(() => {
     // 🔴 SUPER SIMPLE HYDRATION: Just get the day that was completed
+    console.log("🔍 TripDayLookback - ALL localStorage keys:", Object.keys(localStorage));
+    console.log("🔍 TripDayLookback - tripData raw:", localStorage.getItem("tripData"));
+    console.log("🔍 TripDayLookback - userData raw:", localStorage.getItem("userData"));
+    console.log("🔍 TripDayLookback - itineraryData raw:", localStorage.getItem("itineraryData"));
+    
     const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
     const { currentDayIndex } = getCurrentState();
     const completedDayIndex = currentDayIndex - 1; // The day that was just finished
     
+    console.log("🔍 TripDayLookback - tripData parsed:", tripData);
+    console.log("🔍 TripDayLookback - currentDayIndex:", currentDayIndex);
     console.log("🔍 TripDayLookback - completedDayIndex:", completedDayIndex);
     
     if (!tripData?.tripId) {
       console.error("❌ Missing trip data");
-      navigate("/");
+      setError("No trip data found. Please return to your trip.");
+      setLoading(false);
       return;
     }
 
@@ -107,6 +116,31 @@ export default function TripDayLookback() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="max-w-2xl mx-auto p-8 bg-white rounded-3xl shadow-2xl text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">⚠️ Unable to Load Reflection</h1>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <div className="space-y-4">
+            <button
+              onClick={() => window.location.reload()}
+              className="w-full bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700"
+            >
+              🔄 Try Again
+            </button>
+            <button
+              onClick={() => navigate("/")}
+              className="w-full bg-gray-100 text-gray-700 px-6 py-3 rounded-xl hover:bg-gray-200"
+            >
+              🏠 Go Home
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="max-w-4xl mx-auto p-8">
@@ -126,23 +160,28 @@ export default function TripDayLookback() {
           
           {/* Mood Selection */}
           <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4">What vibe captures today?</h3>
+            <h3 className="text-lg font-semibold text-gray-700 mb-4">What vibes capture today? (Select multiple)</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {moodOptions.map((mood) => (
                 <label
                   key={mood}
                   className={`border-2 rounded-xl px-4 py-3 text-center cursor-pointer transition-all ${
-                    moodTag === mood 
+                    moodTags.includes(mood)
                       ? "bg-green-100 border-green-600 font-semibold" 
                       : "bg-gray-50 border-gray-200 hover:border-gray-300"
                   }`}
                 >
                   <input
-                    type="radio"
-                    name="mood"
+                    type="checkbox"
                     value={mood}
-                    checked={moodTag === mood}
-                    onChange={() => setMoodTag(mood)}
+                    checked={moodTags.includes(mood)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setMoodTags([...moodTags, mood]);
+                      } else {
+                        setMoodTags(moodTags.filter(tag => tag !== mood));
+                      }
+                    }}
                     className="hidden"
                   />
                   {mood}
@@ -167,7 +206,7 @@ export default function TripDayLookback() {
           <div className="text-center">
             <button
               onClick={handleSave}
-              disabled={saving || !moodTag}
+              disabled={saving || moodTags.length === 0}
               className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-12 py-4 rounded-2xl hover:from-green-600 hover:to-emerald-700 transform hover:scale-105 transition-all duration-200 font-semibold text-xl disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? (

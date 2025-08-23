@@ -80,6 +80,7 @@ import ReflectionHub from "./pages/ReflectionHub";
 
 import LocalStateDebug from "./pages/LocalStateDebug";
 import LiveTripHydrator from "./pages/LiveTripHydrator";
+import NotFound from "./pages/NotFound";
 
 export default function App() {
   return (
@@ -142,6 +143,7 @@ export default function App() {
       <Route path="/pickliveday" element={<PickLiveDay />} />
       <Route path="/tripliveday" element={<TripLiveDay />} />
       <Route path="/tripliveblock" element={<TripLiveDayBlock />} />
+      <Route path="/tripdaylookback" element={<TripDayLookback />} />
       <Route path="/previewliveday" element={<PreviewLiveDay />} />
       <Route path="/tripcomplete" element={<TripComplete />} />
 
@@ -155,7 +157,7 @@ export default function App() {
       <Route path="/yourstuck" element={<YourStuck />} />
 
       {/* ✅ Fallback */}
-      <Route path="*" element={<Access />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
