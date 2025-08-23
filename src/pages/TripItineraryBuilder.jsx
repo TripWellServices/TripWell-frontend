@@ -46,9 +46,12 @@ export default function TripItineraryBuilder() {
         
         if (savedDaysRes.ok) {
           const savedDays = await savedDaysRes.json();
+          console.log("🔍 Backend returned savedDays:", savedDays);
+          console.log("📅 Day indexes from backend:", savedDays.map(d => d.dayIndex));
           setItineraryDays(savedDays);
         } else {
           // Fallback to basic structure if API fails
+          console.log("⚠️ API failed, using fallback structure");
           setItineraryDays([{
             dayIndex: 1,
             summary: "Angela generated your itinerary. Check the modify section for details.",
@@ -76,6 +79,15 @@ export default function TripItineraryBuilder() {
     try {
       setSaving(true);
       
+      // Debug: Log what we're getting from backend
+      console.log("🔍 Backend itineraryDays:", itineraryDays);
+      
+      // Ensure proper day index structure
+      const structuredDays = itineraryDays.map((day, index) => ({
+        ...day,
+        dayIndex: day.dayIndex || index + 1 // Ensure dayIndex is set
+      }));
+      
       // Save to localStorage using the data that was already saved to backend TripDay model
       const itineraryData = {
         itineraryId: tripData.tripId, // Use the real tripId as itineraryId
@@ -83,10 +95,14 @@ export default function TripItineraryBuilder() {
         tripName: tripData.tripName,
         city: tripData.city,
         daysTotal: tripData.daysTotal,
-        days: itineraryDays // This is the data from the backend TripDay model
+        days: structuredDays // This is the data from the backend TripDay model
       };
+      
       localStorage.setItem("itineraryData", JSON.stringify(itineraryData));
       console.log("💾 Saved itineraryData to localStorage:", itineraryData);
+      
+      // Also save the day index structure for debugging
+      console.log("📅 Day indexes in saved data:", structuredDays.map(d => d.dayIndex));
       
       navigate("/pretriphub");
     } catch (err) {

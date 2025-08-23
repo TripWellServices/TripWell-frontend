@@ -8,10 +8,10 @@ export default function Home() {
   const [hasRouted, setHasRouted] = useState(false);
 
   useEffect(() => {
-    // Check if we're already on a live day route - if so, don't interfere
+    // Check if we're already on a live day route or debug route - if so, don't interfere
     const currentPath = window.location.pathname;
-    if (currentPath.startsWith('/tripliveday') || currentPath.startsWith('/tripliveblock')) {
-      console.log("🚀 Already on live day route, not interfering:", currentPath);
+    if (currentPath.startsWith('/tripliveday') || currentPath.startsWith('/tripliveblock') || currentPath === '/dayindextest') {
+      console.log("🚀 Already on live day route or debug route, not interfering:", currentPath);
       return;
     }
 

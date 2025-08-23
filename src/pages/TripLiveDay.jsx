@@ -82,12 +82,14 @@ export default function TripLiveDay() {
       today: new Date().toISOString()
     });
     
-    // Use the current day from progressive navigation state
-    let calculatedDayIndex = currentDayIndex;
+    // For a new trip, always start at day 1
+    let calculatedDayIndex = 1;
     
-    // Only reset to day 1 if we're starting fresh (no state exists)
-    if (!currentDayIndex || currentDayIndex < 1) {
-      calculatedDayIndex = 1;
+    // Only use stored state if it's a reasonable value (not day 7 for a future trip!)
+    if (currentDayIndex && currentDayIndex >= 1 && currentDayIndex <= itineraryData.days.length) {
+      calculatedDayIndex = currentDayIndex;
+      console.log("📅 Using stored state - Day", calculatedDayIndex);
+    } else {
       console.log("📅 Fresh start - Day 1");
     }
     

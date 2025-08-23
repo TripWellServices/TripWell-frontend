@@ -39,12 +39,12 @@ export default function PreTripHub() {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      // Navigate to live day
-      navigate("/tripliveday");
+      // Navigate to live day returner for "welcome back" flow
+      navigate("/livedayreturner");
     } catch (error) {
       console.error("❌ Error starting trip:", error);
       // Still navigate even if backend fails
-      navigate("/tripliveday");
+      navigate("/livedayreturner");
     }
   };
 
@@ -78,10 +78,10 @@ export default function PreTripHub() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
       <div className="max-w-2xl mx-auto p-8 bg-white rounded-3xl shadow-2xl">
         <div className="text-center space-y-8">
-          {/* Welcome Header */}
+          {/* Trip Header */}
           <div className="space-y-4">
-            <h1 className="text-4xl font-bold text-gray-800">Welcome Back!</h1>
-            <p className="text-lg text-gray-600">Your adventure awaits</p>
+            <h1 className="text-4xl font-bold text-gray-800">Your Trip is Ready!</h1>
+            <p className="text-lg text-gray-600">Time to start your adventure</p>
           </div>
 
           {/* Trip Info */}
@@ -124,13 +124,6 @@ export default function PreTripHub() {
               className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-4 rounded-2xl hover:from-green-600 hover:to-emerald-700 transform hover:scale-105 transition-all duration-200 font-semibold text-lg"
             >
               🚀 Start My Trip
-            </button>
-
-            <button
-              onClick={handleReviewItinerary}
-              className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-8 py-4 rounded-2xl hover:from-blue-600 hover:to-indigo-700 transform hover:scale-105 transition-all duration-200 font-semibold text-lg"
-            >
-              🧭 Review Itinerary
             </button>
 
             <button

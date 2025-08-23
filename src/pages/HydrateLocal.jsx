@@ -104,6 +104,7 @@ export default function HydrateLocal() {
   };
 
   const handleContinue = () => {
+    // Don't automatically route - let the user decide or let other components handle routing
     navigate("/localrouter");
   };
 

@@ -12,6 +12,14 @@ export default function Access() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
+    // Check if we're on a debug route - if so, don't interfere
+    const currentPath = window.location.pathname;
+    if (currentPath === '/dayindextest') {
+      console.log("🚀 On debug route, not interfering:", currentPath);
+      setIsCheckingAuth(false);
+      return;
+    }
+
     const unsub = auth.onAuthStateChanged(async (firebaseUser) => {
       if (firebaseUser && !hasAttemptedSignIn) {
         // User is already authenticated - route them to hydrate
