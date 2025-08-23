@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { auth } from "../firebase";
+import BACKEND_URL from "../config";
 
 // Simple state management
 const getCurrentState = () => {
@@ -29,42 +32,31 @@ export default function TripDayLookback() {
   ];
 
   useEffect(() => {
-    // Load trip data from localStorage
+    // 🔴 SUPER SIMPLE HYDRATION: Just get the day that was completed
     const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
-    const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
-    
-    if (!tripData?.tripId || !itineraryData?.days) {
-      console.error("❌ Missing trip data or itinerary data");
-      navigate("/");
-      return;
-    }
-
-    // Get current state
     const { currentDayIndex } = getCurrentState();
+    const completedDayIndex = currentDayIndex - 1; // The day that was just finished
     
-    // Find the current day data
-    const currentDayData = itineraryData.days.find(day => day.dayIndex === currentDayIndex);
+    console.log("🔍 TripDayLookback - completedDayIndex:", completedDayIndex);
     
-    if (!currentDayData) {
-      console.error("❌ Current day not found in itinerary");
+    if (!tripData?.tripId) {
+      console.error("❌ Missing trip data");
       navigate("/");
       return;
     }
 
     // Check if this is the last day
-    const isLastDay = currentDayIndex >= itineraryData.days.length;
+    const isLastDay = currentDayIndex > tripData.daysTotal;
 
     // Set trip data
     setTripData({
       ...tripData,
-      currentDay: currentDayIndex,
-      totalDays: itineraryData.days.length,
-      dayData: currentDayData,
+      currentDay: completedDayIndex,
       isLastDay
     });
     
     setLoading(false);
-    console.log("✅ TripDayLookback loaded - Day", currentDayIndex);
+    console.log("✅ TripDayLookback loaded - Day", completedDayIndex);
   }, [navigate]);
 
   const handleSave = async () => {
@@ -73,20 +65,22 @@ export default function TripDayLookback() {
     setSaving(true);
     
     try {
-      // Save reflection to localStorage
-      const existing = JSON.parse(localStorage.getItem("reflectionData") || "[]");
-      const newReflection = {
-        dayIndex: tripData.currentDay,
-        moodTag,
-        journalText,
-        summary: tripData.dayData?.summary || `Day ${tripData.currentDay} reflection`,
-        timestamp: new Date().toISOString()
-      };
+      // 🔴 SAVE TO BACKEND: Save reflection
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error("No authenticated user");
+      }
       
-      existing.push(newReflection);
-      localStorage.setItem("reflectionData", JSON.stringify(existing));
+      const token = await user.getIdToken();
+             await axios.post(`${BACKEND_URL}/tripwell/reflection/${tripData.tripId}/${tripData.currentDay}`, {
+         summary: `Day ${tripData.currentDay} reflection`,
+         moodTag,
+         journalText
+       }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       
-      console.log("✅ Reflection saved for Day", tripData.currentDay);
+      console.log("✅ Reflection saved to backend for Day", tripData.currentDay);
 
       // Navigate based on whether this is the last day
       if (tripData.isLastDay) {
