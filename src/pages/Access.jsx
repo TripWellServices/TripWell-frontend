@@ -6,6 +6,7 @@ import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import BACKEND_URL from "../config";
 
 export default function Access() {
+  console.log("🚀 Access component mounted");
   const navigate = useNavigate();
   const googleProvider = new GoogleAuthProvider();
   const [hasAttemptedSignIn, setHasAttemptedSignIn] = useState(false);

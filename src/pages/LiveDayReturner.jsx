@@ -17,6 +17,7 @@ const setCurrentState = (dayIndex, blockName) => {
 };
 
 export default function LiveDayReturner() {
+  console.log("🚀 LiveDayReturner component mounted");
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [hydrating, setHydrating] = useState(false);
