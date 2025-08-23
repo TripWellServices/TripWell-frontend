@@ -117,9 +117,6 @@ export default function TripLiveDay() {
                     }`}>
                       {timeOfDay}
                     </span>
-                    {isMorning && (
-                      <span className="text-green-600 text-xs">🚀 Start Here</span>
-                    )}
                   </div>
                   
                   {block ? (

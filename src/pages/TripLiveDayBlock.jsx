@@ -57,10 +57,15 @@ export default function TripLiveDayBlock() {
     }
 
     // Get the current block data
-    const currentBlockData = currentDayData.blocks[currentBlockName];
+    console.log("🔍 Debug - currentDayData:", currentDayData);
+    console.log("🔍 Debug - currentBlockName:", currentBlockName);
+    console.log("🔍 Debug - currentDayData.blocks:", currentDayData.blocks);
+    
+    const currentBlockData = currentDayData.blocks?.[currentBlockName];
     
     if (!currentBlockData) {
-      console.error("❌ Current block not found");
+      console.error("❌ Current block not found for:", currentBlockName);
+      console.error("❌ Available blocks:", Object.keys(currentDayData.blocks || {}));
       navigate("/");
       return;
     }
@@ -83,12 +88,16 @@ export default function TripLiveDayBlock() {
     setSaving(true);
     
     try {
+      // Check current state before advancing
+      const currentBlock = tripData.currentBlock;
+      const currentDay = tripData.currentDay;
+      
       // Advance the progressive navigation pointer
       advanceBlock();
       
-      // Check if we're at the end of the day (evening complete)
-      const isEndOfDay = tripData.currentBlock === "evening";
-      const isEndOfTrip = tripData.currentDay >= tripData.totalDays;
+      // Check if we just completed the evening block (end of day)
+      const isEndOfDay = currentBlock === "evening";
+      const isEndOfTrip = currentDay >= tripData.totalDays;
 
       // Navigate based on state
       if (isEndOfDay) {
@@ -96,7 +105,10 @@ export default function TripLiveDayBlock() {
       } else if (isEndOfTrip) {
         navigate("/tripcomplete"); // Trip complete
       } else {
-        navigate("/tripliveday"); // Back to live day view
+        // For next block, just reload the component with new state
+        setLoading(true);
+        // Force a re-render by updating tripData
+        setTripData(null);
       }
     } catch (error) {
       console.error("❌ Error completing block:", error);
@@ -152,14 +164,14 @@ export default function TripLiveDayBlock() {
             disabled={saving}
             className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-12 py-4 rounded-2xl hover:from-green-600 hover:to-emerald-700 transform hover:scale-105 transition-all duration-200 font-semibold text-xl disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {saving ? (
-              <span className="flex items-center justify-center">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                Completing...
-              </span>
-            ) : (
-              "✅ Complete Activity"
-            )}
+                         {saving ? (
+               <span className="flex items-center justify-center">
+                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                 Loading...
+               </span>
+             ) : (
+               "🚀 Ready for Next Block"
+             )}
           </button>
 
           <button
