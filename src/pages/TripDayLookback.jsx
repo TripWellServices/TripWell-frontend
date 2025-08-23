@@ -34,18 +34,11 @@ export default function TripDayLookback() {
 
   useEffect(() => {
     // 🔴 SUPER SIMPLE HYDRATION: Just get the day that was completed
-    console.log("🔍 TripDayLookback - ALL localStorage keys:", Object.keys(localStorage));
-    console.log("🔍 TripDayLookback - tripData raw:", localStorage.getItem("tripData"));
-    console.log("🔍 TripDayLookback - userData raw:", localStorage.getItem("userData"));
-    console.log("🔍 TripDayLookback - itineraryData raw:", localStorage.getItem("itineraryData"));
-    
     const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
     const { currentDayIndex } = getCurrentState();
     const completedDayIndex = currentDayIndex - 1; // The day that was just finished
     
-    console.log("🔍 TripDayLookback - tripData parsed:", tripData);
-    console.log("🔍 TripDayLookback - currentDayIndex:", currentDayIndex);
-    console.log("🔍 TripDayLookback - completedDayIndex:", completedDayIndex);
+    console.log("🔍 TripDayLookback - Day", completedDayIndex, "completed, moving to Day", currentDayIndex);
     
     if (!tripData?.tripId) {
       console.error("❌ Missing trip data");
