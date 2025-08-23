@@ -37,54 +37,58 @@ export default function TripLiveDayBlock() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Load trip data from localStorage
-    const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
-    const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
-    
-    if (!tripData?.tripId || !itineraryData?.days) {
-      console.error("❌ Missing trip data or itinerary data");
-      navigate("/");
-      return;
-    }
+    const loadTripData = () => {
+      // Load trip data from localStorage
+      const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
+      const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
+      
+      if (!tripData?.tripId || !itineraryData?.days) {
+        console.error("❌ Missing trip data or itinerary data");
+        navigate("/");
+        return;
+      }
 
-    // Get current state
-    const { currentDayIndex, currentBlockName } = getCurrentState();
-    
-    // Find the current day data
-    const currentDayData = itineraryData.days.find(day => day.dayIndex === currentDayIndex);
-    
-    if (!currentDayData) {
-      console.error("❌ Current day not found in itinerary");
-      navigate("/");
-      return;
-    }
+      // Get current state
+      const { currentDayIndex, currentBlockName } = getCurrentState();
+      
+      // Find the current day data
+      const currentDayData = itineraryData.days.find(day => day.dayIndex === currentDayIndex);
+      
+      if (!currentDayData) {
+        console.error("❌ Current day not found in itinerary");
+        navigate("/");
+        return;
+      }
 
-    // Get the current block data
-    console.log("🔍 Debug - currentDayData:", currentDayData);
-    console.log("🔍 Debug - currentBlockName:", currentBlockName);
-    console.log("🔍 Debug - currentDayData.blocks:", currentDayData.blocks);
-    
-    const currentBlockData = currentDayData.blocks?.[currentBlockName];
-    
-    if (!currentBlockData) {
-      console.error("❌ Current block not found for:", currentBlockName);
-      console.error("❌ Available blocks:", Object.keys(currentDayData.blocks || {}));
-      navigate("/");
-      return;
-    }
+      // Get the current block data
+      console.log("🔍 Debug - currentDayData:", currentDayData);
+      console.log("🔍 Debug - currentBlockName:", currentBlockName);
+      console.log("🔍 Debug - currentDayData.blocks:", currentDayData.blocks);
+      
+      const currentBlockData = currentDayData.blocks?.[currentBlockName];
+      
+      if (!currentBlockData) {
+        console.error("❌ Current block not found for:", currentBlockName);
+        console.error("❌ Available blocks:", Object.keys(currentDayData.blocks || {}));
+        navigate("/");
+        return;
+      }
 
-    // Set trip data
-    setTripData({
-      ...tripData,
-      currentDay: currentDayIndex,
-      currentBlock: currentBlockName,
-      totalDays: itineraryData.days.length,
-      dayData: currentDayData,
-      blockData: currentBlockData
-    });
-    
-    setLoading(false);
-    console.log("✅ TripLiveDayBlock loaded - Day", currentDayIndex, currentBlockName);
+      // Set trip data
+      setTripData({
+        ...tripData,
+        currentDay: currentDayIndex,
+        currentBlock: currentBlockName,
+        totalDays: itineraryData.days.length,
+        dayData: currentDayData,
+        blockData: currentBlockData
+      });
+      
+      setLoading(false);
+      console.log("✅ TripLiveDayBlock loaded - Day", currentDayIndex, currentBlockName);
+    };
+
+    loadTripData();
   }, [navigate]);
 
   const handleCompleteBlock = async () => {
@@ -125,10 +129,28 @@ export default function TripLiveDayBlock() {
       } else if (isEndOfTrip) {
         navigate("/tripcomplete"); // Trip complete
       } else {
-        // For next block, just reload the component with new state
-        setLoading(true);
-        // Force a re-render by updating tripData
-        setTripData(null);
+        // 🔴 CLEAN REACT STATE UPDATE: Load new block data directly
+        const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
+        const { currentDayIndex, currentBlockName } = getCurrentState();
+        
+        // Find the new day data
+        const newDayData = itineraryData.days.find(day => day.dayIndex === currentDayIndex);
+        const newBlockData = newDayData?.blocks?.[currentBlockName];
+        
+        if (newDayData && newBlockData) {
+          // Update state directly without triggering useEffect
+          setTripData({
+            ...tripData,
+            currentDay: currentDayIndex,
+            currentBlock: currentBlockName,
+            dayData: newDayData,
+            blockData: newBlockData
+          });
+          console.log("✅ Advanced to:", currentBlockName, "Day", currentDayIndex);
+        } else {
+          console.error("❌ Failed to load next block data");
+          setSaving(false);
+        }
       }
     } catch (error) {
       console.error("❌ Error completing block:", error);
