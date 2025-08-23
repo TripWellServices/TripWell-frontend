@@ -74,37 +74,22 @@ export default function TripLiveDay() {
       return;
     }
 
-    // 🟢 Recalculate current day based on trip dates (handles refresh)
-    const today = new Date();
-    const startDate = new Date(tripData.startDate);
-    const endDate = new Date(tripData.endDate);
+    // 🟢 Step 1: Determine "Which day are we on?" - Progressive Navigation State
+    const { currentDayIndex } = getCurrentState();
     
-    let calculatedDayIndex = 1; // Default to day 1
-    
-    console.log("🔍 TripLiveDay date calculation:", {
-      today: today.toISOString(),
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString()
+    console.log("🔍 TripLiveDay day calculation:", {
+      currentDayIndex,
+      today: new Date().toISOString()
     });
     
-    if (today >= startDate && today <= endDate) {
-      // We're within the trip dates
-      const diffTime = today.getTime() - startDate.getTime();
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      calculatedDayIndex = diffDays + 1; // +1 because day 1 is the first day
-      console.log("📅 Within trip dates - Day", calculatedDayIndex);
-    } else if (today < startDate) {
-      // Trip hasn't started yet
-      calculatedDayIndex = 1;
-      console.log("📅 Trip hasn't started - Day 1");
-    } else {
-      // Trip is over
-      calculatedDayIndex = itineraryData.days.length;
-      console.log("📅 Trip is over - Day", calculatedDayIndex);
-    }
+    // Use the current day from progressive navigation state
+    let calculatedDayIndex = currentDayIndex;
     
-    // Update localStorage with calculated day
-    setCurrentState(calculatedDayIndex, "morning");
+    // Only reset to day 1 if we're starting fresh (no state exists)
+    if (!currentDayIndex || currentDayIndex < 1) {
+      calculatedDayIndex = 1;
+      console.log("📅 Fresh start - Day 1");
+    }
     
     // Find the current day from itinerary data
     const currentDayData = itineraryData.days.find(day => day.dayIndex === calculatedDayIndex);
@@ -118,11 +103,10 @@ export default function TripLiveDay() {
     // Check if trip is complete (past last day)
     const isTripComplete = calculatedDayIndex > itineraryData.days.length;
 
-    // Use recalculated progressive navigation state
+    // Use progressive navigation state (day only)
     const liveTripData = {
       ...tripData,
       currentDay: calculatedDayIndex,
-      currentBlock: "morning", // Always reset to morning on refresh
       tripComplete: isTripComplete,
       totalDays: itineraryData.days.length,
       dayData: currentDayData // Real day data from itinerary
@@ -134,6 +118,18 @@ export default function TripLiveDay() {
     // 🟡 Backend checkpoint happens on first "Complete Block" action
     // No backend call here - just local defaults
   }, [navigate]);
+
+  const handleStartDay = () => {
+    // Always start with morning block for the current day
+    setCurrentState(tripData.currentDay, "morning");
+    navigate("/tripliveblock");
+  };
+
+  const getBlockStatus = (blockName) => {
+    // This would ideally come from backend hydration
+    // For now, we'll show all blocks as available
+    return "available"; // available, completed, current
+  };
 
   if (!tripData) return (
     <div className="p-8 max-w-2xl mx-auto text-center">
@@ -147,22 +143,22 @@ export default function TripLiveDay() {
 
   return (
     <div className="p-6 max-w-2xl mx-auto space-y-6">
-             {/* Header */}
-       <div className="text-center space-y-2">
-         <h1 className="text-4xl font-bold text-gray-800">
-           Day {tripData.currentDay} of {tripData.totalDays}
-         </h1>
-         <p className="text-lg text-gray-600">
-           {tripData.city}
-         </p>
-         <div className="text-sm text-gray-500">
-           {new Date(tripData.startDate).toLocaleDateString('en-US', { 
-             weekday: 'long', 
-             month: 'long', 
-             day: 'numeric' 
-           })}
-         </div>
-       </div>
+      {/* Header */}
+      <div className="text-center space-y-2">
+        <h1 className="text-4xl font-bold text-gray-800">
+          Day {tripData.currentDay} of {tripData.totalDays}
+        </h1>
+        <p className="text-lg text-gray-600">
+          {tripData.city}
+        </p>
+        <div className="text-sm text-gray-500">
+          {new Date(tripData.startDate).toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            month: 'long', 
+            day: 'numeric' 
+          })}
+        </div>
+      </div>
 
       {/* Progress Indicator */}
       <div className="bg-white rounded-lg shadow p-4">
@@ -178,30 +174,31 @@ export default function TripLiveDay() {
         </div>
       </div>
 
-      {/* Current Block Info */}
-      <div className="bg-white rounded-lg shadow p-6 text-center">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-          {tripData.currentBlock === 'morning' && '🌅 Morning'}
-          {tripData.currentBlock === 'afternoon' && '☀️ Afternoon'}
-          {tripData.currentBlock === 'evening' && '🌙 Evening'}
-          {tripData.currentBlock === 'done' && '✅ Day Complete'}
-        </h2>
-        
-        {tripData.dayData?.summary && (
-          <p className="text-gray-600 mb-4">
+      {/* Day Summary */}
+      {tripData.dayData?.summary && (
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-3">📋 Day Overview</h2>
+          <p className="text-gray-600 leading-relaxed">
             {tripData.dayData.summary}
           </p>
-        )}
+        </div>
+      )}
 
-                 {!tripData.tripComplete && (
-           <button
-             onClick={() => navigate("/tripliveblock")}
-             className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-lg text-lg transition-colors"
-           >
-             Start {tripData.currentBlock.charAt(0).toUpperCase() + tripData.currentBlock.slice(1)}
-           </button>
-         )}
-      </div>
+      {/* Start Day Button */}
+      {!tripData.tripComplete && (
+        <div className="bg-white rounded-lg shadow p-8 text-center">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4">Ready to start your day?</h2>
+          <p className="text-gray-600 mb-6">
+            Let's begin with your morning activities in {tripData.city}!
+          </p>
+          <button
+            onClick={handleStartDay}
+            className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-4 px-8 rounded-2xl text-lg transition-all duration-200 transform hover:scale-105"
+          >
+            🌅 Let's Start the Day!
+          </button>
+        </div>
+      )}
 
       {/* Trip Complete Notice */}
       {tripData.tripComplete && (
