@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { auth } from "../firebase";
+import BACKEND_URL from "../config";
 
 // Simple state management
 const getCurrentState = () => {
@@ -91,6 +94,23 @@ export default function TripLiveDayBlock() {
       // Check current state before advancing
       const currentBlock = tripData.currentBlock;
       const currentDay = tripData.currentDay;
+      
+      // 🔴 SAVE TO BACKEND: Mark block as complete
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error("No authenticated user");
+      }
+      
+      const token = await user.getIdToken();
+      await axios.patch(`${BACKEND_URL}/tripwell/block/complete`, {
+        tripId: tripData.tripId,
+        dayIndex: currentDay,
+        blockName: currentBlock
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      console.log("✅ Block completed on backend:", currentBlock);
       
       // Advance the progressive navigation pointer
       advanceBlock();
