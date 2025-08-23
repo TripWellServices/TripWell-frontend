@@ -24,8 +24,28 @@ export default function PreTripHub() {
 
   const daysUntilTrip = getDaysUntilTrip();
 
-  const handleStartTrip = () => {
-    navigate("/tripliveday");
+  const handleStartTrip = async () => {
+    try {
+      const firebaseUser = auth.currentUser;
+      if (!firebaseUser) {
+        console.error("❌ No authenticated user");
+        return;
+      }
+
+      const token = await firebaseUser.getIdToken();
+      
+      // Plant the trip start flag in backend
+      await axios.post(`${BACKEND_URL}/tripwell/starttrip/${tripData.tripId || tripData._id}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      // Navigate to live day
+      navigate("/tripliveday");
+    } catch (error) {
+      console.error("❌ Error starting trip:", error);
+      // Still navigate even if backend fails
+      navigate("/tripliveday");
+    }
   };
 
   const handleReviewItinerary = () => {
