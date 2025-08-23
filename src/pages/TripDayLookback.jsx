@@ -81,11 +81,11 @@ export default function TripDayLookback() {
       }
       
       const token = await user.getIdToken();
-             await axios.post(`${BACKEND_URL}/tripwell/reflection/${tripData.tripId}/${tripData.currentDay}`, {
-         summary: `Day ${tripData.currentDay} reflection`,
-         moodTag,
-         journalText
-       }, {
+                          await axios.post(`${BACKEND_URL}/tripwell/reflection/${tripData.tripId}/${tripData.currentDay}`, {
+          summary: `Day ${tripData.currentDay} reflection`,
+          moodTags,
+          journalText
+        }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
