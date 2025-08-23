@@ -76,15 +76,10 @@ export default function LiveDayReturner() {
     setHydrating(true);
     
     try {
-      // Use backend state if available, otherwise use local state
-      if (backendState) {
-        setCurrentState(backendState.currentDayIndex, backendState.currentBlock);
-        console.log("✅ Set state from backend:", backendState);
-      } else {
-        // Use local state
-        const localState = getCurrentState();
-        console.log("✅ Using local state:", localState);
-      }
+      // For test trips, don't overwrite localStorage with backend data
+      // Just use local state and let TripLiveDay handle the logic
+      const localState = getCurrentState();
+      console.log("✅ Using local state:", localState);
       
       navigate("/tripliveday");
     } catch (error) {

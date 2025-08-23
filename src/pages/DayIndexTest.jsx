@@ -68,9 +68,9 @@ export default function DayIndexTest() {
           calculatedDayIndex = 1;
           calculationReason = "trip hasn't started";
         } else {
-          // Trip is over
-          calculatedDayIndex = itineraryData?.days?.length || 1;
-          calculationReason = "trip is over";
+          // Trip is over - for test trips, default to Day 1
+          calculatedDayIndex = 1;
+          calculationReason = "trip is over - defaulting to Day 1 for test trip";
         }
       }
       
@@ -83,9 +83,11 @@ export default function DayIndexTest() {
       });
 
       // 3. Check if we should use stored state or calculated
-      const shouldUseStored = currentState.currentDayIndex && 
-                             currentState.currentDayIndex >= 1 && 
-                             currentState.currentDayIndex <= (itineraryData?.days?.length || 1);
+      // For test trips that are over, always use calculated (Day 1)
+      const shouldUseStored = calculationReason.includes("trip is over") ? false :
+                             (currentState.currentDayIndex && 
+                              currentState.currentDayIndex >= 1 && 
+                              currentState.currentDayIndex <= (itineraryData?.days?.length || 1));
       
       const finalDayIndex = shouldUseStored ? currentState.currentDayIndex : calculatedDayIndex;
       

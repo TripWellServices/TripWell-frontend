@@ -144,6 +144,9 @@ export default function HydrateLocal() {
          <button onClick={handleContinue} className="w-full bg-blue-600 text-white py-2 rounded">
            Continue to Router
          </button>
+         <button onClick={() => navigate("/dayindextest")} className="w-full bg-green-600 text-white py-2 rounded">
+           Day Index Test
+         </button>
          <button onClick={hydrateData} className="w-full bg-gray-600 text-white py-2 rounded">
            Refresh Data
          </button>
