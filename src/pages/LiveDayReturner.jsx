@@ -25,7 +25,7 @@ export default function LiveDayReturner() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const checkTripStatus = async () => {
+    const checkTripStatus = async (user) => {
       try {
         // Get local trip data for the API call
         const localTripData = JSON.parse(localStorage.getItem("tripData") || "null");
@@ -37,7 +37,6 @@ export default function LiveDayReturner() {
         }
 
         // 🔴 SOURCE OF TRUTH: Hydrate from backend
-        const user = auth.currentUser;
         if (!user) {
           console.log("❌ No Firebase user");
           setError("Authentication required");
@@ -67,7 +66,12 @@ export default function LiveDayReturner() {
       }
     };
 
-    checkTripStatus();
+    // Wait for Firebase authentication to complete
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      checkTripStatus(user);
+    });
+
+    return unsubscribe;
   }, [navigate]);
 
   const handleTakeMeBack = async () => {
