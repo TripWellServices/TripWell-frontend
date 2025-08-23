@@ -116,7 +116,8 @@ export default function TripLiveDay() {
               return (
                 <div
                   key={timeOfDay}
-                  className="rounded-xl p-4 border-2 border-gray-200 bg-gray-50"
+                  className="rounded-xl p-4 border-2 border-gray-200 bg-gray-50 cursor-default"
+                  style={{ pointerEvents: 'none' }}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-semibold text-sm uppercase tracking-wide text-gray-500">
