@@ -15,7 +15,7 @@ axios.interceptors.request.use(
       console.warn("⚠️ Firebase auth error in interceptor:", error);
     }
 
-    if (config.url && (config.url.includes('/tripwell/whoami') || config.url.includes('/tripwell/tripstatus'))) {
+    if (config.url && (config.url.includes('/tripwell/whoami') || config.url.includes('/tripwell/tripstatus') || config.url.includes('/tripwell/livestatus'))) {
       config.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
       config.headers['Pragma'] = 'no-cache';
       config.headers['Expires'] = '0';
