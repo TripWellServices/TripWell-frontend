@@ -125,8 +125,10 @@ export default function TripLiveDayBlock() {
 
       // Navigate based on state
       if (isEndOfDay) {
+        setSaving(false);
         navigate("/tripdaylookback"); // Day complete, do reflection
       } else if (isEndOfTrip) {
+        setSaving(false);
         navigate("/tripcomplete"); // Trip complete
       } else {
         // 🔴 CLEAN REACT STATE UPDATE: Load new block data directly
@@ -146,6 +148,7 @@ export default function TripLiveDayBlock() {
             dayData: newDayData,
             blockData: newBlockData
           });
+          setSaving(false);
           console.log("✅ Advanced to:", currentBlockName, "Day", currentDayIndex);
         } else {
           console.error("❌ Failed to load next block data");
