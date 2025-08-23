@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { auth } from "../firebase";
+import BACKEND_URL from "../config";
 
 export default function TripReflectionsHub() {
   const navigate = useNavigate();
@@ -11,22 +14,60 @@ export default function TripReflectionsHub() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get all data from localStorage
-    const tripData = localStorage.getItem("tripData");
-    const reflectionData = localStorage.getItem("reflectionData");
-    
-    if (tripData) {
-      const parsedTripData = JSON.parse(tripData);
-      setCity(parsedTripData.city || "");
-      setTripName(parsedTripData.tripName || "Your Trip");
-    }
+    const loadReflections = async () => {
+      try {
+        console.log("🔍 TripReflectionsHub - Starting to load reflections...");
+        
+        // Get trip data from localStorage
+        const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
+        console.log("🔍 TripReflectionsHub - tripData:", tripData);
+        
+        if (!tripData?.tripId) {
+          console.error("❌ No trip data found");
+          setLoading(false);
+          return;
+        }
 
-    if (reflectionData) {
-      const parsedReflectionData = JSON.parse(reflectionData);
-      setReflections(parsedReflectionData || []);
-    }
+        setCity(tripData.city || "");
+        setTripName(tripData.tripName || "Your Trip");
 
-    setLoading(false);
+        console.log("🔍 TripReflectionsHub - Waiting for Firebase auth...");
+        // Wait for Firebase auth to be ready
+        await new Promise(resolve => {
+          const unsubscribe = auth.onAuthStateChanged(user => {
+            unsubscribe();
+            resolve(user);
+          });
+        });
+
+        const user = auth.currentUser;
+        if (!user) {
+          throw new Error("No authenticated user");
+        }
+        
+        const token = await user.getIdToken();
+        console.log("🔍 TripReflectionsHub - Got token, calling backend...");
+        
+        // 🔴 LOAD FROM BACKEND: Get all reflections for this trip
+        const url = `${BACKEND_URL}/tripwell/reflections/${tripData.tripId}`;
+        console.log("🔍 TripReflectionsHub - Calling URL:", url);
+        
+        const res = await axios.get(url, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        console.log("✅ Loaded reflections from backend:", res.data);
+        setReflections(res.data);
+        
+      } catch (error) {
+        console.error("❌ Error loading reflections:", error);
+        console.error("❌ Error details:", error.response?.data || error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadReflections();
   }, []);
 
   if (loading) return <div className="p-6 text-center">Loading your trip memories...</div>;
@@ -51,12 +92,16 @@ export default function TripReflectionsHub() {
       <div className="bg-white shadow-md rounded-xl p-4 border">
         {reflections.map((ref, i) => (
           <div key={i} className="mb-6 border-t pt-4">
-            <h3 className="text-lg font-bold">Day {ref.dayIndex + 1}</h3>
+            <h3 className="text-lg font-bold">Day {ref.dayIndex}</h3>
             <p className="text-gray-800 font-medium mb-1">Summary: {ref.summary}</p>
-            <p className="text-sm text-gray-600 mb-1">
-              <span className="font-semibold">Mood:</span> {ref.moodTag}
-            </p>
-            <p className="text-gray-800 whitespace-pre-wrap">{ref.journalText}</p>
+            {ref.moodTags && ref.moodTags.length > 0 && (
+              <p className="text-sm text-gray-600 mb-1">
+                <span className="font-semibold">Mood:</span> {ref.moodTags.join(", ")}
+              </p>
+            )}
+            {ref.journalText && (
+              <p className="text-gray-800 whitespace-pre-wrap">{ref.journalText}</p>
+            )}
           </div>
         ))}
       </div>

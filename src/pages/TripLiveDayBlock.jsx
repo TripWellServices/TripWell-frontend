@@ -198,17 +198,17 @@ export default function TripLiveDayBlock() {
       console.log("✅ Advanced to:", nextBlockName, "Day", nextDayIndex);
       setCurrentState(nextDayIndex, nextBlockName);
       
-      // Check if we've completed all days
-      const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
-      if (nextDayIndex > itineraryData.days.length) {
-        console.log("✅ Trip complete!");
-        setCompleting(false);
-        navigate("/tripcomplete");
-        return;
-      }
-      
       // Navigate to next block or day lookback
       if (nextBlockName === "morning" && nextDayIndex > currentDayIndex) {
+        // Check if we've completed all days
+        const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
+        if (nextDayIndex > itineraryData.days.length) {
+          console.log("✅ Trip complete!");
+          setCompleting(false);
+          navigate("/tripcomplete");
+          return;
+        }
+        
         // New day - go to day lookback first
         console.log("🔄 Navigating to day lookback for new day");
         setCompleting(false);
