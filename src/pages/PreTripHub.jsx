@@ -69,9 +69,10 @@ export default function PreTripHub() {
         currentDayIndex = itineraryData.days.length;
       }
       
-      // Save current day index to localStorage for the live flow
+      // Initialize progressive navigation state
       localStorage.setItem("currentDayIndex", currentDayIndex.toString());
-      console.log("💾 Current day index:", currentDayIndex);
+      localStorage.setItem("currentBlockName", "morning"); // Always start with morning
+      console.log("💾 Initialized progressive navigation: Day", currentDayIndex, "Block: morning");
       
       // Navigate directly to the live day experience!
       console.log("🚀 Navigating to live day experience");

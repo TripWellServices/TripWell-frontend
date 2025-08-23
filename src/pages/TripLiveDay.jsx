@@ -1,24 +1,72 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import BACKEND_URL from "../config";
 
-// Utility functions for managing current day
-const getCurrentDay = () => {
-  return parseInt(localStorage.getItem("currentDayIndex") || "1");
+// Progressive navigation state management
+const getCurrentState = () => {
+  return {
+    currentDayIndex: parseInt(localStorage.getItem("currentDayIndex") || "1"),
+    currentBlockName: localStorage.getItem("currentBlockName") || "morning"
+  };
 };
 
-const setCurrentDay = (dayIndex) => {
+// Safe defaults for fresh boot
+const getDefaultState = () => {
+  return {
+    currentDayIndex: 1,
+    currentBlockName: "morning",
+    tripComplete: false
+  };
+};
+
+const setCurrentState = (dayIndex, blockName) => {
   localStorage.setItem("currentDayIndex", dayIndex.toString());
+  localStorage.setItem("currentBlockName", blockName);
+};
+
+const advanceBlock = () => {
+  const { currentDayIndex, currentBlockName } = getCurrentState();
+  
+  if (currentBlockName === "morning") {
+    setCurrentState(currentDayIndex, "afternoon");
+  } else if (currentBlockName === "afternoon") {
+    setCurrentState(currentDayIndex, "evening");
+  } else if (currentBlockName === "evening") {
+    // Move to next day, reset to morning
+    setCurrentState(currentDayIndex + 1, "morning");
+  }
+};
+
+// 🔴 Hydration: Sync with backend authoritative state
+const hydrateFromBackend = async (tripId) => {
+  try {
+    const res = await axios.get(`${BACKEND_URL}/tripwell/livestatus/${tripId}`);
+    const { currentDayIndex, currentBlock, tripComplete } = res.data;
+    
+    // Overwrite local pointer with backend truth
+    setCurrentState(currentDayIndex, currentBlock);
+    
+    return {
+      currentDay: currentDayIndex,
+      currentBlock,
+      tripComplete,
+      dayData: res.data.dayData
+    };
+  } catch (err) {
+    console.warn("⚠️ Backend hydration failed, using local state:", err);
+    return null; // Fall back to local state
+  }
 };
 
 export default function TripLiveDay() {
   const [tripData, setTripData] = useState(null);
   const navigate = useNavigate();
 
-  // Load trip data from localStorage (no backend call needed)
+  // Load trip data using progressive navigation state
   useEffect(() => {
     const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
     const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
-    const currentDayIndex = localStorage.getItem("currentDayIndex");
     
     if (!tripData?.tripId || !itineraryData?.days) {
       console.error("❌ Missing trip data or itinerary data");
@@ -26,9 +74,12 @@ export default function TripLiveDay() {
       return;
     }
 
+    // 🟢 Default local boot - safe defaults
+    const defaultState = getDefaultState();
+    const { currentDayIndex, currentBlockName } = getCurrentState();
+    
     // Find the current day from itinerary data
-    const currentDay = parseInt(currentDayIndex) || 1;
-    const currentDayData = itineraryData.days.find(day => day.dayIndex === currentDay);
+    const currentDayData = itineraryData.days.find(day => day.dayIndex === currentDayIndex);
     
     if (!currentDayData) {
       console.error("❌ Current day not found in itinerary");
@@ -36,18 +87,24 @@ export default function TripLiveDay() {
       return;
     }
 
-    // Use real data structure
+    // Check if trip is complete (past last day)
+    const isTripComplete = currentDayIndex > itineraryData.days.length;
+
+    // Use progressive navigation state with safe defaults
     const liveTripData = {
       ...tripData,
-      currentDay: currentDay,
-      currentBlock: "morning", // Default to morning
-      tripComplete: false,
+      currentDay: currentDayIndex,
+      currentBlock: currentBlockName,
+      tripComplete: isTripComplete,
       totalDays: itineraryData.days.length,
       dayData: currentDayData // Real day data from itinerary
     };
     
     setTripData(liveTripData);
-    console.log("💾 Loaded trip data from localStorage:", liveTripData);
+    console.log("💾 Loaded trip data with progressive state:", liveTripData);
+    
+    // 🟡 Backend checkpoint happens on first "Complete Block" action
+    // No backend call here - just local defaults
   }, [navigate]);
 
   if (!tripData) return (
@@ -108,14 +165,14 @@ export default function TripLiveDay() {
           </p>
         )}
 
-        {tripData.currentBlock !== 'done' && (
-          <button
-            onClick={() => navigate("/tripliveblock")}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-lg text-lg transition-colors"
-          >
-            Start {tripData.currentBlock.charAt(0).toUpperCase() + tripData.currentBlock.slice(1)}
-          </button>
-        )}
+                 {!tripData.tripComplete && (
+           <button
+             onClick={() => navigate("/tripliveblock")}
+             className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-lg text-lg transition-colors"
+           >
+             Start {tripData.currentBlock.charAt(0).toUpperCase() + tripData.currentBlock.slice(1)}
+           </button>
+         )}
       </div>
 
       {/* Trip Complete Notice */}
