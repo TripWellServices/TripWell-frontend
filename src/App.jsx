@@ -67,6 +67,12 @@ import YourStuck from "./pages/YourStuck";
 import TripNotCreated from "./pages/TripNotCreated";
 import TripItineraryRequired from "./pages/TripItineraryRequired";
 
+// ✅ Demo Pages
+import LandingHome from "./pages/LandingHome";
+import ItineraryDemo from "./pages/ItineraryDemo";
+import BestThings from "./pages/BestThings";
+import FunnelRouter from "./pages/FunnelRouter";
+
 // ✅ Test Pages
 import TripIDTest from "./pages/TripIDTest"; // 👈 new
 import AnchorGPTTest from "./pages/anchorgpttest"; // 👈 new
@@ -90,6 +96,12 @@ export default function App() {
       <Route path="/homearchive" element={<HomeArchive />} />
       <Route path="/explainer" element={<Explainer />} />
       <Route path="/joinaccess" element={<JoinAccess />} />
+
+      {/* ✅ Demo Routes */}
+      <Route path="/landing" element={<LandingHome />} />
+      <Route path="/demo" element={<ItineraryDemo />} />
+      <Route path="/bestthings" element={<BestThings />} />
+      <Route path="/funnel-router" element={<FunnelRouter />} />
 
       {/* ✅ Participant Flow */}
       <Route path="/prejointrip" element={<PreJoinTrip />} />

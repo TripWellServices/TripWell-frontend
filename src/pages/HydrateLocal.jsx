@@ -2,110 +2,140 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
 import { signOut } from "firebase/auth";
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "https://gofastbackend.onrender.com";
+import { getAuthConfig } from "../utils/auth";
+import BACKEND_URL from "../config";
 
 export default function HydrateLocal() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
-  const [status, setStatus] = useState("");
+  const [progress, setProgress] = useState({
+    step: "initializing",
+    message: "Starting hydration...",
+    hydratedModels: 0,
+    totalModels: 5
+  });
+  const [error, setError] = useState(null);
   const [hydratedData, setHydratedData] = useState({});
 
   useEffect(() => {
-    // Only hydrate if we haven't already
     if (isLoading) {
       hydrateData();
     }
   }, []);
 
+  const updateProgress = (step, message, hydratedCount = 0) => {
+    setProgress({
+      step,
+      message,
+      hydratedModels: hydratedCount,
+      totalModels: 5
+    });
+  };
+
   const hydrateData = async () => {
     try {
-      // Prevent double hydration
       if (isLoading === false) {
         console.log("🔍 HydrateLocal - Already hydrated, skipping...");
         return;
       }
       
       setIsLoading(true);
-      setStatus("Hydrating from backend...");
+      setError(null);
+      updateProgress("auth", "Checking authentication...");
 
-      // Wait for Firebase auth to be ready (same pattern as other components)
-      await new Promise(resolve => {
-        const unsubscribe = auth.onAuthStateChanged(user => {
-          unsubscribe();
-          resolve(user);
-        });
-      });
-
-      const firebaseUser = auth.currentUser;
-      if (!firebaseUser) {
-        throw new Error("No authenticated user");
-      }
-
-      const token = await firebaseUser.getIdToken();
+      // ✅ FIX: Use standardized auth utility (same pattern as LocalUniversalRouter)
+      const authConfig = await getAuthConfig();
+      updateProgress("fetching", "Fetching data from server...");
+      
       const response = await fetch(`${BACKEND_URL}/tripwell/hydrate`, {
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
+        headers: authConfig.headers,
         cache: "no-store"
       });
 
       if (!response.ok) {
-        throw new Error(`Hydration failed: ${response.status}`);
+        console.log("❌ /hydrate failed:", response.status);
+        if (response.status === 401) {
+          console.log("❌ Authentication error, routing to /access");
+          throw new Error("Authentication failed - please log in again");
+        }
+        throw new Error(`Server error: ${response.status}`);
       }
 
+      updateProgress("processing", "Processing data...");
       const freshData = await response.json();
       
-      // 🔍 DEBUG: Log what backend sent
+      // 🔍 DEBUG: Log what backend sent (following dev guide pattern)
       console.log("🔍 Backend sent userData:", freshData.userData);
       console.log("🔍 Backend sent tripData:", freshData.tripData);
       console.log("🔍 Backend sent tripIntentData:", freshData.tripIntentData);
       console.log("🔍 Backend sent anchorLogicData:", freshData.anchorLogicData);
-      console.log("🔍 Backend sent anchorLogicData?.anchors:", freshData.anchorLogicData?.anchors);
       console.log("🔍 Backend sent itineraryData:", freshData.itineraryData);
       
-      // 🔍 DEBUG: Log authentication info
-      console.log("🔐 User authenticated, checking access...");
-      console.log("🔍 User check response:", freshData.userData);
-      console.log("💾 Existing user, routing to hydrate...");
+      // Save data to localStorage with progress updates (localStorage "SDK" pattern)
+      let hydratedCount = 0;
       
-      // Save all data to localStorage
-      if (freshData.userData) localStorage.setItem("userData", JSON.stringify(freshData.userData));
-      if (freshData.tripData) localStorage.setItem("tripData", JSON.stringify(freshData.tripData));
-      if (freshData.tripIntentData) localStorage.setItem("tripIntentData", JSON.stringify(freshData.tripIntentData));
-                    if (freshData.anchorLogicData) {
-                console.log("🔍 Setting anchorLogic to localStorage:", freshData.anchorLogicData);
-                localStorage.setItem("anchorLogic", JSON.stringify(freshData.anchorLogicData));
-              } else {
-                console.log("🔍 No anchorLogicData from backend!");
-              }
-      if (freshData.itineraryData) localStorage.setItem("itineraryData", JSON.stringify(freshData.itineraryData));
+      if (freshData.userData) {
+        localStorage.setItem("userData", JSON.stringify(freshData.userData));
+        hydratedCount++;
+        updateProgress("saving", "Saving user data...", hydratedCount);
+      }
+      
+      if (freshData.tripData) {
+        localStorage.setItem("tripData", JSON.stringify(freshData.tripData));
+        hydratedCount++;
+        updateProgress("saving", "Saving trip data...", hydratedCount);
+      }
+      
+      if (freshData.tripIntentData) {
+        localStorage.setItem("tripIntentData", JSON.stringify(freshData.tripIntentData));
+        hydratedCount++;
+        updateProgress("saving", "Saving trip intent...", hydratedCount);
+      }
+      
+      if (freshData.anchorLogicData) {
+        localStorage.setItem("anchorLogic", JSON.stringify(freshData.anchorLogicData));
+        hydratedCount++;
+        updateProgress("saving", "Saving anchor logic...", hydratedCount);
+      }
+      
+      if (freshData.itineraryData) {
+        localStorage.setItem("itineraryData", JSON.stringify(freshData.itineraryData));
+        hydratedCount++;
+        updateProgress("saving", "Saving itinerary...", hydratedCount);
+      }
 
-             // Get what's actually in localStorage after hydration
-       const localStorageData = {
-         userData: JSON.parse(localStorage.getItem("userData") || "null"),
-         tripData: JSON.parse(localStorage.getItem("tripData") || "null"),
-         tripIntentData: JSON.parse(localStorage.getItem("tripIntentData") || "null"),
-         anchorLogic: JSON.parse(localStorage.getItem("anchorLogic") || "null"),
-         itineraryData: JSON.parse(localStorage.getItem("itineraryData") || "null"),
-         profileComplete: localStorage.getItem("profileComplete") === "true"
-       };
+      // Get final state from localStorage
+      const localStorageData = {
+        userData: JSON.parse(localStorage.getItem("userData") || "null"),
+        tripData: JSON.parse(localStorage.getItem("tripData") || "null"),
+        tripIntentData: JSON.parse(localStorage.getItem("tripIntentData") || "null"),
+        anchorLogic: JSON.parse(localStorage.getItem("anchorLogic") || "null"),
+        itineraryData: JSON.parse(localStorage.getItem("itineraryData") || "null"),
+        profileComplete: localStorage.getItem("profileComplete") === "true"
+      };
       
       setHydratedData(localStorageData);
-      setStatus(`✅ Hydrated: ${Object.keys(localStorageData).filter(k => localStorageData[k]).length} models`);
+      updateProgress("complete", "Hydration complete!", hydratedCount);
+
+      // ✅ Auto-navigate after a brief delay to show completion
+      console.log("✅ Hydration complete, auto-navigating to /localrouter");
+      setTimeout(() => {
+        navigate("/localrouter");
+      }, 1500);
 
     } catch (err) {
       console.error("❌ Hydration error:", err);
-      setStatus(`❌ Error: ${err.message}`);
+      setError(err.message);
+      updateProgress("error", "Hydration failed");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleContinue = () => {
-    // Don't automatically route - let the user decide or let other components handle routing
-    navigate("/localrouter");
+  const handleRetry = () => {
+    setError(null);
+    setIsLoading(true);
+    hydrateData();
   };
 
   const handleLogout = async () => {
@@ -114,46 +144,144 @@ export default function HydrateLocal() {
     navigate("/");
   };
 
-  if (isLoading) {
+  const getProgressColor = () => {
+    if (error) return "bg-red-500";
+    if (progress.step === "complete") return "bg-green-500";
+    return "bg-blue-500";
+  };
+
+  const getStepIcon = (step) => {
+    switch (step) {
+      case "initializing": return "🔄";
+      case "auth": return "🔐";
+      case "fetching": return "📡";
+      case "processing": return "⚙️";
+      case "saving": return "💾";
+      case "complete": return "✅";
+      case "error": return "❌";
+      default: return "🔄";
+    }
+  };
+
+  if (error) {
     return (
-      <div className="p-6 text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p>Hydrating...</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+          <div className="text-6xl mb-4">❌</div>
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">Hydration Failed</h1>
+          <p className="text-gray-600 mb-6">{error}</p>
+          
+          <div className="space-y-3">
+            <button 
+              onClick={handleRetry}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
+            >
+              Try Again
+            </button>
+            <button 
+              onClick={handleLogout}
+              className="w-full bg-gray-600 hover:bg-gray-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 max-w-lg mx-auto">
-      <h1 className="text-xl font-bold mb-4">HydrateLocal</h1>
-      <p className="mb-4">{status}</p>
-      
-      {/* Show what got hydrated */}
-      <div className="bg-gray-50 p-4 rounded mb-4 text-sm">
-        <h3 className="font-semibold mb-2">After Hydration:</h3>
-        <div className="space-y-1">
-          <div>👤 User: {hydratedData.userData ? "✅" : "❌"}</div>
-          <div>✈️ Trip: {hydratedData.tripData ? "✅" : "❌"}</div>
-          <div>🎯 Intent: {hydratedData.tripIntentData ? "✅" : "❌"}</div>
-                            <div>⚓ Anchors: {hydratedData.anchorLogic ? "✅" : "❌"}</div>
-          <div>📅 Itinerary: {hydratedData.itineraryData ? "✅" : "❌"}</div>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+        <div className="text-center mb-8">
+          <div className="text-6xl mb-4">🚀</div>
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">Loading Your Trip</h1>
+          <p className="text-gray-600">Getting everything ready for your adventure</p>
         </div>
+
+        {/* Progress Bar */}
+        <div className="mb-6">
+          <div className="flex justify-between text-sm text-gray-600 mb-2">
+            <span>{progress.message}</span>
+            <span>{progress.hydratedModels}/{progress.totalModels}</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div 
+              className={`h-2 rounded-full transition-all duration-500 ${getProgressColor()}`}
+              style={{ width: `${(progress.hydratedModels / progress.totalModels) * 100}%` }}
+            ></div>
+          </div>
+        </div>
+
+        {/* Current Step */}
+        <div className="flex items-center justify-center mb-6">
+          <span className="text-2xl mr-3">{getStepIcon(progress.step)}</span>
+          <span className="text-lg font-medium text-gray-700">{progress.message}</span>
+        </div>
+
+        {/* Data Status */}
+        {progress.step === "complete" && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <h3 className="font-semibold text-green-800 mb-3">✅ Successfully Loaded:</h3>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span>👤 User Profile</span>
+                <span className={hydratedData.userData ? "text-green-600" : "text-red-600"}>
+                  {hydratedData.userData ? "✅" : "❌"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>✈️ Trip Details</span>
+                <span className={hydratedData.tripData ? "text-green-600" : "text-red-600"}>
+                  {hydratedData.tripData ? "✅" : "❌"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>🎯 Trip Intent</span>
+                <span className={hydratedData.tripIntentData ? "text-green-600" : "text-red-600"}>
+                  {hydratedData.tripIntentData ? "✅" : "❌"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>⚓ Anchor Points</span>
+                <span className={hydratedData.anchorLogic ? "text-green-600" : "text-red-600"}>
+                  {hydratedData.anchorLogic ? "✅" : "❌"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>📅 Itinerary</span>
+                <span className={hydratedData.itineraryData ? "text-green-600" : "text-red-600"}>
+                  {hydratedData.itineraryData ? "✅" : "❌"}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Manual Navigation (only show if not auto-navigating) */}
+        {progress.step === "complete" && (
+          <div className="space-y-3">
+            <button 
+              onClick={() => navigate("/localrouter")}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
+            >
+              Continue to Trip
+            </button>
+            <button 
+              onClick={() => navigate("/dayindextest")}
+              className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
+            >
+              Day Index Test
+            </button>
+            <button 
+              onClick={hydrateData}
+              className="w-full bg-gray-600 hover:bg-gray-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
+            >
+              Refresh Data
+            </button>
+          </div>
+        )}
       </div>
-       
-       <div className="space-y-2">
-         <button onClick={handleContinue} className="w-full bg-blue-600 text-white py-2 rounded">
-           Continue to Router
-         </button>
-         <button onClick={() => navigate("/dayindextest")} className="w-full bg-green-600 text-white py-2 rounded">
-           Day Index Test
-         </button>
-         <button onClick={hydrateData} className="w-full bg-gray-600 text-white py-2 rounded">
-           Refresh Data
-         </button>
-         <button onClick={handleLogout} className="w-full bg-red-600 text-white py-2 rounded">
-           Logout
-         </button>
-       </div>
     </div>
   );
 }
