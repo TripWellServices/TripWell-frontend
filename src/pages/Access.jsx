@@ -165,9 +165,9 @@ export default function Access() {
 
   return (
     <div className="max-w-md mx-auto p-8 text-center space-y-6">
-      <h1 className="text-2xl font-bold">Who the freak are ya?</h1>
+      <h1 className="text-2xl font-bold">Welcome to TripWell</h1>
       <p className="text-gray-600">
-        Sign in to link your TripWell planning to your account. New here? Sign up takes seconds.
+        Sign in to access your TripWell planning. New here? Sign up takes seconds.
       </p>
 
       <div className="flex items-center justify-center gap-3">
