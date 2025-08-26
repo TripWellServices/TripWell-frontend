@@ -20,7 +20,8 @@ export default function Home() {
       '/tripdaylookback',
       '/access',  // Don't interfere if already on access page
       '/profilesetup',
-      '/hydratelocal'
+      '/hydratelocal',
+      '/localrouter'  // Don't interfere with LocalUniversalRouter
     ];
     
     const shouldBypass = bypassPaths.some(path => currentPath.startsWith(path) || currentPath === path);
@@ -34,7 +35,7 @@ export default function Home() {
     
     console.log("🔍 Proceeding with normal routing logic...");
 
-    // Show splash screen for 1000ms
+    // Show splash screen for 2000ms THEN check auth state
     const timer = setTimeout(async () => {
       if (hasRouted) return; // Prevent multiple routing attempts
       
@@ -48,7 +49,7 @@ export default function Home() {
         });
 
         if (firebaseUser) {
-          // User is authenticated - check access and route
+          // User is authenticated - check access and route directly to appropriate page
           console.log("🔐 User authenticated, checking access...");
           setHasRouted(true);
           await checkUserAccess(firebaseUser);
@@ -63,7 +64,7 @@ export default function Home() {
         setHasRouted(true);
         navigate("/access");
       }
-    }, 200);
+    }, 2000); // 2000ms as per dev guide pattern
 
     return () => clearTimeout(timer);
   }, [navigate, hasRouted]);
@@ -87,14 +88,16 @@ export default function Home() {
       const userData = await createRes.json();
       console.log("🔍 User check response:", userData);
 
-      // Simple binary check: does user exist or not?
+      // Follow dev guide flow logic exactly:
+      // ✅ Existing user → Route to /hydratelocal
+      // ❌ New user → Route to /profilesetup
       if (userData && userData._id) {
-        // User exists - go to hydrate
-        console.log("💾 Existing user, routing to hydrate...");
+        // User exists - go to hydratelocal (LocalUniversalRouter will handle the rest)
+        console.log("💾 Existing user, routing to hydratelocal...");
         navigate("/hydratelocal");
       } else {
         // No user - go to profile setup
-        console.log("👋 New user, routing to profile...");
+        console.log("👋 New user, routing to profilesetup...");
         navigate("/profilesetup");
       }
       
