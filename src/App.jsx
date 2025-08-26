@@ -92,6 +92,7 @@ export default function App() {
     <Routes>
       {/* ✅ Public Routes */}
       <Route path="/" element={<Home />} />
+      <Route path="/access" element={<Access />} />
       <Route path="/homearchive" element={<HomeArchive />} />
       <Route path="/explainer" element={<Explainer />} />
       <Route path="/joinaccess" element={<JoinAccess />} />
