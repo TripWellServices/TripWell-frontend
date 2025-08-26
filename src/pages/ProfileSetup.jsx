@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { auth } from "../firebase";
 import { getAuthConfig, getAuthToken } from "../utils/auth";
+import { updateUserFunnelStage } from "../services/userService";
 import BACKEND_URL from "../config";
 
 export default function ProfileSetup() {
@@ -14,6 +15,8 @@ export default function ProfileSetup() {
   const [tripVibe, setTripVibe] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
+  const fromDemo = location.state?.fromDemo || false;
 
   const states = [
     "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA",

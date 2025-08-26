@@ -68,7 +68,6 @@ import TripNotCreated from "./pages/TripNotCreated";
 import TripItineraryRequired from "./pages/TripItineraryRequired";
 
 // ✅ Demo Pages
-import LandingHome from "./pages/LandingHome";
 import ItineraryDemo from "./pages/ItineraryDemo";
 import BestThings from "./pages/BestThings";
 import FunnelRouter from "./pages/FunnelRouter";
@@ -98,7 +97,6 @@ export default function App() {
       <Route path="/joinaccess" element={<JoinAccess />} />
 
       {/* ✅ Demo Routes */}
-      <Route path="/landing" element={<LandingHome />} />
       <Route path="/demo" element={<ItineraryDemo />} />
       <Route path="/bestthings" element={<BestThings />} />
       <Route path="/funnel-router" element={<FunnelRouter />} />

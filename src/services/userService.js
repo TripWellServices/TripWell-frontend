@@ -18,3 +18,22 @@ export const getUserAndTrip = async () => {
     return { user: null, trip: null };
   }
 };
+
+// Update user's funnel stage
+export const updateUserFunnelStage = async (firebaseId, funnelStage) => {
+  try {
+    const response = await axios.put('/tripwell/user/updateFunnelStage', {
+      firebaseId,
+      funnelStage
+    });
+    
+    if (response.data.success) {
+      return response.data;
+    } else {
+      throw new Error(response.data.message || 'Failed to update funnel stage');
+    }
+  } catch (error) {
+    console.error('Error updating funnel stage:', error);
+    throw error;
+  }
+};
