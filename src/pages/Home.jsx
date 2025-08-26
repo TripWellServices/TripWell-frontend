@@ -17,7 +17,10 @@ export default function Home() {
       '/tripliveblock', 
       '/dayindextest',
       '/livedayreturner',
-      '/tripdaylookback'
+      '/tripdaylookback',
+      '/access',  // Don't interfere if already on access page
+      '/profilesetup',
+      '/hydratelocal'
     ];
     
     const shouldBypass = bypassPaths.some(path => currentPath.startsWith(path) || currentPath === path);
@@ -25,18 +28,25 @@ export default function Home() {
     console.log("🔍 Should bypass:", shouldBypass, "for path:", currentPath);
     
     if (shouldBypass) {
-      console.log("🚀 Already on live day route or debug route, not interfering:", currentPath);
+      console.log("🚀 Already on protected route, not interfering:", currentPath);
       return;
     }
     
     console.log("🔍 Proceeding with normal routing logic...");
 
     // Show splash screen for 1000ms
-    const timer = setTimeout(() => {
-      // Then check auth state and route appropriately
-      const unsub = auth.onAuthStateChanged(async (firebaseUser) => {
-        if (hasRouted) return; // Prevent multiple routing attempts
-        
+    const timer = setTimeout(async () => {
+      if (hasRouted) return; // Prevent multiple routing attempts
+      
+      try {
+        // Wait for Firebase auth to be ready (CRITICAL PATTERN FROM DEV GUIDE)
+        const firebaseUser = await new Promise(resolve => {
+          const unsubscribe = auth.onAuthStateChanged(user => {
+            unsubscribe();
+            resolve(user);
+          });
+        });
+
         if (firebaseUser) {
           // User is authenticated - check access and route
           console.log("🔐 User authenticated, checking access...");
@@ -48,9 +58,11 @@ export default function Home() {
           setHasRouted(true);
           navigate("/access");
         }
-      });
-
-      return () => unsub();
+      } catch (error) {
+        console.error("❌ Auth check error:", error);
+        setHasRouted(true);
+        navigate("/access");
+      }
     }, 200);
 
     return () => clearTimeout(timer);
@@ -83,7 +95,7 @@ export default function Home() {
       } else {
         // No user - go to profile setup
         console.log("👋 New user, routing to profile...");
-        navigate("/profile");
+        navigate("/profilesetup");
       }
       
     } catch (err) {
@@ -98,17 +110,15 @@ export default function Home() {
       <div className="max-w-2xl w-full text-center space-y-8">
         <div className="space-y-4">
           <h1 className="text-4xl font-bold text-gray-800">
-            Welcome to TripWell!
+            TripWell
           </h1>
-          <p className="text-xl text-gray-600">
-            We're here to create memories for you.
+          <p className="text-lg text-gray-600">
+            Your AI-powered travel companion
           </p>
         </div>
         
-        <div className="animate-pulse">
-          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-            <span className="text-2xl">🚀</span>
-          </div>
+        <div className="flex justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
       </div>
     </div>
