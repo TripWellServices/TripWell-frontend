@@ -9,36 +9,8 @@ export default function Home() {
   const [debugInfo, setDebugInfo] = useState("Starting debug...");
 
   useEffect(() => {
-    // Check if we're already on a live day route or debug route - if so, don't interfere
-    const currentPath = window.location.pathname;
-    console.log("🔍 Home.jsx checking path:", currentPath);
-    setDebugInfo(prev => prev + "\n🔍 Checking path: " + currentPath);
-    
-    const bypassPaths = [
-      '/tripliveday',
-      '/tripliveblock', 
-      '/dayindextest',
-      '/livedayreturner',
-      '/tripdaylookback',
-      '/access',  // Don't interfere if already on access page
-      '/profilesetup',
-      '/hydratelocal',
-      '/localrouter'  // Don't interfere with LocalUniversalRouter
-    ];
-    
-    const shouldBypass = bypassPaths.some(path => currentPath.startsWith(path) || currentPath === path);
-    
-    console.log("🔍 Should bypass:", shouldBypass, "for path:", currentPath);
-    setDebugInfo(prev => prev + "\n🔍 Should bypass: " + shouldBypass);
-    
-    if (shouldBypass) {
-      console.log("🚀 Already on protected route, not interfering:", currentPath);
-      setDebugInfo(prev => prev + "\n🚀 Already on protected route, not interfering");
-      return;
-    }
-    
-    console.log("🔍 Proceeding with normal routing logic...");
-    setDebugInfo(prev => prev + "\n🔍 Proceeding with normal routing logic...");
+    console.log("🔍 Home.jsx starting...");
+    setDebugInfo(prev => prev + "\n🔍 Home.jsx starting...");
 
     // Check localStorage first
     console.log("📦 Checking localStorage...");
@@ -56,7 +28,7 @@ export default function Home() {
     setDebugInfo(prev => prev + "\n📦 localStorage tripData: " + (tripData ? "EXISTS" : "NULL"));
     setDebugInfo(prev => prev + "\n📦 localStorage profileComplete: " + profileComplete);
 
-    // Use continuous auth listener like Access.jsx (more reliable than one-time Promise)
+    // Simple auth check - no complicated bypass logic
     const unsub = auth.onAuthStateChanged(async (firebaseUser) => {
       if (hasRouted) {
         console.log("🚫 Already routed, skipping...");
