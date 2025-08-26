@@ -40,6 +40,22 @@ export default function Home() {
     console.log("🔍 Proceeding with normal routing logic...");
     setDebugInfo(prev => prev + "\n🔍 Proceeding with normal routing logic...");
 
+    // Check localStorage first
+    console.log("📦 Checking localStorage...");
+    setDebugInfo(prev => prev + "\n📦 Checking localStorage...");
+    
+    const userData = localStorage.getItem("userData");
+    const tripData = localStorage.getItem("tripData");
+    const profileComplete = localStorage.getItem("profileComplete");
+    
+    console.log("📦 localStorage userData:", userData);
+    console.log("📦 localStorage tripData:", tripData);
+    console.log("📦 localStorage profileComplete:", profileComplete);
+    
+    setDebugInfo(prev => prev + "\n📦 localStorage userData: " + (userData ? "EXISTS" : "NULL"));
+    setDebugInfo(prev => prev + "\n📦 localStorage tripData: " + (tripData ? "EXISTS" : "NULL"));
+    setDebugInfo(prev => prev + "\n📦 localStorage profileComplete: " + profileComplete);
+
     // Use continuous auth listener like Access.jsx (more reliable than one-time Promise)
     const unsub = auth.onAuthStateChanged(async (firebaseUser) => {
       if (hasRouted) {
