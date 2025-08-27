@@ -4,6 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { auth } from "../firebase";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import BACKEND_URL from "../config";
+import { getAuthConfig } from "../utils/auth";
 
 export default function Access() {
   console.log("🚀 Access component mounted");
@@ -89,9 +90,12 @@ export default function Access() {
       });
 
       // 2) Call hydrate to get all localStorage data
-      const token = await firebaseUser.getIdToken(true);
+      const authConfig = await getAuthConfig();
       const hydrateRes = await fetch(`${BACKEND_URL}/tripwell/hydrate`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 
+          ...authConfig.headers,
+          "Cache-Control": "no-store"
+        },
         cache: "no-store"
       });
       
@@ -126,6 +130,15 @@ export default function Access() {
       if (localStorageData.itineraryData) {
         localStorage.setItem("itineraryData", JSON.stringify(localStorageData.itineraryData));
         console.log("💾 Saved itineraryData to localStorage:", localStorageData.itineraryData);
+      }
+
+      // Set profileComplete flag based on backend data
+      if (localStorageData.userData?.profileComplete) {
+        localStorage.setItem("profileComplete", "true");
+        console.log("💾 Set profileComplete to true");
+      } else {
+        localStorage.setItem("profileComplete", "false");
+        console.log("💾 Set profileComplete to false");
       }
 
       // 4) Route to universal router which will handle all the routing logic

@@ -152,23 +152,23 @@ export default function HydrateLocal() {
 
   const getStepIcon = (step) => {
     switch (step) {
-      case "initializing": return "🔄";
+      case "initializing": return "🎒";
       case "auth": return "🔐";
       case "fetching": return "📡";
-      case "processing": return "⚙️";
+      case "processing": return "🧠";
       case "saving": return "💾";
-      case "complete": return "✅";
-      case "error": return "❌";
-      default: return "🔄";
+      case "complete": return "🎉";
+      case "error": return "😅";
+      default: return "🎒";
     }
   };
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
-          <div className="text-6xl mb-4">❌</div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Hydration Failed</h1>
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-100 flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-white rounded-xl shadow-xl p-8 text-center border border-gray-100">
+          <div className="text-6xl mb-4">😅</div>
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">Oops! Something went wrong</h1>
           <p className="text-gray-600 mb-6">{error}</p>
           
           <div className="space-y-3">
@@ -191,12 +191,17 @@ export default function HydrateLocal() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-6">
+      <div className="max-w-md w-full bg-white rounded-xl shadow-xl p-8 border border-gray-100">
         <div className="text-center mb-8">
-          <div className="text-6xl mb-4">🚀</div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Loading Your Trip</h1>
-          <p className="text-gray-600">Getting everything ready for your adventure</p>
+          {/* Animated Plane */}
+          <div className="relative mb-6">
+            <div className="text-6xl animate-bounce">✈️</div>
+            <div className="absolute -top-2 -right-2 text-2xl animate-pulse">🌍</div>
+            <div className="absolute -bottom-2 -left-2 text-xl animate-ping">✨</div>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">Loading Your Adventure</h1>
+          <p className="text-gray-600">Preparing your personalized trip experience</p>
         </div>
 
         {/* Progress Bar */}

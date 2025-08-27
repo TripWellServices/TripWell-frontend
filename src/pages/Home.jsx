@@ -51,9 +51,12 @@ export default function Home() {
 
   const checkUserAccess = async (firebaseUser) => {
     try {
+      // /createOrFind is unprotected - no Authorization header needed
       const createRes = await fetch(`${BACKEND_URL}/tripwell/user/createOrFind`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({
           firebaseId: firebaseUser.uid,
           email: firebaseUser.email,
