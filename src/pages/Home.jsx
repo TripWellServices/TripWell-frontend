@@ -11,9 +11,19 @@ export default function Home() {
   useEffect(() => {
     console.log("🔍 Home.jsx starting...");
 
+    // Add grace period to prevent jarring fast routing
+    const timeoutId = setTimeout(() => {
+      if (!hasRouted) {
+        console.log("⏰ Grace period reached, routing to /access");
+        setHasRouted(true);
+        navigate("/access");
+      }
+    }, 750); // 750ms grace period
+
     const unsub = auth.onAuthStateChanged(async (firebaseUser) => {
       if (hasRouted) {
         console.log("🚫 Already routed, skipping...");
+        clearTimeout(timeoutId);
         return;
       }
 
@@ -22,15 +32,20 @@ export default function Home() {
       if (firebaseUser) {
         console.log("🔐 User authenticated, checking access...");
         setHasRouted(true);
+        clearTimeout(timeoutId);
         await checkUserAccess(firebaseUser);
       } else {
         console.log("🔐 User not authenticated, routing to /access");
         setHasRouted(true);
+        clearTimeout(timeoutId);
         navigate("/access");
       }
     });
 
-    return unsub;
+    return () => {
+      clearTimeout(timeoutId);
+      unsub();
+    };
   }, [navigate, hasRouted]);
 
   const checkUserAccess = async (firebaseUser) => {
