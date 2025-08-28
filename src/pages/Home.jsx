@@ -51,70 +51,44 @@ export default function Home() {
               viewBox="0 0 120 120" 
               className="drop-shadow-lg"
             >
-              {/* Globe */}
-              <circle 
-                cx="60" 
-                cy="60" 
-                r="45" 
-                fill="#e0f2fe" 
-                stroke="#0284c7" 
-                strokeWidth="2"
-              />
-              
-              {/* Globe Lines */}
-              <path 
-                d="M 15 60 Q 60 15 105 60 Q 60 105 15 60" 
-                fill="none" 
-                stroke="#0284c7" 
-                strokeWidth="1.5" 
-                opacity="0.7"
-              />
-              <path 
-                d="M 15 60 Q 60 105 105 60" 
-                fill="none" 
-                stroke="#0284c7" 
-                strokeWidth="1.5" 
-                opacity="0.7"
-              />
-              <line x1="15" y1="60" x2="105" y2="60" stroke="#0284c7" strokeWidth="1.5" opacity="0.7"/>
-              
-              {/* Plane - Simple and Clean */}
-              <g transform="translate(60, 60) rotate(-20)">
+              {/* Simple Plane */}
+              <g transform="translate(60, 60) rotate(-15)">
                 {/* Plane Body */}
-                <rect x="-20" y="-3" width="40" height="6" rx="3" fill="#ef4444" stroke="#dc2626" strokeWidth="1"/>
+                <rect x="-25" y="-4" width="50" height="8" rx="4" fill="#3b82f6" stroke="#1d4ed8" strokeWidth="1"/>
                 
                 {/* Plane Wings */}
                 <path 
-                  d="M -15 -3 L -25 -12 L -20 -12 L -10 -3 Z" 
-                  fill="#ef4444" 
-                  stroke="#dc2626" 
+                  d="M -20 -4 L -35 -18 L -30 -18 L -15 -4 Z" 
+                  fill="#3b82f6" 
+                  stroke="#1d4ed8" 
                   strokeWidth="1"
                 />
                 <path 
-                  d="M -15 3 L -25 12 L -20 12 L -10 3 Z" 
-                  fill="#ef4444" 
-                  stroke="#dc2626" 
+                  d="M -20 4 L -35 18 L -30 18 L -15 4 Z" 
+                  fill="#3b82f6" 
+                  stroke="#1d4ed8" 
                   strokeWidth="1"
                 />
                 
                 {/* Plane Tail */}
                 <path 
-                  d="M 15 -2 L 22 -8 L 22 -4 L 18 -2 Z" 
-                  fill="#ef4444" 
-                  stroke="#dc2626" 
+                  d="M 20 -3 L 30 -12 L 30 -8 L 25 -3 Z" 
+                  fill="#3b82f6" 
+                  stroke="#1d4ed8" 
                   strokeWidth="1"
                 />
                 <path 
-                  d="M 15 2 L 22 8 L 22 4 L 18 2 Z" 
-                  fill="#ef4444" 
-                  stroke="#dc2626" 
+                  d="M 20 3 L 30 12 L 30 8 L 25 3 Z" 
+                  fill="#3b82f6" 
+                  stroke="#1d4ed8" 
                   strokeWidth="1"
                 />
                 
                 {/* Plane Windows */}
-                <circle cx="-8" cy="0" r="1.5" fill="#ffffff"/>
-                <circle cx="-2" cy="0" r="1.5" fill="#ffffff"/>
-                <circle cx="4" cy="0" r="1.5" fill="#ffffff"/>
+                <circle cx="-10" cy="0" r="2" fill="#ffffff"/>
+                <circle cx="-2" cy="0" r="2" fill="#ffffff"/>
+                <circle cx="6" cy="0" r="2" fill="#ffffff"/>
+                <circle cx="14" cy="0" r="2" fill="#ffffff"/>
               </g>
             </svg>
             
