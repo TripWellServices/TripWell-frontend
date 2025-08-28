@@ -48,48 +48,15 @@ export default function Home() {
             <svg 
               width="120" 
               height="120" 
-              viewBox="0 0 120 120" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
               className="drop-shadow-lg"
             >
-              {/* Simple Plane */}
-              <g transform="translate(60, 60) rotate(-15)">
-                {/* Plane Body */}
-                <rect x="-25" y="-4" width="50" height="8" rx="4" fill="#3b82f6" stroke="#1d4ed8" strokeWidth="1"/>
-                
-                {/* Plane Wings */}
-                <path 
-                  d="M -20 -4 L -35 -18 L -30 -18 L -15 -4 Z" 
-                  fill="#3b82f6" 
-                  stroke="#1d4ed8" 
-                  strokeWidth="1"
-                />
-                <path 
-                  d="M -20 4 L -35 18 L -30 18 L -15 4 Z" 
-                  fill="#3b82f6" 
-                  stroke="#1d4ed8" 
-                  strokeWidth="1"
-                />
-                
-                {/* Plane Tail */}
-                <path 
-                  d="M 20 -3 L 30 -12 L 30 -8 L 25 -3 Z" 
-                  fill="#3b82f6" 
-                  stroke="#1d4ed8" 
-                  strokeWidth="1"
-                />
-                <path 
-                  d="M 20 3 L 30 12 L 30 8 L 25 3 Z" 
-                  fill="#3b82f6" 
-                  stroke="#1d4ed8" 
-                  strokeWidth="1"
-                />
-                
-                {/* Plane Windows */}
-                <circle cx="-10" cy="0" r="2" fill="#ffffff"/>
-                <circle cx="-2" cy="0" r="2" fill="#ffffff"/>
-                <circle cx="6" cy="0" r="2" fill="#ffffff"/>
-                <circle cx="14" cy="0" r="2" fill="#ffffff"/>
-              </g>
+              <path 
+                d="M21 16V14L13 9V3.5C13 2.67 12.33 2 11.5 2S10 2.67 10 3.5V9L2 14V16L10 13.5V19L8 20.5V22L12 21L16 22V20.5L14 19V13.5L22 16Z" 
+                fill="#3b82f6"
+              />
             </svg>
             
             {/* TripWell Text */}
