@@ -7,48 +7,30 @@ import BACKEND_URL from "../config";
 export default function Home() {
   const navigate = useNavigate();
   const [hasRouted, setHasRouted] = useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
     console.log("🔍 Home.jsx starting...");
 
-    // Add grace period to prevent jarring fast routing
+    // Always wait 2500ms before routing
     const timeoutId = setTimeout(() => {
       if (!hasRouted) {
-        console.log("⏰ Grace period reached, checking auth state...");
+        console.log("⏰ 2500ms reached, routing based on auth state...");
         setHasRouted(true);
         
-        // Check current auth state and route appropriately
         const currentUser = auth.currentUser;
         if (currentUser) {
-          console.log("⏰ User found after timeout, routing to hydratelocal...");
+          console.log("⏰ User found, routing to hydratelocal...");
           navigate("/hydratelocal");
         } else {
-          console.log("⏰ No user after timeout, routing to /access");
+          console.log("⏰ No user, routing to /access...");
           navigate("/access");
         }
       }
-    }, 2000); // 2000ms grace period
+    }, 2500);
 
     const unsub = auth.onAuthStateChanged(async (firebaseUser) => {
-      if (hasRouted) {
-        console.log("🚫 Already routed, skipping...");
-        clearTimeout(timeoutId);
-        return;
-      }
-
       console.log("🔥 Firebase auth state changed:", firebaseUser ? "User found" : "No user");
-
-      if (firebaseUser) {
-        console.log("🔐 User authenticated, checking access...");
-        setIsCheckingAuth(false);
-        await checkUserAccess(firebaseUser);
-        // Don't clear timeout - let it run for full 2000ms
-      } else {
-        console.log("🔐 User not authenticated, routing to /access");
-        setIsCheckingAuth(false);
-        // Don't clear timeout - let it run for full 2000ms
-      }
+      // Don't route immediately - let the 2000ms timeout handle it
     });
 
     return () => {
@@ -56,46 +38,6 @@ export default function Home() {
       unsub();
     };
   }, [navigate, hasRouted]);
-
-  const checkUserAccess = async (firebaseUser) => {
-    try {
-      console.log("🔍 Starting user access check...");
-      
-      // /createOrFind is unprotected - no Authorization header needed
-      const createRes = await fetch(`${BACKEND_URL}/tripwell/user/createOrFind`, {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          firebaseId: firebaseUser.uid,
-          email: firebaseUser.email,
-        }),
-      });
-
-      console.log("🔍 CreateOrFind response status:", createRes.status);
-
-      if (!createRes.ok) {
-        throw new Error(`User check failed: ${createRes.status}`);
-      }
-
-      const userData = await createRes.json();
-      console.log("🔍 User check response:", userData);
-
-      // Store the result but don't route yet - let timeout handle routing
-      if (userData && userData._id) {
-        console.log("💾 Existing user found, will route to hydratelocal after timeout");
-        // Don't navigate - let the 2000ms timeout handle it
-      } else {
-        console.log("👋 New user found, will route to profilesetup after timeout");
-        // Don't navigate - let the 2000ms timeout handle it
-      }
-    } catch (err) {
-      console.error("❌ Access check error:", err);
-      console.log("🚨 Error occurred, will route to /access after timeout");
-      // Don't navigate - let the 2000ms timeout handle it
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center p-6">
@@ -197,19 +139,10 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Loading spinner - only show while checking auth */}
-        {isCheckingAuth && (
-          <div className="flex justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
-        )}
-        
-        {/* Status message when auth check completes */}
-        {!isCheckingAuth && !hasRouted && (
-          <div className="flex justify-center">
-            <p className="text-gray-600">Checking your account...</p>
-          </div>
-        )}
+        {/* Loading spinner - always show for 2000ms */}
+        <div className="flex justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
       </div>
     </div>
   );
