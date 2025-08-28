@@ -82,17 +82,18 @@ export default function Home() {
       const userData = await createRes.json();
       console.log("🔍 User check response:", userData);
 
+      // Store the result but don't route yet - let timeout handle routing
       if (userData && userData._id) {
-        console.log("💾 Existing user, routing to hydratelocal...");
-        navigate("/hydratelocal");
+        console.log("💾 Existing user found, will route to hydratelocal after timeout");
+        // Don't navigate - let the 2000ms timeout handle it
       } else {
-        console.log("👋 New user, routing to profilesetup...");
-        navigate("/profilesetup");
+        console.log("👋 New user found, will route to profilesetup after timeout");
+        // Don't navigate - let the 2000ms timeout handle it
       }
     } catch (err) {
       console.error("❌ Access check error:", err);
-      console.log("🚨 Routing to /access due to error");
-      navigate("/access");
+      console.log("🚨 Error occurred, will route to /access after timeout");
+      // Don't navigate - let the 2000ms timeout handle it
     }
   };
 
