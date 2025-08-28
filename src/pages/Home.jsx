@@ -7,6 +7,7 @@ import BACKEND_URL from "../config";
 export default function Home() {
   const navigate = useNavigate();
   const [hasRouted, setHasRouted] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
     console.log("🔍 Home.jsx starting...");
@@ -14,11 +15,20 @@ export default function Home() {
     // Add grace period to prevent jarring fast routing
     const timeoutId = setTimeout(() => {
       if (!hasRouted) {
-        console.log("⏰ Grace period reached, routing to /access");
+        console.log("⏰ Grace period reached, checking auth state...");
         setHasRouted(true);
-        navigate("/access");
+        
+        // Check current auth state and route appropriately
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+          console.log("⏰ User found after timeout, routing to hydratelocal...");
+          navigate("/hydratelocal");
+        } else {
+          console.log("⏰ No user after timeout, routing to /access");
+          navigate("/access");
+        }
       }
-    }, 750); // 750ms grace period
+    }, 2000); // 2000ms grace period
 
     const unsub = auth.onAuthStateChanged(async (firebaseUser) => {
       if (hasRouted) {
@@ -31,14 +41,13 @@ export default function Home() {
 
       if (firebaseUser) {
         console.log("🔐 User authenticated, checking access...");
-        setHasRouted(true);
-        clearTimeout(timeoutId);
+        setIsCheckingAuth(false);
         await checkUserAccess(firebaseUser);
+        // Don't clear timeout - let it run for full 2000ms
       } else {
         console.log("🔐 User not authenticated, routing to /access");
-        setHasRouted(true);
-        clearTimeout(timeoutId);
-        navigate("/access");
+        setIsCheckingAuth(false);
+        // Don't clear timeout - let it run for full 2000ms
       }
     });
 
@@ -50,6 +59,8 @@ export default function Home() {
 
   const checkUserAccess = async (firebaseUser) => {
     try {
+      console.log("🔍 Starting user access check...");
+      
       // /createOrFind is unprotected - no Authorization header needed
       const createRes = await fetch(`${BACKEND_URL}/tripwell/user/createOrFind`, {
         method: "POST",
@@ -61,6 +72,8 @@ export default function Home() {
           email: firebaseUser.email,
         }),
       });
+
+      console.log("🔍 CreateOrFind response status:", createRes.status);
 
       if (!createRes.ok) {
         throw new Error(`User check failed: ${createRes.status}`);
@@ -78,7 +91,8 @@ export default function Home() {
       }
     } catch (err) {
       console.error("❌ Access check error:", err);
-      alert("Something went wrong. Please try again.");
+      console.log("🚨 Routing to /access due to error");
+      navigate("/access");
     }
   };
 
@@ -182,10 +196,19 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Loading spinner */}
-        <div className="flex justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </div>
+        {/* Loading spinner - only show while checking auth */}
+        {isCheckingAuth && (
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        )}
+        
+        {/* Status message when auth check completes */}
+        {!isCheckingAuth && !hasRouted && (
+          <div className="flex justify-center">
+            <p className="text-gray-600">Checking your account...</p>
+          </div>
+        )}
       </div>
     </div>
   );
