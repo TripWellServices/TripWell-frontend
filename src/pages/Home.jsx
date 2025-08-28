@@ -11,10 +11,10 @@ export default function Home() {
   useEffect(() => {
     console.log("🔍 Home.jsx starting...");
 
-    // Always wait 2225ms before routing
+    // Always wait 1900ms before routing
     const timeoutId = setTimeout(() => {
       if (!hasRouted) {
-        console.log("⏰ 2225ms reached, routing based on auth state...");
+        console.log("⏰ 1900ms reached, routing based on auth state...");
         setHasRouted(true);
         
         const currentUser = auth.currentUser;
@@ -26,7 +26,7 @@ export default function Home() {
           navigate("/access");
         }
       }
-    }, 2225);
+            }, 1900);
 
     const unsub = auth.onAuthStateChanged(async (firebaseUser) => {
       console.log("🔥 Firebase auth state changed:", firebaseUser ? "User found" : "No user");
@@ -45,14 +45,14 @@ export default function Home() {
         <div className="space-y-6">
           {/* Custom TripWell Logo */}
           <div className="flex flex-col items-center space-y-4">
-            <svg 
-              width="120" 
-              height="120" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              xmlns="http://www.w3.org/2000/svg"
-              className="drop-shadow-lg"
-            >
+                         <svg 
+               width="140" 
+               height="140" 
+               viewBox="0 0 24 24" 
+               fill="none" 
+               xmlns="http://www.w3.org/2000/svg"
+               className="drop-shadow-lg"
+             >
               <path 
                 d="M21 16V14L13 9V3.5C13 2.67 12.33 2 11.5 2S10 2.67 10 3.5V9L2 14V16L10 13.5V19L8 20.5V22L12 21L16 22V20.5L14 19V13.5L22 16Z" 
                 fill="#3b82f6"

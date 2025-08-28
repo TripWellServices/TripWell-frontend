@@ -8,6 +8,7 @@ import BACKEND_URL from "../config";
 export default function HydrateLocal() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
+  const [showLoading, setShowLoading] = useState(true);
   const [progress, setProgress] = useState({
     step: "initializing",
     message: "Starting hydration...",
@@ -18,9 +19,13 @@ export default function HydrateLocal() {
   const [hydratedData, setHydratedData] = useState({});
 
   useEffect(() => {
-    if (isLoading) {
+    // Show loading screen for 1900ms first
+    const loadingTimeout = setTimeout(() => {
+      setShowLoading(false);
       hydrateData();
-    }
+    }, 1900);
+
+    return () => clearTimeout(loadingTimeout);
   }, []);
 
   const updateProgress = (step, message, hydratedCount = 0) => {
@@ -172,6 +177,50 @@ export default function HydrateLocal() {
             >
               Logout
             </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show initial loading screen for 1900ms
+  if (showLoading) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
+        <div className="max-w-2xl w-full text-center space-y-8">
+          <div className="space-y-6">
+            {/* TripWell Logo */}
+            <div className="flex flex-col items-center space-y-4">
+              <svg 
+                width="140" 
+                height="140" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+                className="drop-shadow-lg"
+              >
+                <path 
+                  d="M21 16V14L13 9V3.5C13 2.67 12.33 2 11.5 2S10 2.67 10 3.5V9L2 14V16L10 13.5V19L8 20.5V22L12 21L16 22V20.5L14 19V13.5L22 16Z" 
+                  fill="#3b82f6"
+                />
+              </svg>
+              
+              {/* TripWell Text */}
+              <div className="text-center">
+                <h1 className="text-4xl font-bold text-gray-800 mb-2">
+                  <span className="text-blue-600">Trip</span>
+                  <span className="text-indigo-600">Well</span>
+                </h1>
+                <p className="text-lg text-gray-600 font-medium">
+                  Loading your trip data...
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Loading spinner */}
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
         </div>
       </div>
