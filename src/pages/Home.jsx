@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
 import { useEffect, useState } from "react";
 import BACKEND_URL from "../config";
+import tripwellLogo from "../assets/tripwell-logo.png";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -19,9 +20,19 @@ export default function Home() {
     console.log("📦 localStorage tripData:", tripData);
     console.log("📦 localStorage profileComplete:", profileComplete);
 
+    // Add timeout to prevent infinite hanging
+    const timeoutId = setTimeout(() => {
+      if (!hasRouted) {
+        console.log("⏰ Timeout reached, routing to /access");
+        setHasRouted(true);
+        navigate("/access");
+      }
+    }, 3000); // 3 second timeout
+
     const unsub = auth.onAuthStateChanged(async (firebaseUser) => {
       if (hasRouted) {
         console.log("🚫 Already routed, skipping...");
+        clearTimeout(timeoutId);
         return;
       }
 
@@ -30,23 +41,30 @@ export default function Home() {
       if (firebaseUser) {
         console.log("🔐 User authenticated, checking access...");
         setHasRouted(true);
+        clearTimeout(timeoutId);
         await checkUserAccess(firebaseUser);
       } else {
-        // 👇 Changed: add 2000ms grace period before routing to /access
-        console.log("🔐 User not authenticated, starting grace timer...");
-        setTimeout(() => {
-          if (!auth.currentUser && !hasRouted) {
-            console.log("⏳ Still no user after 2000ms → routing to /access");
-            setHasRouted(true);
-            navigate("/access");
-          } else {
-            console.log("✅ User appeared during grace period, skipping redirect");
-          }
-        }, 2000);
+        // 👇 Immediate routing for better UX
+        console.log("🔐 User not authenticated, routing to /access");
+        setHasRouted(true);
+        clearTimeout(timeoutId);
+        navigate("/access");
+      }
+    }, (error) => {
+      // Handle Firebase auth errors
+      console.error("❌ Firebase auth error:", error);
+      if (!hasRouted) {
+        console.log("🔐 Firebase error, routing to /access");
+        setHasRouted(true);
+        clearTimeout(timeoutId);
+        navigate("/access");
       }
     });
 
-    return unsub;
+    return () => {
+      clearTimeout(timeoutId);
+      unsub();
+    };
   }, [navigate, hasRouted]);
 
   const checkUserAccess = async (firebaseUser) => {
@@ -87,7 +105,11 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6">
       <div className="max-w-2xl w-full text-center space-y-8">
         <div className="space-y-4">
-          <h1 className="text-4xl font-bold text-gray-800">TripWell</h1>
+          <img 
+            src={tripwellLogo} 
+            alt="TripWell Logo" 
+            className="mx-auto h-24 w-auto mb-4"
+          />
           <p className="text-lg text-gray-600">
             Your AI-powered travel companion
           </p>
