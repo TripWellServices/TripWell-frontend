@@ -11,10 +11,10 @@ export default function Home() {
   useEffect(() => {
     console.log("🔍 Home.jsx starting...");
 
-    // Always wait 2500ms before routing
+    // Always wait 2225ms before routing
     const timeoutId = setTimeout(() => {
       if (!hasRouted) {
-        console.log("⏰ 2500ms reached, routing based on auth state...");
+        console.log("⏰ 2225ms reached, routing based on auth state...");
         setHasRouted(true);
         
         const currentUser = auth.currentUser;
@@ -26,7 +26,7 @@ export default function Home() {
           navigate("/access");
         }
       }
-    }, 2500);
+    }, 2225);
 
     const unsub = auth.onAuthStateChanged(async (firebaseUser) => {
       console.log("🔥 Firebase auth state changed:", firebaseUser ? "User found" : "No user");
@@ -40,7 +40,7 @@ export default function Home() {
   }, [navigate, hasRouted]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
       <div className="max-w-2xl w-full text-center space-y-8">
         <div className="space-y-6">
           {/* Custom TripWell Logo */}
@@ -51,47 +51,47 @@ export default function Home() {
               viewBox="0 0 120 120" 
               className="drop-shadow-lg"
             >
-              {/* Globe Background */}
+              {/* Globe */}
               <circle 
                 cx="60" 
                 cy="60" 
-                r="50" 
-                fill="url(#globeGradient)" 
-                stroke="#1e40af" 
+                r="45" 
+                fill="#e0f2fe" 
+                stroke="#0284c7" 
                 strokeWidth="2"
               />
               
               {/* Globe Lines */}
               <path 
-                d="M 10 60 Q 60 10 110 60 Q 60 110 10 60" 
+                d="M 15 60 Q 60 15 105 60 Q 60 105 15 60" 
                 fill="none" 
-                stroke="#3b82f6" 
+                stroke="#0284c7" 
                 strokeWidth="1.5" 
-                opacity="0.6"
+                opacity="0.7"
               />
               <path 
-                d="M 10 60 Q 60 110 110 60" 
+                d="M 15 60 Q 60 105 105 60" 
                 fill="none" 
-                stroke="#3b82f6" 
+                stroke="#0284c7" 
                 strokeWidth="1.5" 
-                opacity="0.6"
+                opacity="0.7"
               />
-              <line x1="10" y1="60" x2="110" y2="60" stroke="#3b82f6" strokeWidth="1.5" opacity="0.6"/>
+              <line x1="15" y1="60" x2="105" y2="60" stroke="#0284c7" strokeWidth="1.5" opacity="0.7"/>
               
-              {/* Plane */}
-              <g transform="translate(60, 60) rotate(-15)">
+              {/* Plane - Simple and Clean */}
+              <g transform="translate(60, 60) rotate(-20)">
                 {/* Plane Body */}
-                <ellipse cx="0" cy="0" rx="25" ry="8" fill="#ef4444" stroke="#dc2626" strokeWidth="1"/>
+                <rect x="-20" y="-3" width="40" height="6" rx="3" fill="#ef4444" stroke="#dc2626" strokeWidth="1"/>
                 
                 {/* Plane Wings */}
                 <path 
-                  d="M -15 -5 L -25 -15 L -20 -15 L -10 -5 Z" 
+                  d="M -15 -3 L -25 -12 L -20 -12 L -10 -3 Z" 
                   fill="#ef4444" 
                   stroke="#dc2626" 
                   strokeWidth="1"
                 />
                 <path 
-                  d="M -15 5 L -25 15 L -20 15 L -10 5 Z" 
+                  d="M -15 3 L -25 12 L -20 12 L -10 3 Z" 
                   fill="#ef4444" 
                   stroke="#dc2626" 
                   strokeWidth="1"
@@ -99,31 +99,23 @@ export default function Home() {
                 
                 {/* Plane Tail */}
                 <path 
-                  d="M 15 -3 L 25 -8 L 25 -5 L 18 -3 Z" 
+                  d="M 15 -2 L 22 -8 L 22 -4 L 18 -2 Z" 
                   fill="#ef4444" 
                   stroke="#dc2626" 
                   strokeWidth="1"
                 />
                 <path 
-                  d="M 15 3 L 25 8 L 25 5 L 18 3 Z" 
+                  d="M 15 2 L 22 8 L 22 4 L 18 2 Z" 
                   fill="#ef4444" 
                   stroke="#dc2626" 
                   strokeWidth="1"
                 />
                 
                 {/* Plane Windows */}
-                <circle cx="-8" cy="-2" r="1.5" fill="#ffffff"/>
-                <circle cx="-2" cy="-2" r="1.5" fill="#ffffff"/>
-                <circle cx="4" cy="-2" r="1.5" fill="#ffffff"/>
+                <circle cx="-8" cy="0" r="1.5" fill="#ffffff"/>
+                <circle cx="-2" cy="0" r="1.5" fill="#ffffff"/>
+                <circle cx="4" cy="0" r="1.5" fill="#ffffff"/>
               </g>
-              
-              {/* Gradients */}
-              <defs>
-                <linearGradient id="globeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#dbeafe"/>
-                  <stop offset="100%" stopColor="#bfdbfe"/>
-                </linearGradient>
-              </defs>
             </svg>
             
             {/* TripWell Text */}
