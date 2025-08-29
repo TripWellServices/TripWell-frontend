@@ -324,27 +324,46 @@ export default function TripSetup() {
           required
         />
 
-        <div className="flex items-center gap-2">
-          <input
-            value={joinCode}
-            onChange={(e) => {
-              setJoinCode(e.target.value);
-              setCodeValid(false);
-              setCodeStatus(null);
-            }}
-            placeholder="Join Code (required — like a username)"
-            className="w-full p-3 border rounded"
-            required
-          />
-          <button
-            type="button"
-            onClick={checkJoinCode}
-            className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
-          >
-            Check
-          </button>
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Trip Join Code
+          </label>
+                      <p className="text-xs text-gray-600 mb-2">
+              This is like a unique "room code" for your trip. Your friends will use this code to join your trip planning. 
+              Choose something memorable like "PARIS2025" or "BEACHWEEK" (minimum 3 characters).
+            </p>
+          <div className="flex items-center gap-2">
+            <input
+              value={joinCode}
+              onChange={(e) => {
+                setJoinCode(e.target.value);
+                setCodeValid(false);
+                setCodeStatus(null);
+              }}
+              placeholder="e.g., PARIS2025, BEACHWEEK, FAMILYTRIP"
+              className="w-full p-3 border rounded"
+              required
+            />
+            <button
+              type="button"
+              onClick={checkJoinCode}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+            >
+              Check Availability
+            </button>
+          </div>
+          {codeStatus && (
+            <div className={`text-sm p-2 rounded ${codeStatus.color === 'text-green-600' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+              {codeStatus.msg}
+            </div>
+          )}
+          {!codeStatus && joinCode && (
+            <p className="text-xs text-gray-500">
+              Click "Check Availability" to make sure your join code is available. 
+              Join codes must be at least 3 characters long.
+            </p>
+          )}
         </div>
-        {codeStatus && <p className={`text-sm ${codeStatus.color}`}>{codeStatus.msg}</p>}
 
         <label className="font-semibold">Party Count</label>
         <input

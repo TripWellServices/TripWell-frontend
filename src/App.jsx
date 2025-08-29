@@ -35,6 +35,7 @@ import JoinAccess from "./pages/JoinAccess";
 import PreJoinTrip from "./pages/PreJoinTrip";
 import TripJoin from "./pages/TripJoin";
 import ProfileSetup from "./pages/ProfileSetup";
+import PostProfileRoleSelect from "./pages/PostProfileRoleSelect";
 import ProfileParticipant from "./pages/ProfileParticipant";
 import TripSetup from "./pages/TripSetup";
 import PreTripSetup from "./pages/PreTripSetup";
@@ -112,6 +113,7 @@ export default function App() {
 
       {/* ✅ Originator Flow */}
       <Route path="/profilesetup" element={<ProfileSetup />} />
+      <Route path="/postprofileroleselect" element={<PostProfileRoleSelect />} />
       <Route path="/pretrip" element={<PreTripSetup />} />
       <Route path="/tripsetup" element={<TripSetup />} />
 

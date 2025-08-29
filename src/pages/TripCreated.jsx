@@ -68,7 +68,7 @@ export default function TripCreated() {
     );
   }
 
-  const shareMessage = `Hey! Join me on TripWell to plan our ${trip.city} trip.\n\nTrip code: ${trip.joinCode || trip.tripId}\nDownload: https://tripwell.app/download`;
+  const shareMessage = `Hey! Join me on TripWell to plan our ${trip.city} trip.\n\n🔑 Trip Join Code: ${trip.joinCode || trip.tripId}\n\nUse this code to join my trip planning! Download TripWell at: https://tripwell.app/download`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(shareMessage);
@@ -88,7 +88,11 @@ export default function TripCreated() {
         <p><strong>Dates:</strong> {new Date(trip.startDate).toLocaleDateString()} – {new Date(trip.endDate).toLocaleDateString()}</p>
         <p><strong>Party Count:</strong> {trip.partyCount}</p>
         <p><strong>With:</strong> {(trip.whoWith || []).join(", ") || "—"}</p>
-        <p><strong>Trip Code:</strong> <span className="font-mono text-blue-600">{trip.joinCode || trip.tripId}</span></p>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <p className="text-sm font-medium text-blue-800 mb-1">🔑 Your Trip Join Code</p>
+          <p className="font-mono text-lg font-bold text-blue-600">{trip.joinCode || trip.tripId}</p>
+          <p className="text-xs text-blue-700 mt-1">Share this code with your travel companions so they can join your trip!</p>
+        </div>
       </div>
 
       <div className="space-y-4 text-gray-700">

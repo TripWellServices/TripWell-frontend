@@ -55,6 +55,18 @@ export default function PlannerParticipantHub() {
         >
           📋 View Trip Itinerary
         </button>
+
+        <div className="pt-4 border-t border-gray-200">
+          <p className="text-gray-600 text-sm mb-4">
+            Want to plan your own trip?
+          </p>
+          <button
+            onClick={() => navigate("/postprofileroleselect")}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg text-lg"
+          >
+            🚀 Start My Own Trip
+          </button>
+        </div>
       </div>
 
       <div className="mt-10 text-center">

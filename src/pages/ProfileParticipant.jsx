@@ -58,7 +58,7 @@ export default function ProfileParticipant() {
 
       if (!res.ok) throw new Error("Profile update failed");
 
-      navigate("/");
+      navigate("/plannerparticipanthub");
     } catch (err) {
       console.error("❌ Failed to save profile:", err);
       alert("Could not save your profile.");

@@ -23,7 +23,7 @@ export default function TripJoin() {
       setTripData({ tripId, tripName, joinCode: joinCode.trim() });
     } catch (err) {
       console.error("❌ Join code validation error:", err);
-      setError("Trip not found. Please check with your travel companions.");
+      setError("Trip not found. Please double-check the join code with your trip organizer.");
     } finally {
       setLoading(false);
     }
@@ -46,11 +46,11 @@ export default function TripJoin() {
         }
       );
 
-      navigate("/tripwell/profileparticipant");
+      navigate("/profileparticipant");
 
     } catch (err) {
       console.error("❌ Error joining trip:", err);
-      alert("Could not join trip. Try signing in again.");
+      alert("Could not join trip. Please make sure you're signed in and try again.");
     }
   };
 
@@ -62,29 +62,34 @@ export default function TripJoin() {
 
       {!tripData && (
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="joinCode" className="block text-sm font-medium">
-              Join Code
+          <div className="space-y-2">
+            <label htmlFor="joinCode" className="block text-sm font-medium text-gray-700">
+              Trip Join Code
             </label>
+            <p className="text-xs text-gray-600 mb-2">
+              Ask your trip organizer for the join code. It's like a "room code" that lets you join their trip planning.
+            </p>
             <input
               id="joinCode"
               type="text"
               value={joinCode}
               onChange={(e) => setJoinCode(e.target.value)}
               required
-              className="w-full p-2 border border-gray-300 rounded-md"
-              placeholder="Enter your trip's join code"
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="e.g., PARIS2025, BEACHWEEK"
             />
           </div>
 
           <button
             type="submit"
-            disabled={loading}
-            className={`w-full py-2 rounded-lg ${
-              loading ? "bg-gray-400" : "bg-blue-600 text-white hover:bg-blue-700"
+            disabled={loading || !joinCode.trim()}
+            className={`w-full py-3 rounded-lg font-medium transition-colors ${
+              loading || !joinCode.trim() 
+                ? "bg-gray-400 text-gray-600 cursor-not-allowed" 
+                : "bg-blue-600 text-white hover:bg-blue-700"
             }`}
           >
-            {loading ? "Checking..." : "Join Trip"}
+            {loading ? "🔍 Checking Join Code..." : "Join Trip"}
           </button>
         </form>
       )}

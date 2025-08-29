@@ -21,7 +21,8 @@ export default function LocalUniversalRouter() {
           '/tripliveblock', 
           '/dayindextest',
           '/livedayreturner',
-          '/tripdaylookback'
+          '/tripdaylookback',
+          '/postprofileroleselect'
         ];
         
         const shouldBypass = bypassPaths.some(path => currentPath.startsWith(path) || currentPath === path);
@@ -197,13 +198,15 @@ export default function LocalUniversalRouter() {
           return navigate("/profilesetup");
         }
 
-        // Step 3: Check trip data
+        // Step 3: Check trip data and role
         console.log("🔍 DEBUG - currentTripData:", currentTripData);
         console.log("🔍 DEBUG - currentTripData?.tripId:", currentTripData?.tripId);
+        console.log("🔍 DEBUG - currentUserData?.role:", currentUserData?.role);
         
-        if (!currentTripData || !currentTripData.tripId) {
-          console.log("❌ No tripId found, routing to /tripsetup");
-          return navigate("/tripsetup");
+        // If user has profile but no trip/role, route to role selection
+        if (!currentTripData || !currentTripData.tripId || currentUserData?.role === "noroleset") {
+          console.log("❌ No tripId or role not set, routing to /postprofileroleselect");
+          return navigate("/postprofileroleselect");
         }
 
         // Step 4: Check if trip is complete
