@@ -23,7 +23,7 @@ export default function TripJoin() {
       setTripData({ tripId, tripName, joinCode: joinCode.trim() });
     } catch (err) {
       console.error("❌ Join code validation error:", err);
-      setError("Trip not found. Please double-check the join code with your trip organizer.");
+      setError("Trip not found. Please check with your travel companions.");
     } finally {
       setLoading(false);
     }
@@ -50,7 +50,7 @@ export default function TripJoin() {
 
     } catch (err) {
       console.error("❌ Error joining trip:", err);
-      alert("Could not join trip. Please make sure you're signed in and try again.");
+      alert("Could not join trip. Try signing in again.");
     }
   };
 
@@ -62,34 +62,29 @@ export default function TripJoin() {
 
       {!tripData && (
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="joinCode" className="block text-sm font-medium text-gray-700">
-              Trip Join Code
+          <div>
+            <label htmlFor="joinCode" className="block text-sm font-medium">
+              Join Code
             </label>
-            <p className="text-xs text-gray-600 mb-2">
-              Ask your trip organizer for the join code. It's like a "room code" that lets you join their trip planning.
-            </p>
             <input
               id="joinCode"
               type="text"
               value={joinCode}
               onChange={(e) => setJoinCode(e.target.value)}
               required
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="e.g., PARIS2025, BEACHWEEK"
+              className="w-full p-2 border border-gray-300 rounded-md"
+              placeholder="Enter your trip's join code"
             />
           </div>
 
           <button
             type="submit"
-            disabled={loading || !joinCode.trim()}
-            className={`w-full py-3 rounded-lg font-medium transition-colors ${
-              loading || !joinCode.trim() 
-                ? "bg-gray-400 text-gray-600 cursor-not-allowed" 
-                : "bg-blue-600 text-white hover:bg-blue-700"
+            disabled={loading}
+            className={`w-full py-2 rounded-lg ${
+              loading ? "bg-gray-400" : "bg-blue-600 text-white hover:bg-blue-700"
             }`}
           >
-            {loading ? "🔍 Checking Join Code..." : "Join Trip"}
+            {loading ? "Checking..." : "Join Trip"}
           </button>
         </form>
       )}

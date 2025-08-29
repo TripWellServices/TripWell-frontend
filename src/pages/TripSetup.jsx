@@ -329,8 +329,8 @@ export default function TripSetup() {
             Trip Join Code
           </label>
                       <p className="text-xs text-gray-600 mb-2">
-              This is like a unique "room code" for your trip. Your friends will use this code to join your trip planning. 
-              Choose something memorable like "PARIS2025" or "BEACHWEEK" (minimum 3 characters).
+              Create a unique join code that you'll share with other participants. They'll use this code to join your trip planning. 
+              Choose something memorable like "PARIS2025" or "BEACHWEEK" and make sure it's unique (minimum 3 characters).
             </p>
           <div className="flex items-center gap-2">
             <input
@@ -359,7 +359,7 @@ export default function TripSetup() {
           )}
           {!codeStatus && joinCode && (
             <p className="text-xs text-gray-500">
-              Click "Check Availability" to make sure your join code is available. 
+              Click "Check Availability" to verify your join code is unique and hasn't been taken by other users. 
               Join codes must be at least 3 characters long.
             </p>
           )}
