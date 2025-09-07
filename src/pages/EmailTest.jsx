@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { config } from '../config';
+import { TRIPWELL_API_URL } from '../config';
 
 const EmailTest = () => {
   const [formData, setFormData] = useState({
@@ -25,7 +25,7 @@ const EmailTest = () => {
     try {
       console.log(`🧪 Testing email flow for ${formData.email} (${formData.name})`);
       
-      const response = await fetch(`${config.BACKEND_URL}/tripwell/email-test`, {
+      const response = await fetch(`${TRIPWELL_API_URL}/email-test`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
