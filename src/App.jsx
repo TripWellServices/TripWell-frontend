@@ -36,6 +36,7 @@ import PreJoinTrip from "./pages/PreJoinTrip";
 import TripJoin from "./pages/TripJoin";
 import ProfileSetup from "./pages/ProfileSetup";
 import PostProfileRoleSelect from "./pages/PostProfileRoleSelect";
+import EmailTest from "./pages/EmailTest";
 import ProfileParticipant from "./pages/ProfileParticipant";
 import TripSetup from "./pages/TripSetup";
 import PreTripSetup from "./pages/PreTripSetup";
@@ -128,6 +129,7 @@ export default function App() {
       {/* ✅ Test routes */}
       <Route path="/tripidtest" element={<TripIDTest />} />
       <Route path="/anchorgpttest" element={<AnchorGPTTest />} />
+      <Route path="/email-test" element={<EmailTest />} />
 
       {/* ✅ Local State Test Flow Routes */}
       <Route path="/localrouter" element={<LocalUniversalRouter />} />
