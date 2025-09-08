@@ -6,10 +6,12 @@ import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import BACKEND_URL from "../config";
 import { getAuthConfig } from "../utils/auth";
 
+// Create provider outside component to avoid recreation
+const googleProvider = new GoogleAuthProvider();
+
 export default function Access() {
   console.log("🚀 Access component mounted");
   const navigate = useNavigate();
-  const googleProvider = new GoogleAuthProvider();
   const [hasAttemptedSignIn, setHasAttemptedSignIn] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [isSigningIn, setIsSigningIn] = useState(false);
@@ -153,6 +155,11 @@ export default function Access() {
   };
 
   const handleGoogle = async () => {
+    console.log("🔍 DEBUG: handleGoogle called");
+    console.log("🔍 DEBUG: isSigningIn =", isSigningIn);
+    console.log("🔍 DEBUG: hasAttemptedSignIn =", hasAttemptedSignIn);
+    console.log("🔍 DEBUG: auth.currentUser =", auth.currentUser?.email || "null");
+    
     // Prevent multiple simultaneous sign-in attempts
     if (isSigningIn) {
       console.log("🔄 Sign-in already in progress, ignoring click");
@@ -160,22 +167,29 @@ export default function Access() {
     }
 
     try {
+      console.log("🔍 DEBUG: Setting isSigningIn to true");
       setIsSigningIn(true);
       setHasAttemptedSignIn(true);
       
       console.log("🔐 Starting Google sign-in...");
+      console.log("🔍 DEBUG: Google provider config:", googleProvider);
       
       // Configure the Google provider
       googleProvider.setCustomParameters({
         prompt: 'select_account'
       });
       
+      console.log("🔍 DEBUG: About to call signInWithPopup");
       const result = await signInWithPopup(auth, googleProvider);
       console.log("✅ Google sign-in successful:", result.user.email);
+      console.log("🔍 DEBUG: Full result object:", result);
       
       // onAuthStateChanged will handle the rest
     } catch (err) {
       console.error("❌ Google sign-in failed", err);
+      console.log("🔍 DEBUG: Error code:", err.code);
+      console.log("🔍 DEBUG: Error message:", err.message);
+      console.log("🔍 DEBUG: Full error object:", err);
       
       // Handle specific error cases
       if (err.code === 'auth/popup-closed-by-user') {
@@ -183,6 +197,7 @@ export default function Access() {
         // User closed the popup - that's fine, don't show error
       } else if (err.code === 'auth/cancelled-popup-request') {
         console.log("ℹ️ Popup request was cancelled - no action needed");
+        console.log("🔍 DEBUG: This usually means multiple popup attempts or browser blocking");
         // Another popup was opened or cancelled - that's fine
       } else if (err.code === 'auth/popup-blocked') {
         console.log("⚠️ Popup was blocked by browser");
@@ -195,6 +210,7 @@ export default function Access() {
         alert("Authentication error — please try again.");
       }
     } finally {
+      console.log("🔍 DEBUG: Setting isSigningIn to false");
       setIsSigningIn(false);
     }
   };
