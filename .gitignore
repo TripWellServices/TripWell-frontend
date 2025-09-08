@@ -74,6 +74,7 @@ web_modules/
 
 # dotenv environment variable files
 .env
+*.env
 .env.development.local
 .env.test.local
 .env.production.local
@@ -128,3 +129,17 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# --- CUSTOM SENSITIVE FILES (added) ---
+# Firebase / service account keys
+firebaseServiceKey.json
+serviceAccountKey.json
+config/serviceAccountKey.json
+
+# GitHub tokens or PAT files
+git_pat.txt
+
+# Local secrets (extra catch-all)
+*.secret
+*.key
+*.pem
