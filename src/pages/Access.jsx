@@ -195,10 +195,12 @@ export default function Access() {
       if (err.code === 'auth/popup-closed-by-user') {
         console.log("ℹ️ User closed the popup - no action needed");
         // User closed the popup - that's fine, don't show error
+        return; // Don't show error for normal popup closure
       } else if (err.code === 'auth/cancelled-popup-request') {
         console.log("ℹ️ Popup request was cancelled - no action needed");
         console.log("🔍 DEBUG: This usually means multiple popup attempts or browser blocking");
         // Another popup was opened or cancelled - that's fine
+        return; // Don't show error for cancelled popup requests
       } else if (err.code === 'auth/popup-blocked') {
         console.log("⚠️ Popup was blocked by browser");
         alert("Popup was blocked by your browser. Please allow popups for this site and try again.");
