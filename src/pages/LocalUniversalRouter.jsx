@@ -89,6 +89,12 @@ export default function LocalUniversalRouter() {
               console.log("❌ Authentication error, routing to /access");
               return navigate("/access");
             }
+            if (flushRes.status === 404) {
+              console.log("❌ User not found (deleted), clearing cache and routing to /access");
+              // Clear all localStorage data for deleted user
+              localStorage.clear();
+              return navigate("/access");
+            }
             return;
           }
 
@@ -143,6 +149,12 @@ export default function LocalUniversalRouter() {
             // ✅ FIX: Add proper error handling
             if (flushRes.status === 401) {
               console.log("❌ Authentication error, routing to /access");
+              return navigate("/access");
+            }
+            if (flushRes.status === 404) {
+              console.log("❌ User not found (deleted), clearing cache and routing to /access");
+              // Clear all localStorage data for deleted user
+              localStorage.clear();
               return navigate("/access");
             }
             return navigate("/access");

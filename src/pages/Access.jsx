@@ -57,6 +57,14 @@ export default function Access() {
       });
 
       if (!createRes.ok) {
+        if (createRes.status === 404) {
+          console.log("❌ User not found (deleted), clearing cache and routing to profile setup");
+          // Clear all localStorage data for deleted user
+          localStorage.clear();
+          // Route to profile setup for new user flow
+          navigate("/profilesetup");
+          return;
+        }
         throw new Error(`User check failed: ${createRes.status}`);
       }
 
@@ -103,6 +111,14 @@ export default function Access() {
       });
       
       if (!hydrateRes.ok) {
+        if (hydrateRes.status === 404) {
+          console.log("❌ User not found (deleted), clearing cache and routing to profile setup");
+          // Clear all localStorage data for deleted user
+          localStorage.clear();
+          // Route to profile setup for new user flow
+          navigate("/profilesetup");
+          return;
+        }
         throw new Error(`Hydrate failed: ${hydrateRes.status}`);
       }
       
@@ -244,7 +260,7 @@ export default function Access() {
             Welcome to TripWell
           </h1>
           <p className="text-gray-600 text-lg leading-relaxed">
-            Your intelligent travel planning companion. Sign in to access your personalized trip planning experience.
+            Your intelligent travel planning companion. Sign up or sign in to access your personalized trip planning experience.
           </p>
         </div>
 
@@ -269,7 +285,7 @@ export default function Access() {
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
             )}
-            {isSigningIn ? 'Signing in...' : 'Continue with Google'}
+            {isSigningIn ? 'Signing in...' : 'Sign in with Google'}
           </button>
           
           <div className="relative">
@@ -277,7 +293,7 @@ export default function Access() {
               <div className="w-full border-t border-gray-200"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white/80 text-gray-500">New to TripWell?</span>
+              <span className="px-4 bg-white/80 text-gray-500">or</span>
             </div>
           </div>
 
@@ -290,7 +306,7 @@ export default function Access() {
                 : 'hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl transform hover:-translate-y-0.5'
             }`}
           >
-            {isSigningIn ? 'Signing in...' : 'Get Started - It\'s Free'}
+            {isSigningIn ? 'Signing in...' : 'Get Started'}
           </button>
         </div>
 

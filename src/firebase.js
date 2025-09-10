@@ -14,7 +14,27 @@ authDomain: "gofast-a5f94.firebaseapp.com",
   measurementId: "G-L0NGHRBSDE"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+// Initialize Firebase with error handling
+let app, auth;
+
+try {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  console.log("✅ Firebase initialized successfully");
+} catch (error) {
+  console.error("❌ Firebase initialization error:", error);
+  // Fallback initialization
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+}
+
+// Handle IndexedDB errors globally
+window.addEventListener('error', (event) => {
+  if (event.error && event.error.message && event.error.message.includes('IndexedDB')) {
+    console.warn("⚠️ IndexedDB error detected, this is usually harmless:", event.error.message);
+    // Prevent the error from breaking the app
+    event.preventDefault();
+  }
+});
 
 export { app, auth };

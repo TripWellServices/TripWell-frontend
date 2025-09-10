@@ -108,8 +108,8 @@ export default function ProfileSetup() {
       localStorage.setItem("profileComplete", "true");
       console.log("💾 Updated userData and set profileComplete to true:", updatedUserData);
 
-      // ✅ Route to role selection after saving profile
-      navigate("/postprofileroleselect");
+      // ✅ Route to post profile complete after saving profile
+      navigate("/postprofilecomplete");
     } catch (err) {
       console.error("Error submitting profile:", err);
       // ✅ FIX: Add proper error handling
