@@ -8,6 +8,62 @@ export default function LocalUniversalRouter() {
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(true);
+  const [showInitialLoading, setShowInitialLoading] = useState(true);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  const hydrateData = async () => {
+    try {
+      if (isHydrated) {
+        console.log("🔍 UniversalRouter - Already hydrated, skipping...");
+        return;
+      }
+      
+      console.log("🔄 UniversalRouter - Starting hydration...");
+      const authConfig = await getAuthConfig();
+      
+      const response = await fetch(`${BACKEND_URL}/tripwell/hydrate`, {
+        headers: authConfig.headers,
+        cache: "no-store"
+      });
+
+      if (!response.ok) {
+        console.log("❌ /hydrate failed:", response.status);
+        if (response.status === 401) {
+          console.log("❌ Authentication error, routing to /access");
+          navigate("/access");
+          return;
+        }
+        throw new Error(`Server error: ${response.status}`);
+      }
+
+      const freshData = await response.json();
+      console.log("✅ UniversalRouter - Hydration complete");
+      
+      // Save data to localStorage
+      if (freshData.userData) {
+        localStorage.setItem("userData", JSON.stringify(freshData.userData));
+      }
+      if (freshData.tripData) {
+        localStorage.setItem("tripData", JSON.stringify(freshData.tripData));
+      }
+      if (freshData.tripIntentData) {
+        localStorage.setItem("tripIntentData", JSON.stringify(freshData.tripIntentData));
+      }
+      if (freshData.anchorLogicData) {
+        localStorage.setItem("anchorLogic", JSON.stringify(freshData.anchorLogicData));
+      }
+      if (freshData.itineraryData) {
+        localStorage.setItem("itineraryData", JSON.stringify(freshData.itineraryData));
+      }
+
+      setIsHydrated(true);
+      console.log("✅ UniversalRouter - Data saved, showing continue button");
+
+    } catch (err) {
+      console.error("❌ UniversalRouter hydration error:", err);
+      navigate("/access");
+    }
+  };
 
   useEffect(() => {
     async function universalRouter() {
@@ -30,6 +86,16 @@ export default function LocalUniversalRouter() {
         if (shouldBypass) {
           console.log("🚀 LocalUniversalRouter - Already on live day route, not interfering:", currentPath);
           setLoading(false);
+          return;
+        }
+        
+        // Show initial loading for 800ms, then hydrate
+        if (showInitialLoading) {
+          console.log("⏳ Showing initial loading screen...");
+          setTimeout(() => {
+            setShowInitialLoading(false);
+            hydrateData();
+          }, 800);
           return;
         }
         
@@ -300,7 +366,72 @@ export default function LocalUniversalRouter() {
     }
 
     universalRouter();
-  }, [navigate, location.pathname]);
+  }, [navigate, location.pathname, showInitialLoading, isHydrated]);
+
+  // Show initial loading screen (same design as Home)
+  if (showInitialLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-sky-400 via-sky-300 to-blue-200 flex flex-col items-center justify-center p-6">
+        <div className="max-w-2xl w-full text-center space-y-8">
+          <div className="space-y-6">
+            {/* TripWell Logo */}
+            <div className="flex flex-col items-center space-y-4">
+              <svg 
+                width="140" 
+                height="140" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+                className="drop-shadow-lg"
+              >
+                <path 
+                  d="M21 16V14L13 9V3.5C13 2.67 12.33 2 11.5 2S10 2.67 10 3.5V9L2 14V16L10 13.5V19L8 20.5V22L12 21L16 22V20.5L14 19V13.5L22 16Z" 
+                  fill="#0ea5e9"
+                />
+              </svg>
+              
+              {/* TripWell Text */}
+              <div className="text-center">
+                <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">
+                  <span className="text-sky-100">Trip</span>
+                  <span className="text-white">Well</span>
+                </h1>
+                <p className="text-lg text-sky-50 font-medium drop-shadow-md">
+                  Loading Your Adventure
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Loading spinner */}
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show "Ready to continue?" button after hydration
+  if (isHydrated && loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 text-center border border-white/20">
+          <div className="text-center space-y-6">
+            <div className="text-3xl mb-3">✅</div>
+            <h3 className="font-semibold text-green-800 mb-2">Trip details complete!</h3>
+            <p className="text-green-600 text-sm mb-4">Looks like you've got some cool stuff done? Ready to keep going?</p>
+            <button
+              onClick={() => setLoading(false)}
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            >
+              🚀 Let's Go!
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

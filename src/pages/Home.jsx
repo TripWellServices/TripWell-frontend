@@ -11,31 +11,31 @@ export default function Home() {
   useEffect(() => {
     console.log("🔍 Home.jsx starting...");
 
-    // Always wait 1900ms before routing
+    // 800ms delay for the sweet spot
     const timeoutId = setTimeout(() => {
-      if (!hasRouted) {
-        console.log("⏰ 1900ms reached, routing based on auth state...");
-        setHasRouted(true);
+      const unsub = auth.onAuthStateChanged(async (firebaseUser) => {
+        console.log("🔥 Firebase auth state changed:", firebaseUser ? "User found" : "No user");
         
-        const currentUser = auth.currentUser;
-        if (currentUser) {
-          console.log("⏰ User found, routing to hydratelocal...");
-          navigate("/hydratelocal");
-        } else {
-          console.log("⏰ No user, routing to /access...");
-          navigate("/access");
+        if (!hasRouted) {
+          setHasRouted(true);
+          
+          if (firebaseUser) {
+            console.log("✅ User found, routing to localrouter...");
+            navigate("/localrouter");
+          } else {
+            console.log("❌ No user, routing to /access...");
+            navigate("/access");
+          }
         }
-      }
-            }, 1900);
+      });
 
-    const unsub = auth.onAuthStateChanged(async (firebaseUser) => {
-      console.log("🔥 Firebase auth state changed:", firebaseUser ? "User found" : "No user");
-      // Don't route immediately - let the 2000ms timeout handle it
-    });
+      return () => {
+        unsub();
+      };
+    }, 800);
 
     return () => {
       clearTimeout(timeoutId);
-      unsub();
     };
   }, [navigate, hasRouted]);
 
@@ -72,9 +72,9 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Loading spinner - always show for 2000ms */}
+        {/* Loading spinner */}
         <div className="flex justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
       </div>
     </div>
