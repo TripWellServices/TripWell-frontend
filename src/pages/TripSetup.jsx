@@ -321,7 +321,7 @@ export default function TripSetup() {
                 onClick={checkJoinCode}
                 className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-all font-medium"
               >
-                Check
+                Check Availability
               </button>
             </div>
             {codeStatus && (
