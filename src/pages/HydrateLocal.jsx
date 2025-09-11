@@ -19,11 +19,11 @@ export default function HydrateLocal() {
   const [hydratedData, setHydratedData] = useState({});
 
   useEffect(() => {
-    // Show loading screen for 1900ms first
+    // Show loading screen for 800ms first (reduced from 1900ms)
     const loadingTimeout = setTimeout(() => {
       setShowLoading(false);
       hydrateData();
-    }, 1900);
+    }, 800);
 
     return () => clearTimeout(loadingTimeout);
   }, []);
@@ -110,11 +110,8 @@ export default function HydrateLocal() {
       setHydratedData(localStorageData);
       updateProgress("complete", "Trip details complete!", 3);
 
-      // ✅ Auto-navigate after a brief delay to show completion
-      console.log("✅ Trip details complete, auto-navigating to /localrouter");
-      setTimeout(() => {
-        navigate("/localrouter");
-      }, 1000);
+      // ✅ Show completion and let user proceed when ready
+      console.log("✅ Trip details complete, showing continue button");
 
     } catch (err) {
       console.error("❌ Hydration error:", err);
@@ -158,22 +155,22 @@ export default function HydrateLocal() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-100 flex items-center justify-center p-6">
-        <div className="max-w-md w-full bg-white rounded-xl shadow-xl p-8 text-center border border-gray-100">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 text-center border border-white/20">
           <div className="text-6xl mb-4">😅</div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Oops! Something went wrong</h1>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-4">Oops! Something went wrong</h1>
           <p className="text-gray-600 mb-6">{error}</p>
           
           <div className="space-y-3">
             <button 
               onClick={handleRetry}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3 px-4 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               Try Again
             </button>
             <button 
               onClick={handleLogout}
-              className="w-full bg-gray-600 hover:bg-gray-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
+              className="w-full bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white py-3 px-4 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               Logout
             </button>
@@ -183,36 +180,27 @@ export default function HydrateLocal() {
     );
   }
 
-  // Show initial loading screen for 1900ms
+  // Show initial loading screen for 800ms
   if (showLoading) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
-        <div className="max-w-2xl w-full text-center space-y-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex flex-col items-center justify-center p-6">
+        <div className="max-w-2xl w-full text-center space-y-8 bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-white/20">
           <div className="space-y-6">
             {/* TripWell Logo */}
-            <div className="flex flex-col items-center space-y-4">
-              <svg 
-                width="140" 
-                height="140" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                xmlns="http://www.w3.org/2000/svg"
-                className="drop-shadow-lg"
-              >
-                <path 
-                  d="M21 16V14L13 9V3.5C13 2.67 12.33 2 11.5 2S10 2.67 10 3.5V9L2 14V16L10 13.5V19L8 20.5V22L12 21L16 22V20.5L14 19V13.5L22 16Z" 
-                  fill="#3b82f6"
-                />
-              </svg>
+            <div className="flex flex-col items-center space-y-6">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg">
+                <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M21 16V14L13 9V3.5C13 2.67 12.33 2 11.5 2S10 2.67 10 3.5V9L2 14V16L10 13.5V19L8 20.5V22L12 21L16 22V20.5L14 19V13.5L22 16Z"/>
+                </svg>
+              </div>
               
               {/* TripWell Text */}
-              <div className="text-center">
-                <h1 className="text-4xl font-bold text-gray-800 mb-2">
-                  <span className="text-blue-600">Trip</span>
-                  <span className="text-indigo-600">Well</span>
+              <div className="text-center space-y-3">
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  Loading Your Adventure
                 </h1>
-                <p className="text-lg text-gray-600 font-medium">
-                  Loading your trip data...
+                <p className="text-lg text-gray-600 leading-relaxed">
+                  Getting your trip data ready...
                 </p>
               </div>
             </div>
@@ -228,8 +216,8 @@ export default function HydrateLocal() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-6">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-xl p-8 border border-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-6">
+      <div className="max-w-md w-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-white/20">
         <div className="text-center mb-8">
           {/* Animated Plane */}
           <div className="relative mb-6">
@@ -257,12 +245,18 @@ export default function HydrateLocal() {
           <span className="text-lg font-medium text-gray-700">{progress.message}</span>
         </div>
 
-        {/* Simple Success Message */}
+        {/* Success Message with Continue Button */}
         {progress.step === "complete" && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 text-center">
-            <div className="text-2xl mb-2">✅</div>
-            <h3 className="font-semibold text-green-800">Trip details complete!</h3>
-            <p className="text-green-600 text-sm">Taking you to your adventure...</p>
+          <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6 text-center">
+            <div className="text-3xl mb-3">✅</div>
+            <h3 className="font-semibold text-green-800 mb-2">Trip details complete!</h3>
+            <p className="text-green-600 text-sm mb-4">Looks like you've got some cool stuff done? Ready to keep going?</p>
+            <button
+              onClick={() => navigate("/localrouter")}
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            >
+              🚀 Let's Go!
+            </button>
           </div>
         )}
       </div>
