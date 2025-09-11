@@ -373,20 +373,28 @@ export default function TripSetup() {
             </div>
           </div>
 
-        <button
-          type="submit"
-          disabled={!codeValid || submitting}
-          className={`
-            w-full p-3 rounded font-semibold
-            ${!codeValid || submitting 
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-              : 'bg-blue-600 text-white hover:bg-blue-700'
-            }
-          `}
-        >
-          {submitting ? 'Creating Trip...' : 'Create Trip'}
-        </button>
-      </form>
+          <button
+            type="submit"
+            disabled={!codeValid || submitting}
+            className={`
+              w-full p-4 rounded-xl font-semibold text-lg transition-all duration-200
+              ${!codeValid || submitting 
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl transform hover:-translate-y-0.5'
+              }
+            `}
+          >
+            {submitting ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                Creating Your Adventure...
+              </div>
+            ) : (
+              '🎨 Create My Trip!'
+            )}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

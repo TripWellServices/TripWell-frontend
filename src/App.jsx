@@ -116,6 +116,7 @@ export default function App() {
       <Route path="/profilesetup" element={<ProfileSetup />} />
       <Route path="/postprofileroleselect" element={<PostProfileRoleSelect />} />
       <Route path="/pretrip" element={<PreTripSetup />} />
+      <Route path="/pretripsetup" element={<PreTripSetup />} />
       <Route path="/tripsetup" element={<TripSetup />} />
 
       <Route path="/tripcreated" element={<TripCreated />} />
