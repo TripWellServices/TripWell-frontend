@@ -70,14 +70,14 @@ export default function PostProfileRoleSelect() {
           <div className="bg-gradient-to-br from-green-50 to-emerald-100 p-8 rounded-2xl border-2 border-green-200 hover:border-green-300 transition-all duration-300 hover:shadow-lg cursor-pointer"
                onClick={handleJoinTrip}>
             <div className="text-center space-y-4">
-              <div className="text-4xl">👥</div>
-              <h2 className="text-2xl font-bold text-green-800">Join a Trip</h2>
+              <div className="text-4xl">🎉</div>
+              <h2 className="text-2xl font-bold text-green-800">Join a Friend's Trip</h2>
               <p className="text-green-700">
-                Join an existing trip using a join code (like "PARIS2025"). You'll be a participant and can view the itinerary.
+                Get excited! Your friend has already planned an amazing trip and invited you. Enter their join code to jump in on the adventure!
               </p>
               <div className="pt-4">
                 <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl text-lg font-semibold transition-colors duration-200">
-                  Join Trip →
+                  I'm In! Let's Go! →
                 </button>
               </div>
             </div>
