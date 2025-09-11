@@ -109,7 +109,7 @@ export default function ProfileSetup() {
       console.log("💾 Updated userData and set profileComplete to true:", updatedUserData);
 
       // ✅ Route to post profile complete after saving profile
-      navigate("/postprofilecomplete");
+      navigate("/postprofileroleselect");
     } catch (err) {
       console.error("Error submitting profile:", err);
       // ✅ FIX: Add proper error handling

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { auth } from "../firebase";
 import { getAuthConfig } from "../utils/auth";
 import BACKEND_URL from "../config";
 
@@ -32,85 +31,18 @@ export default function TripSetup() {
   ];
 
   useEffect(() => {
-    let isMounted = true;
+    // ✅ FIX: Just get user data from localStorage - no backend calls needed!
+    const userData = JSON.parse(localStorage.getItem("userData") || "null");
     
-    const hydrateUser = async () => {
-      try {
-        // Wait for Firebase auth to be ready
-        await new Promise(resolve => {
-          const unsubscribe = auth.onAuthStateChanged((user) => {
-            unsubscribe();
-            resolve(user);
-          });
-        });
-        
-        if (!isMounted) return;
-        
-        const firebaseUser = auth.currentUser;
-        if (!firebaseUser) {
-          console.log("🚫 No Firebase user, navigating to /access");
-          if (isMounted) navigate("/access");
-          return;
-        }
-
-        console.log("🔐 Calling /whoami for hydration");
-        
-        if (!isMounted) return;
-        
-        const res = await axios.get(`${BACKEND_URL}/tripwell/whoami`);
-        
-        if (!isMounted) return;
-        
-        console.log("whoami status", res.status);
-        
-        if (res.status !== 200) {
-          console.log("❌ /whoami failed with status:", res.status);
-          if (isMounted) navigate("/access");
-          return;
-        }
-        
-        const data = res.data;
-        console.log("whoami data", data);
-        console.log("TripSetup hasTrip?", Boolean(data?.user?.tripId));
-        
-        if (!isMounted) return;
-        
-        // If user is null, redirect to access
-        if (!data?.user) {
-          console.log("❌ No user found, navigating to /access");
-          if (isMounted) navigate("/access");
-          return;
-        }
-        
-        // If user has tripId, redirect to home to continue their existing trip
-        if (Boolean(data?.user?.tripId)) {
-          console.log("✅ User has existing trip, navigating to home");
-          if (isMounted) navigate("/");
-          return;
-        }
-        
-        // User exists, no trip - stay on page
-        console.log("✅ User authenticated, no existing trip - staying on TripSetup");
-        if (isMounted) {
-          setUser(data.user); // React state the shit out of it!
-          setLoading(false);
-        }
-      } catch (err) {
-        console.error("❌ TripSetup hydration failed", err);
-        if (isMounted) {
-          navigate("/access");
-          setLoading(false);
-        }
-      }
-    };
-
-    // Small delay to let Firebase auth settle
-    const timer = setTimeout(hydrateUser, 100);
+    if (!userData?.firebaseId) {
+      console.log("❌ No user data in localStorage, navigating to /access");
+      navigate("/access");
+      return;
+    }
     
-    return () => {
-      isMounted = false;
-      clearTimeout(timer);
-    };
+    console.log("✅ User data found in localStorage, showing trip setup form");
+    setUser(userData);
+    setLoading(false);
   }, [navigate]);
 
   const checkJoinCode = async () => {
