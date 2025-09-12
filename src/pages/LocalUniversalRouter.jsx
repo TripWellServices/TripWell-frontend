@@ -270,11 +270,9 @@ export default function LocalUniversalRouter() {
         const currentProfileComplete = localStorage.getItem("profileComplete") === "true";
         const currentTripData = JSON.parse(localStorage.getItem("tripData") || "null");
 
-        // Step 2: Check if profile is complete
-        if (!currentProfileComplete) {
-          console.log("❌ Profile not complete, routing to /profilesetup");
-          return navigate("/profilesetup");
-        }
+        // Step 2: Profile completion is handled by Access.jsx
+        // LocalUniversalRouter assumes profile is complete since Access.jsx already filtered
+        console.log("✅ Profile completion check handled by Access.jsx, continuing with trip flow");
 
         // Step 3: Check trip data and role
         console.log("🔍 DEBUG - currentTripData:", currentTripData);
