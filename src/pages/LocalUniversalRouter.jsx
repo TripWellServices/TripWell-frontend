@@ -18,6 +18,13 @@ export default function LocalUniversalRouter() {
         return;
       }
       
+      // Check if user is being routed by Access.jsx (profile incomplete)
+      const currentProfileComplete = localStorage.getItem("profileComplete") === "true";
+      if (!currentProfileComplete) {
+        console.log("🔍 UniversalRouter - Profile incomplete, Access.jsx will handle routing, skipping...");
+        return;
+      }
+      
       console.log("🔄 UniversalRouter - Starting hydration...");
       const authConfig = await getAuthConfig();
       

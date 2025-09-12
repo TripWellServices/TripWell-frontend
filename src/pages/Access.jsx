@@ -131,43 +131,19 @@ export default function Access() {
       const localStorageData = await hydrateRes.json();
       console.log("🔍 Hydrate response:", localStorageData);
 
-      // 3) Save all data to localStorage
-      if (localStorageData.userData) {
-        localStorage.setItem("userData", JSON.stringify(localStorageData.userData));
-        console.log("💾 Saved userData to localStorage:", localStorageData.userData);
-      }
+      // 3) Access.jsx is MINIMAL - just check profile status, don't do hydration
 
-      if (localStorageData.tripData) {
-        localStorage.setItem("tripData", JSON.stringify(localStorageData.tripData));
-        console.log("💾 Saved tripData to localStorage:", localStorageData.tripData);
-      }
-
-      if (localStorageData.tripIntentData) {
-        localStorage.setItem("tripIntentData", JSON.stringify(localStorageData.tripIntentData));
-        console.log("💾 Saved tripIntentData to localStorage:", localStorageData.tripIntentData);
-      }
-
-                if (localStorageData.anchorLogicData) {
-            localStorage.setItem("anchorLogic", JSON.stringify(localStorageData.anchorLogicData));
-            console.log("💾 Saved anchorLogicData to localStorage as anchorLogic:", localStorageData.anchorLogicData);
-          }
-
-      if (localStorageData.itineraryData) {
-        localStorage.setItem("itineraryData", JSON.stringify(localStorageData.itineraryData));
-        console.log("💾 Saved itineraryData to localStorage:", localStorageData.itineraryData);
-      }
-
-      // Set profileComplete flag based on backend data
-      if (localStorageData.userData?.profileComplete) {
+      // Set profileComplete flag based on FRESH backend data (not cached localStorage)
+      if (userData.profileComplete) {
         localStorage.setItem("profileComplete", "true");
-        console.log("💾 Set profileComplete to true");
+        console.log("💾 Set profileComplete to true based on backend data");
       } else {
         localStorage.setItem("profileComplete", "false");
-        console.log("💾 Set profileComplete to false");
+        console.log("💾 Set profileComplete to false based on backend data");
       }
 
-      // 4) Route based on profile completion status
-      if (localStorageData.userData?.profileComplete) {
+      // 4) Route based on profile completion status (using FRESH backend data)
+      if (userData.profileComplete) {
         console.log("✅ Existing user with complete profile, routing to /localrouter");
         navigate("/localrouter");
       } else {
