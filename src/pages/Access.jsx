@@ -74,9 +74,9 @@ export default function Access() {
       // Check if user exists and has complete profile
       if (userData && userData._id) {
         if (userData.profileComplete) {
-          // User exists with complete profile - go to hydrate
-          console.log("💾 Existing user with complete profile, routing to hydrate...");
-          navigate("/hydratelocal");
+          // User exists with complete profile - go to universal router
+          console.log("💾 Existing user with complete profile, routing to universal router...");
+          navigate("/localrouter");
         } else {
           // User exists but profile incomplete - go to profile setup
           console.log("👋 Existing user with incomplete profile, routing to profile setup...");
