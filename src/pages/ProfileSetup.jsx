@@ -11,8 +11,8 @@ export default function ProfileSetup() {
   const [email, setEmail] = useState("");
   const [hometownCity, setHometownCity] = useState("");
   const [state, setState] = useState("");
-  const [travelStyle, setTravelStyle] = useState([]);
-  const [tripVibe, setTripVibe] = useState([]);
+  const [budgetTime, setBudgetTime] = useState("");
+  const [dreamDestination, setDreamDestination] = useState("");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
@@ -43,8 +43,8 @@ export default function ProfileSetup() {
         setEmail(user?.email || auth.currentUser?.email || "");
         setHometownCity(user?.hometownCity || "");
         setState(user?.state || "");
-        setTravelStyle(Array.isArray(user?.travelStyle) ? user.travelStyle : []);
-        setTripVibe(Array.isArray(user?.tripVibe) ? user.tripVibe : []);
+        setBudgetTime(user?.budgetTime || "");
+        setDreamDestination(user?.dreamDestination || "");
       } catch (err) {
         console.error("Error hydrating user:", err);
         // ✅ FIX: Add proper error handling
@@ -62,13 +62,11 @@ export default function ProfileSetup() {
     hydrateForm();
   }, [navigate]);
 
-  const handleCheckboxChange = (value, setFn, current) => {
-    if (current.includes(value)) {
-      setFn(current.filter((v) => v !== value));
-    } else {
-      setFn([...current, value]);
-    }
-  };
+  const budgetTimeOptions = [
+    { value: "money-no-time", label: "💰 I have more money but no time", emoji: "⏰" },
+    { value: "time-no-money", label: "⏰ I have time but no money", emoji: "💸" },
+    { value: "money-and-time", label: "🎉 I have both money AND time!", emoji: "🚀" }
+  ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -87,8 +85,8 @@ export default function ProfileSetup() {
           email,
           hometownCity,
           state,
-          travelStyle,
-          tripVibe
+          budgetTime,
+          dreamDestination
         })
       });
 
@@ -131,92 +129,113 @@ export default function ProfileSetup() {
   }
 
   return (
-    <div className="max-w-xl mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Let's finish setting up your profile</h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-6">
+      <div className="max-w-2xl w-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-white/20">
+        {/* Header with face icon */}
+        <div className="text-center space-y-4 mb-8">
+          <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full mx-auto flex items-center justify-center shadow-lg">
+            <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+            </svg>
+          </div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            Let's Get to Know You! 👋
+          </h1>
+          <p className="text-gray-600 text-lg leading-relaxed">
+            Your profile helps us know you as you travel, so we can create the perfect trip experience just for you.
+          </p>
+        </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-2">
-          <label className="font-semibold">First Name</label>
-          <input
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            className="w-full p-3 border rounded"
-            required
-          />
+        <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="font-semibold text-gray-700">First Name</label>
+            <input
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="font-semibold text-gray-700">Last Name</label>
+            <input
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              required
+            />
+          </div>
         </div>
 
         <div className="space-y-2">
-          <label className="font-semibold">Last Name</label>
-          <input
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            className="w-full p-3 border rounded"
-            required
-          />
+          <label className="font-semibold text-gray-700">Email</label>
+          <input value={email} disabled className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-600" />
         </div>
 
         <div className="space-y-2">
-          <label className="font-semibold">Email</label>
-          <input value={email} disabled className="w-full p-3 border rounded bg-gray-100 text-gray-600" />
+          <label className="font-semibold text-gray-700">City/State You Call Home</label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input
+              value={hometownCity}
+              onChange={(e) => setHometownCity(e.target.value)}
+              placeholder="City"
+              className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              required
+            />
+            <select
+              value={state}
+              onChange={(e) => setState(e.target.value)}
+              className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              required
+            >
+              <option value="">State</option>
+              {states.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
-        <div className="space-y-2">
-          <label className="font-semibold">City/State You Call Home (Where Launching From)</label>
-          <input
-            value={hometownCity}
-            onChange={(e) => setHometownCity(e.target.value)}
-            placeholder="City"
-            className="w-full p-3 border rounded"
-            required
-          />
-          <select
-            value={state}
-            onChange={(e) => setState(e.target.value)}
-            className="w-full p-3 border rounded"
-            required
-          >
-            <option value="">State</option>
-            {states.map((s) => (
-              <option key={s} value={s}>{s}</option>
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-800">Would you say...</h3>
+          <div className="space-y-3">
+            {budgetTimeOptions.map((option) => (
+              <label key={option.value} className="flex items-center space-x-3 p-4 border border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer">
+                <input
+                  type="radio"
+                  name="budgetTime"
+                  value={option.value}
+                  checked={budgetTime === option.value}
+                  onChange={(e) => setBudgetTime(e.target.value)}
+                  className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-lg">{option.emoji}</span>
+                <span className="text-gray-700 font-medium">{option.label}</span>
+              </label>
             ))}
-          </select>
+          </div>
         </div>
 
-        <fieldset className="space-y-2">
-          <legend className="font-semibold">Travel Style</legend>
-          {["Luxury", "Budget", "Spontaneous", "Planned"].map((style) => (
-            <label key={style} className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                checked={travelStyle.includes(style)}
-                onChange={() => handleCheckboxChange(style, setTravelStyle, travelStyle)}
-              />
-              <span>{style}</span>
-            </label>
-          ))}
-        </fieldset>
-
-        <fieldset className="space-y-2">
-          <legend className="font-semibold">Trip Vibe</legend>
-          {["Chill", "Adventure", "Party", "Culture"].map((vibe) => (
-            <label key={vibe} className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                checked={tripVibe.includes(vibe)}
-                onChange={() => handleCheckboxChange(vibe, setTripVibe, tripVibe)}
-              />
-              <span>{vibe}</span>
-            </label>
-          ))}
-        </fieldset>
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-800">If you could go anywhere in the world, where would it be?</h3>
+          <input
+            value={dreamDestination}
+            onChange={(e) => setDreamDestination(e.target.value)}
+            placeholder="Paris, Tokyo, Bali, New York, anywhere your heart desires..."
+            className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-lg"
+          />
+        </div>
 
         <button
           type="submit"
-          className="w-full p-3 rounded font-medium bg-blue-600 text-white hover:bg-blue-700"
+          className="w-full p-4 rounded-xl font-semibold text-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
         >
-          Save Profile
+          🚀 Let's Go!
         </button>
       </form>
+      </div>
     </div>
   );
 }

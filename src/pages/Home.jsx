@@ -11,7 +11,7 @@ export default function Home() {
   useEffect(() => {
     console.log("🔍 Home.jsx starting...");
 
-    // 800ms delay for the sweet spot
+    // 1400ms delay for better timing
     const timeoutId = setTimeout(() => {
       const unsub = auth.onAuthStateChanged(async (firebaseUser) => {
         console.log("🔥 Firebase auth state changed:", firebaseUser ? "User found" : "No user");
@@ -32,7 +32,7 @@ export default function Home() {
       return () => {
         unsub();
       };
-    }, 800);
+    }, 1400);
 
     return () => {
       clearTimeout(timeoutId);

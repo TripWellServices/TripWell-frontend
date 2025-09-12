@@ -50,17 +50,37 @@ export default function PreTripSetup() {
             </svg>
           </div>
           
-          <div className="space-y-4">
+          <div className="space-y-6">
             <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              Ready to Create Magic? ✨
+              Ready to Begin? 🚀
             </h1>
             <p className="text-lg text-gray-600 leading-relaxed">
-              We'll walk you through creating your trip step-by-step. This is where the magic happens - 
-              <span className="font-semibold text-blue-700"> you'll give your trip a name, set the dates, and tell us what makes it special.</span>
+              We'll walk you through creating your trip step-by-step. Here's what happens next:
             </p>
-            <p className="text-base text-gray-500">
-              The more details you share, the better your AI trip planner can craft the perfect experience for you and your travel companions.
-            </p>
+            
+            {/* Checklist */}
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 space-y-4">
+              <h3 className="font-semibold text-blue-800 text-lg">Trip Creation Process:</h3>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3">
+                  <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
+                  <span className="text-blue-700">Get your trip intent and preferences</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
+                  <span className="text-blue-700">Generate personalized anchors for your destination</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
+                  <span className="text-blue-700">Build your complete itinerary</span>
+                </div>
+              </div>
+              <div className="bg-blue-100 border border-blue-300 rounded-lg p-3 mt-4">
+                <p className="text-blue-800 font-medium text-sm">
+                  ⏱️ <strong>Takes about 5 minutes</strong> - We'll guide you through each step!
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -70,18 +90,9 @@ export default function PreTripSetup() {
             onClick={() => navigate("/tripsetup")}
             className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-8 rounded-xl text-lg font-semibold hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
           >
-            🎨 Let's Create My Trip!
+            🚀 Ready to Begin!
           </button>
 
-          <p className="text-gray-600 text-sm">
-            Not ready yet?{" "}
-            <button
-              onClick={() => navigate("/postprofileroleselect")}
-              className="underline text-blue-600 hover:text-blue-700 font-medium"
-            >
-              Go back to choose again
-            </button>
-          </p>
         </div>
       </div>
     </div>

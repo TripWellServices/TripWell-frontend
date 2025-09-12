@@ -228,7 +228,7 @@ export default function TripSetup() {
           
           <div className="space-y-3">
             <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              Time to be Picasso! 🎨
+              Lock in Your Trip Details!
             </h1>
             <p className="text-lg text-gray-600 leading-relaxed">
               This is the literal start of your adventure! Give your trip a fun name, define its purpose, and share the details. 
