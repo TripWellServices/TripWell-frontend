@@ -46,11 +46,17 @@ This creates a "yank back" effect where users get routed forward, then yanked ba
 
 ## The Problem
 
+**You don't need a router if you won't have a profile!**
+
+The fundamental issue is that we're routing users to a "router" component when they don't even have a profile yet. That's backwards logic.
+
 **Access.jsx** and **LocalUniversalRouter.jsx** are both checking profile completion and making routing decisions. This creates:
 
 1. User signs in → Access.jsx routes to `/localrouter`
 2. LocalUniversalRouter.jsx loads → checks profile → routes back to `/profilesetup`
 3. User experiences "yank back" effect
+
+**The real issue**: Why are we sending users to a "router" when they don't have a profile to route with?
 
 ## Proposed Solution
 
@@ -76,10 +82,10 @@ Home (1400ms)
   ↓
 Access (auth + user creation)
   ↓
-ProfileRouter (profile completion check)
-  ↓
-LocalUniversalRouter (trip flow routing)
+ProfileSetup (if no profile) OR LocalUniversalRouter (if profile exists)
 ```
+
+**The key insight**: Don't route to a "router" until you have something to route with (a complete profile).
 
 ## Current Routes That Navigate to LocalUniversalRouter
 
