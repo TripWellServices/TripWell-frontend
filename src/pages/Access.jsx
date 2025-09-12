@@ -71,11 +71,17 @@ export default function Access() {
       const userData = await createRes.json();
       console.log("🔍 User check response:", userData);
 
-      // Simple binary check: does user exist or not?
+      // Check if user exists and has complete profile
       if (userData && userData._id) {
-        // User exists - go to hydrate
-        console.log("💾 Existing user, routing to hydrate...");
-        navigate("/hydratelocal");
+        if (userData.profileComplete) {
+          // User exists with complete profile - go to hydrate
+          console.log("💾 Existing user with complete profile, routing to hydrate...");
+          navigate("/hydratelocal");
+        } else {
+          // User exists but profile incomplete - go to profile setup
+          console.log("👋 Existing user with incomplete profile, routing to profile setup...");
+          navigate("/profilesetup");
+        }
       } else {
         // No user - go to profile setup
         console.log("👋 New user, routing to profile...");
@@ -160,9 +166,14 @@ export default function Access() {
         console.log("💾 Set profileComplete to false");
       }
 
-      // 4) Route to universal router which will handle all the routing logic
-      console.log("✅ Access flow complete, routing to /localrouter");
-      navigate("/localrouter");
+      // 4) Route based on profile completion status
+      if (localStorageData.userData?.profileComplete) {
+        console.log("✅ Existing user with complete profile, routing to /localrouter");
+        navigate("/localrouter");
+      } else {
+        console.log("👋 New user or incomplete profile, routing to /profilesetup");
+        navigate("/profilesetup");
+      }
       
     } catch (err) {
       console.error("❌ Access flow error", err);
