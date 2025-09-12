@@ -80,7 +80,6 @@ import AnchorGPTTest from "./pages/anchorgpttest"; // 👈 new
 
 // ✅ Local State Test Flow Pages
 import LocalUniversalRouter from "./pages/LocalUniversalRouter";
-import HydrateLocal from "./pages/HydrateLocal";
 import HydrateTest from "./pages/HydrateTest";
 import PreTripHub from "./pages/PreTripHub";
 import ReflectionHub from "./pages/ReflectionHub";
@@ -134,7 +133,6 @@ export default function App() {
 
       {/* ✅ Local State Test Flow Routes */}
       <Route path="/localrouter" element={<LocalUniversalRouter />} />
-      <Route path="/hydratelocal" element={<HydrateLocal />} />
       <Route path="/hydratetest" element={<HydrateTest />} />
              <Route path="/pretriphub" element={<PreTripHub />} />
       <Route path="/reflectionhub" element={<ReflectionHub />} />
