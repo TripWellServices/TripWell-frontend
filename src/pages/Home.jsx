@@ -20,8 +20,8 @@ export default function Home() {
           setHasRouted(true);
           
           if (firebaseUser) {
-            console.log("✅ User found, routing to localrouter...");
-            navigate("/localrouter");
+            console.log("✅ User found, routing to access for profile check...");
+            navigate("/access");
           } else {
             console.log("❌ No user, routing to /access...");
             navigate("/access");

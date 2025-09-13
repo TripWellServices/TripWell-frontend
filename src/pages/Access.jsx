@@ -59,7 +59,7 @@ export default function Access() {
   const handleAuthenticatedUser = async (firebaseUser) => {
     try {
       // 1) Create or find the user on backend (unprotected)
-      await fetch(`${BACKEND_URL}/tripwell/user/createOrFind`, {
+      const createRes = await fetch(`${BACKEND_URL}/tripwell/user/createOrFind`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -67,58 +67,35 @@ export default function Access() {
           email: firebaseUser.email,
         }),
       });
-
-      // 2) Call hydrate to get all localStorage data
-      const authConfig = await getAuthConfig();
-      const hydrateRes = await fetch(`${BACKEND_URL}/tripwell/hydrate`, {
-        headers: { 
-          ...authConfig.headers,
-          "Cache-Control": "no-store"
-        },
-        cache: "no-store"
-      });
       
-      if (!hydrateRes.ok) {
-        if (hydrateRes.status === 404) {
-          console.log("❌ User not found (deleted), clearing cache and routing to profile setup");
-          // Clear all localStorage data for deleted user
-          localStorage.clear();
-          // Route to profile setup for new user flow
-          navigate("/profilesetup");
-          return;
-        }
-        throw new Error(`Hydrate failed: ${hydrateRes.status}`);
+      if (!createRes.ok) {
+        throw new Error(`CreateOrFind failed: ${createRes.status}`);
       }
       
-      const localStorageData = await hydrateRes.json();
-      console.log("🔍 Hydrate response:", localStorageData);
+      const createData = await createRes.json();
+      console.log("🔍 CreateOrFind response:", createData);
 
-      // 3) Access.jsx is MINIMAL - just check profile status, don't do hydration
-
-      // Set profileComplete flag based on FRESH backend data (not cached localStorage)
-      if (localStorageData.userData?.profileComplete) {
-        localStorage.setItem("profileComplete", "true");
-        console.log("💾 Set profileComplete to true based on backend data");
-      } else {
-        localStorage.setItem("profileComplete", "false");
-        console.log("💾 Set profileComplete to false based on backend data");
-      }
-
-      // 4) SIMPLE FORK: Profile or no profile
-      const profileComplete = localStorageData.userData?.profileComplete;
-      console.log("✅ Routing decision based on profileComplete =", profileComplete);
+      // 2) SIMPLE FORK: New user vs existing user
+      const isNewUser = createData.isNewUser;
+      const hasProfile = createData.profileComplete && createData.firstName && createData.lastName;
+      
+      console.log("🔍 DEBUG - isNewUser (from backend):", isNewUser);
+      console.log("🔍 DEBUG - hasProfile:", hasProfile);
+      console.log("🔍 DEBUG - profileComplete:", createData.profileComplete);
+      console.log("🔍 DEBUG - firstName:", createData.firstName);
+      console.log("🔍 DEBUG - lastName:", createData.lastName);
       
       // Add small delay to prevent race conditions
       await new Promise(r => setTimeout(r, 50));
       
-      if (profileComplete) {
-        // ✅ Has profile - let LocalRouter handle smart routing
-        console.log("✅ User has profile, routing to /localrouter for smart routing");
-        navigate("/localrouter");
-      } else {
-        // ❌ No profile - go to profile setup
-        console.log("👋 No profile, routing to /profilesetup");
+      if (isNewUser || !hasProfile) {
+        // ❌ New user or incomplete profile - go to profile setup
+        console.log("👋 New user or incomplete profile, routing to /profilesetup");
         navigate("/profilesetup");
+      } else {
+        // ✅ Existing user with complete profile - go to localrouter
+        console.log("✅ Existing user with complete profile, routing to /localrouter");
+        navigate("/localrouter");
       }
       
     } catch (err) {
