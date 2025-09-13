@@ -110,7 +110,12 @@ export default function Access() {
               tripId: createData.tripId,
               funnelStage: createData.funnelStage,
               createdAt: createData.createdAt,
-              context: "new_user_signup"
+              context: "new_user_signup",
+              // Send full user data for Python service
+              _id: createData._id,
+              firebaseId: createData.firebaseId,
+              journeyStage: createData.journeyStage,
+              userState: createData.userState
             })
           });
 
