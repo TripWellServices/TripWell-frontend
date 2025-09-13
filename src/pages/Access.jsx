@@ -74,13 +74,15 @@ export default function Access() {
       
       const createData = await createRes.json();
       console.log("🔍 CreateOrFind response:", createData);
+      console.log("🔍 DEBUG - Raw isNewUser from response:", createData.isNewUser);
+      console.log("🔍 DEBUG - Type of isNewUser:", typeof createData.isNewUser);
 
       // 2) SIMPLE FORK: New user vs existing user
       const isNewUser = createData.isNewUser;
-      const hasProfile = createData.profileComplete && createData.firstName && createData.lastName;
+      const hasCompleteProfile = createData.profileComplete && createData.firstName && createData.lastName;
       
       console.log("🔍 DEBUG - isNewUser (from backend):", isNewUser);
-      console.log("🔍 DEBUG - hasProfile:", hasProfile);
+      console.log("🔍 DEBUG - hasCompleteProfile:", hasCompleteProfile);
       console.log("🔍 DEBUG - profileComplete:", createData.profileComplete);
       console.log("🔍 DEBUG - firstName:", createData.firstName);
       console.log("🔍 DEBUG - lastName:", createData.lastName);
@@ -88,7 +90,51 @@ export default function Access() {
       // Add small delay to prevent race conditions
       await new Promise(r => setTimeout(r, 50));
       
-      if (isNewUser || !hasProfile) {
+      // 🎯 Call Python Main Service for new user signup (if new user)
+      if (isNewUser) {
+        try {
+          console.log(`🎯 Calling Python Main Service for new user: ${createData.email}`);
+          
+          const pythonResponse = await fetch(`${process.env.REACT_APP_TRIPWELL_AI_BRAIN || 'https://tripwell-ai.onrender.com'}/useactionendpoint`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              user_id: createData._id,
+              firebase_id: createData.firebaseId,
+              email: createData.email,
+              firstName: createData.firstName,
+              lastName: createData.lastName,
+              profileComplete: createData.profileComplete,
+              tripId: createData.tripId,
+              funnelStage: createData.funnelStage,
+              createdAt: createData.createdAt,
+              context: "new_user_signup"
+            })
+          });
+
+          if (pythonResponse.ok) {
+            const pythonData = await pythonResponse.json();
+            console.log(`✅ Python Main Service analysis complete for ${createData.email}:`, {
+              actions_taken: pythonData.actions_taken?.length || 0,
+              user_state: pythonData.user_state
+            });
+            
+            if (pythonData.actions_taken) {
+              pythonData.actions_taken.forEach(action => {
+                console.log(`  📧 ${action.campaign}: ${action.status} - ${action.reason}`);
+              });
+            }
+          } else {
+            console.error(`❌ Python Main Service analysis failed for ${createData.email}`);
+          }
+        } catch (pythonError) {
+          console.error(`❌ Failed to call Python Main Service for ${createData.email}:`, pythonError.message);
+        }
+      }
+      
+      if (isNewUser || !hasCompleteProfile) {
         // ❌ New user or incomplete profile - go to profile setup
         console.log("👋 New user or incomplete profile, routing to /profilesetup");
         navigate("/profilesetup");

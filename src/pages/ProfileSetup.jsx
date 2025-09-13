@@ -26,41 +26,11 @@ export default function ProfileSetup() {
   ];
 
   useEffect(() => {
-    const hydrateForm = async () => {
-      try {
-        // ✅ FIX: Use standardized auth utility
-        const authConfig = await getAuthConfig();
-        const res = await fetch(`${BACKEND_URL}/tripwell/whoami`, {
-          headers: authConfig.headers,
-          cache: "no-store"
-        });
-
-        if (!res.ok) throw new Error(`Hydration failed: ${res.status}`);
-        const { user } = await res.json();
-
-        setFirstName(user?.firstName || "");
-        setLastName(user?.lastName || "");
-        setEmail(user?.email || auth.currentUser?.email || "");
-        setHometownCity(user?.hometownCity || "");
-        setState(user?.state || "");
-        setBudgetTime(user?.budgetTime || "");
-        setDreamDestination(user?.dreamDestination || "");
-      } catch (err) {
-        console.error("Error hydrating user:", err);
-        // ✅ FIX: Add proper error handling
-        if (err.message.includes("401") || err.message.includes("Unauthorized")) {
-          alert("Authentication error. Please sign in again.");
-          navigate("/access");
-          return;
-        }
-        setEmail(auth.currentUser?.email || ""); // fallback
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    hydrateForm();
-  }, [navigate]);
+    // No hydration needed - we know this is a new/incomplete user
+    console.log("🔍 ProfileSetup: Setting up form for new/incomplete user");
+    setEmail(auth.currentUser?.email || "");
+    setLoading(false);
+  }, []);
 
   const budgetTimeOptions = [
     { value: "money-no-time", label: "💰 I have more money but no time", emoji: "⏰" },

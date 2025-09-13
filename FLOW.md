@@ -1,15 +1,17 @@
 # TripWell User Flow
 
 ## New User Flow (First Time)
-1. **Access.jsx** → User signs in with Google
-2. **ProfileSetup.jsx** → User completes profile (firstName, lastName, etc.)
-3. **PostProfileRoleSelect.jsx** → User selects role (planner/participant)
-4. **Trip Creation** → User creates or joins a trip
-5. **LocalUniversalRouter.jsx** → Routes to appropriate dashboard
+1. **Access.jsx** → User signs in with Google → Calls `createOrFind` → Gets `isNewUser: true`
+2. **Access.jsx** → Routes to ProfileSetup.jsx
+3. **ProfileSetup.jsx** → User completes profile (firstName, lastName, budgetTime, dreamDestination)
+4. **PostProfileRoleSelect.jsx** → User selects role (planner/participant)
+5. **Trip Creation** → User creates or joins a trip
+6. **LocalUniversalRouter.jsx** → Routes to appropriate dashboard
 
 ## Returning User Flow (Already Has Profile)
-1. **Access.jsx** → User signs in with Google
-2. **LocalUniversalRouter.jsx** → Routes based on existing data:
+1. **Access.jsx** → User signs in with Google → Calls `createOrFind` → Gets `isNewUser: false`
+2. **Access.jsx** → Routes to LocalUniversalRouter.jsx
+3. **LocalUniversalRouter.jsx** → Routes based on existing data:
    - Has trip → Trip dashboard
    - No trip → Trip creation/join
    - Incomplete profile → ProfileSetup.jsx
@@ -33,9 +35,10 @@ if (profileComplete) {
 ```
 
 ## Key Rules
-- **Access.jsx** = Simple fork: Profile or no profile
-- **LocalRouter** = Smart routing for users with profiles
-- **ProfileSetup** = Only for users without profiles
+- **Access.jsx** = Simple fork: New user vs existing user (based on `createOrFind` response)
+- **LocalRouter** = Smart routing for existing users with profiles
+- **ProfileSetup** = Only for new users or incomplete profiles
+- **No hydration calls** - use data from `createOrFind` response
 - **No complex logic in Access.jsx** - let LocalRouter handle the smart stuff
 
 ## Debugging Tips
