@@ -286,10 +286,16 @@ export default function LocalUniversalRouter() {
         console.log("🔍 DEBUG - currentTripData?.tripId:", currentTripData?.tripId);
         console.log("🔍 DEBUG - currentUserData?.role:", currentUserData?.role);
         
-        // If user has profile but no trip/role, route to role selection
+        // If user has profile but no trip/role, check if they're a new user
         if (!currentTripData || !currentTripData.tripId || currentUserData?.role === "noroleset") {
-          console.log("❌ No tripId or role not set, routing to /postprofileroleselect");
-          return navigate("/postprofileroleselect");
+          // Check if this is a new user (no profile data)
+          if (!currentUserData?.firstName || !currentUserData?.lastName) {
+            console.log("❌ New user with incomplete profile, routing to /profilesetup");
+            return navigate("/profilesetup");
+          } else {
+            console.log("❌ No tripId or role not set, routing to /postprofileroleselect");
+            return navigate("/postprofileroleselect");
+          }
         }
 
         // Step 4: Check if trip is complete

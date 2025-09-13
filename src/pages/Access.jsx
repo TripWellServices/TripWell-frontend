@@ -46,47 +46,9 @@ export default function Access() {
 
   const checkUserAccess = async (firebaseUser) => {
     try {
-      // Check if this is a new or existing user
-      const createRes = await fetch(`${BACKEND_URL}/tripwell/user/createOrFind`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firebaseId: firebaseUser.uid,
-          email: firebaseUser.email,
-        }),
-      });
-
-      if (!createRes.ok) {
-        if (createRes.status === 404) {
-          console.log("❌ User not found (deleted), clearing cache and routing to profile setup");
-          // Clear all localStorage data for deleted user
-          localStorage.clear();
-          // Route to profile setup for new user flow
-          navigate("/profilesetup");
-          return;
-        }
-        throw new Error(`User check failed: ${createRes.status}`);
-      }
-
-      const userData = await createRes.json();
-      console.log("🔍 User check response:", userData);
-
-      // Check if user exists and has complete profile
-      if (userData && userData._id) {
-        if (userData.profileComplete) {
-          // User exists with complete profile - go to universal router
-          console.log("💾 Existing user with complete profile, routing to universal router...");
-          navigate("/localrouter");
-        } else {
-          // User exists but profile incomplete - go to profile setup
-          console.log("👋 Existing user with incomplete profile, routing to profile setup...");
-          navigate("/profilesetup");
-        }
-      } else {
-        // No user - go to profile setup
-        console.log("👋 New user, routing to profile...");
-        navigate("/profilesetup");
-      }
+      // Use the same flow as handleAuthenticatedUser for consistency
+      console.log("🔐 User already authenticated, using consistent flow...");
+      await handleAuthenticatedUser(firebaseUser);
       
     } catch (err) {
       console.error("❌ Access check error:", err);
@@ -142,12 +104,20 @@ export default function Access() {
         console.log("💾 Set profileComplete to false based on backend data");
       }
 
-      // 4) Route based on profile completion status (using FRESH backend data)
-      if (localStorageData.userData?.profileComplete) {
-        console.log("✅ Existing user with complete profile, routing to /localrouter");
+      // 4) SIMPLE FORK: Profile or no profile
+      const profileComplete = localStorageData.userData?.profileComplete;
+      console.log("✅ Routing decision based on profileComplete =", profileComplete);
+      
+      // Add small delay to prevent race conditions
+      await new Promise(r => setTimeout(r, 50));
+      
+      if (profileComplete) {
+        // ✅ Has profile - let LocalRouter handle smart routing
+        console.log("✅ User has profile, routing to /localrouter for smart routing");
         navigate("/localrouter");
       } else {
-        console.log("👋 New user or incomplete profile, routing to /profilesetup");
+        // ❌ No profile - go to profile setup
+        console.log("👋 No profile, routing to /profilesetup");
         navigate("/profilesetup");
       }
       
