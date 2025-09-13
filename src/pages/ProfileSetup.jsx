@@ -12,7 +12,7 @@ export default function ProfileSetup() {
   const [hometownCity, setHometownCity] = useState("");
   const [state, setState] = useState("");
   const [planningVibe, setPlanningVibe] = useState("");
-  const [travelVibes, setTravelVibes] = useState([]);
+  const [travelVibe, setTravelVibe] = useState("");
   const [dreamDestination, setDreamDestination] = useState("");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -46,15 +46,6 @@ export default function ProfileSetup() {
     "Want to just enjoy the moment"
   ];
 
-  const handleCheckboxChange = (type, value) => {
-    if (type === 'travelVibes') {
-      setTravelVibes(prev => 
-        prev.includes(value) 
-          ? prev.filter(item => item !== value)
-          : [...prev, value]
-      );
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -74,7 +65,7 @@ export default function ProfileSetup() {
           hometownCity,
           state,
           planningVibe,
-          travelVibes,
+          travelVibe,
           dreamDestination
         })
       });
@@ -210,16 +201,18 @@ export default function ProfileSetup() {
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-gray-800">Travel Vibes</h3>
           <p className="text-gray-600 text-sm">What's your travel style?</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="space-y-3">
             {travelVibeOptions.map((vibe) => (
-              <label key={vibe} className="flex items-center space-x-2 cursor-pointer p-3 border border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition-all">
+              <label key={vibe} className="flex items-center space-x-3 cursor-pointer p-4 border border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition-all">
                 <input
-                  type="checkbox"
-                  checked={travelVibes.includes(vibe)}
-                  onChange={() => handleCheckboxChange('travelVibes', vibe)}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  type="radio"
+                  name="travelVibe"
+                  value={vibe}
+                  checked={travelVibe === vibe}
+                  onChange={(e) => setTravelVibe(e.target.value)}
+                  className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                 />
-                <span className="text-gray-700">{vibe}</span>
+                <span className="text-gray-700 font-medium">{vibe}</span>
               </label>
             ))}
           </div>
