@@ -134,7 +134,7 @@ export default function Access() {
       // 3) Access.jsx is MINIMAL - just check profile status, don't do hydration
 
       // Set profileComplete flag based on FRESH backend data (not cached localStorage)
-      if (userData.profileComplete) {
+      if (localStorageData.userData?.profileComplete) {
         localStorage.setItem("profileComplete", "true");
         console.log("💾 Set profileComplete to true based on backend data");
       } else {
@@ -143,7 +143,7 @@ export default function Access() {
       }
 
       // 4) Route based on profile completion status (using FRESH backend data)
-      if (userData.profileComplete) {
+      if (localStorageData.userData?.profileComplete) {
         console.log("✅ Existing user with complete profile, routing to /localrouter");
         navigate("/localrouter");
       } else {
