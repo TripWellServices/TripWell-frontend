@@ -11,7 +11,8 @@ export default function ProfileSetup() {
   const [email, setEmail] = useState("");
   const [hometownCity, setHometownCity] = useState("");
   const [state, setState] = useState("");
-  const [budgetTime, setBudgetTime] = useState("");
+  const [planningVibes, setPlanningVibes] = useState([]);
+  const [travelVibes, setTravelVibes] = useState([]);
   const [dreamDestination, setDreamDestination] = useState("");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -32,11 +33,34 @@ export default function ProfileSetup() {
     setLoading(false);
   }, []);
 
-  const budgetTimeOptions = [
-    { value: "money-no-time", label: "💰 I have more money but no time", emoji: "⏰" },
-    { value: "time-no-money", label: "⏰ I have time but no money", emoji: "💸" },
-    { value: "money-and-time", label: "🎉 I have both money AND time!", emoji: "🚀" }
+  const planningVibeOptions = [
+    "Spontaneity",
+    "Rigid", 
+    "Like mix"
   ];
+
+  const travelVibeOptions = [
+    "Go with flow",
+    "Spontaneity", 
+    "Stick to schedule",
+    "Want to just enjoy the moment"
+  ];
+
+  const handleCheckboxChange = (type, value) => {
+    if (type === 'planningVibes') {
+      setPlanningVibes(prev => 
+        prev.includes(value) 
+          ? prev.filter(item => item !== value)
+          : [...prev, value]
+      );
+    } else if (type === 'travelVibes') {
+      setTravelVibes(prev => 
+        prev.includes(value) 
+          ? prev.filter(item => item !== value)
+          : [...prev, value]
+      );
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,7 +79,8 @@ export default function ProfileSetup() {
           email,
           hometownCity,
           state,
-          budgetTime,
+          planningVibes,
+          travelVibes,
           dreamDestination
         })
       });
@@ -112,7 +137,7 @@ export default function ProfileSetup() {
             Let's Get to Know You! 👋
           </h1>
           <p className="text-gray-600 text-lg leading-relaxed">
-            Your profile helps us know you as you travel, so we can create the perfect trip experience just for you.
+            Tell us a bit about yourself so we can personalize your trip planning experience and suggest destinations you'll love.
           </p>
         </div>
 
@@ -169,27 +194,44 @@ export default function ProfileSetup() {
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-800">Would you say...</h3>
-          <div className="space-y-3">
-            {budgetTimeOptions.map((option) => (
-              <label key={option.value} className="flex items-center space-x-3 p-4 border border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer">
+          <h3 className="text-lg font-semibold text-gray-800">Planning Vibes</h3>
+          <p className="text-gray-600 text-sm">How do you like to plan your trips?</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {planningVibeOptions.map((vibe) => (
+              <label key={vibe} className="flex items-center space-x-2 cursor-pointer p-3 border border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition-all">
                 <input
-                  type="radio"
-                  name="budgetTime"
-                  value={option.value}
-                  checked={budgetTime === option.value}
-                  onChange={(e) => setBudgetTime(e.target.value)}
-                  className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                  type="checkbox"
+                  checked={planningVibes.includes(vibe)}
+                  onChange={() => handleCheckboxChange('planningVibes', vibe)}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
-                <span className="text-lg">{option.emoji}</span>
-                <span className="text-gray-700 font-medium">{option.label}</span>
+                <span className="text-gray-700">{vibe}</span>
               </label>
             ))}
           </div>
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-800">If you could go anywhere in the world, where would it be?</h3>
+          <h3 className="text-lg font-semibold text-gray-800">Travel Vibes</h3>
+          <p className="text-gray-600 text-sm">What's your travel style?</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {travelVibeOptions.map((vibe) => (
+              <label key={vibe} className="flex items-center space-x-2 cursor-pointer p-3 border border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition-all">
+                <input
+                  type="checkbox"
+                  checked={travelVibes.includes(vibe)}
+                  onChange={() => handleCheckboxChange('travelVibes', vibe)}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span className="text-gray-700">{vibe}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-800">What's your dream destination?</h3>
+          <p className="text-gray-600 text-sm">This helps us understand your travel style and interests</p>
           <input
             value={dreamDestination}
             onChange={(e) => setDreamDestination(e.target.value)}
