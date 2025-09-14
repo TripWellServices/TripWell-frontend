@@ -470,13 +470,72 @@ export default function LocalUniversalRouter() {
     );
   }
 
+  // ALWAYS show the button - no fallbacks, no complex logic
   return (
-    <h1 className="text-2xl font-bold text-center mt-10">
-      LocalUniversalRouter Loaded Successfully
-      <br />
-      <a href="/"  className="text-blue-600 underline">
-        Home
-      </a>
-    </h1>
+    <div className="min-h-screen bg-gradient-to-br from-sky-400 via-sky-300 to-blue-200 flex items-center justify-center p-6">
+      <div className="max-w-2xl w-full text-center space-y-8">
+        <div className="space-y-6">
+          {/* Custom TripWell Logo */}
+          <div className="flex flex-col items-center space-y-4">
+            <svg 
+              width="140" 
+              height="140" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
+              className="drop-shadow-lg"
+            >
+              <path 
+                d="M21 16V14L13 9V3.5C13 2.67 12.33 2 11.5 2S10 2.67 10 3.5V9L2 14V16L10 13.5V19L8 20.5V22L12 21L16 22V20.5L14 19V13.5L22 16Z" 
+                fill="#0ea5e9"
+              />
+            </svg>
+            
+            {/* TripWell Text */}
+            <div className="text-center">
+              <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">
+                <span className="text-sky-100">Trip</span>
+                <span className="text-white">Well</span>
+              </h1>
+              <h2 className="text-2xl font-bold text-white mb-2 drop-shadow-lg">Welcome back!</h2>
+              <p className="text-lg text-sky-50 font-medium drop-shadow-md">🌍 Pick up where you left off!</p>
+            </div>
+          </div>
+        </div>
+
+        {/* THE BUTTON - ALWAYS SHOW */}
+        <div className="pt-4">
+          <button
+            onClick={() => {
+              // Use the same routing logic as the main router
+              const currentTripData = JSON.parse(localStorage.getItem("tripData") || "null");
+              const tripIntentData = JSON.parse(localStorage.getItem("tripIntentData") || "null");
+              const anchorLogic = JSON.parse(localStorage.getItem("anchorLogic") || "null");
+              const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
+              
+              // Apply the same routing logic
+              if (!currentTripData || !currentTripData.tripId) {
+                navigate("/postprofileroleselect");
+              } else if (currentTripData.tripComplete === true) {
+                navigate("/tripcomplete");
+              } else if (currentTripData.startedTrip === true) {
+                navigate("/livedayreturner");
+              } else if (!tripIntentData || !tripIntentData.tripIntentId) {
+                navigate("/tripintent");
+              } else if (!anchorLogic || !anchorLogic.anchors || anchorLogic.anchors.length === 0) {
+                navigate("/anchorselect");
+              } else if (!itineraryData || !itineraryData.itineraryId) {
+                navigate("/itinerarybuild");
+              } else {
+                navigate("/pretriphub");
+              }
+            }}
+            className="bg-white text-sky-600 px-8 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 hover:bg-sky-50"
+          >
+            🚀 Pick up where you left off!
+          </button>
+        </div>
+      </div>
+    </div>
   ); 
 }
