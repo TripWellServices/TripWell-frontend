@@ -307,30 +307,34 @@ export default function LocalUniversalRouter() {
           return navigate("/livedayreturner");
         }
 
-        // Step 4: No trip intent = go to intent page
+        // Step 4: No trip intent = show button for trip intent
         if (!tripIntentData || !tripIntentData.tripIntentId) {
-          console.log("❌ No trip intent, routing to /tripintent");
+          console.log("❌ No trip intent, showing button for trip intent");
           console.log("🔍 tripIntentData:", tripIntentData);
-          return navigate("/tripintent");
+          setLoading(false); // Show the button
+          return;
         }
 
-        // Step 5: No anchors = go to anchor selection
+        // Step 5: No anchors = show button for anchor selection
         const hasAnchors = anchorLogic && anchorLogic.anchors && anchorLogic.anchors.length > 0;
         if (!hasAnchors) {
-          console.log("❌ No anchors, routing to /anchorselect");
+          console.log("❌ No anchors, showing button for anchor selection");
           console.log("🔍 anchorLogic:", anchorLogic);
-          return navigate("/anchorselect");
+          setLoading(false); // Show the button
+          return;
         }
 
-        // Step 6: No itinerary = go to itinerary build
+        // Step 6: No itinerary = show button for itinerary build
         if (!itineraryData || !itineraryData.itineraryId) {
-          console.log("❌ No itinerary, routing to /itinerarybuild");
-          return navigate("/itinerarybuild");
+          console.log("❌ No itinerary, showing button for itinerary build");
+          setLoading(false); // Show the button
+          return;
         }
 
-        // Step 7: Itinerary built but trip not started = go to pre-trip hub
-        console.log("✅ Itinerary complete, routing to /pretriphub");
-        return navigate("/pretriphub");
+        // Step 7: Itinerary built but trip not started = show button for pre-trip hub
+        console.log("✅ Itinerary complete, showing button for pre-trip hub");
+        setLoading(false); // Show the button
+        return;
 
       } catch (error) {
         console.error("❌ UniversalRouter error:", error);
