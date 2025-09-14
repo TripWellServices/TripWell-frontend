@@ -281,96 +281,49 @@ export default function LocalUniversalRouter() {
         // LocalUniversalRouter assumes profile is complete since Access.jsx already filtered
         console.log("✅ Profile completion check handled by Access.jsx, continuing with trip flow");
 
-        // Step 3: Check trip data and role
-        console.log("🔍 DEBUG - currentTripData:", currentTripData);
-        console.log("🔍 DEBUG - currentTripData?.tripId:", currentTripData?.tripId);
-        console.log("🔍 DEBUG - currentUserData?.role:", currentUserData?.role);
+        // 🎯 SIMPLIFIED ROUTING LOGIC - Focus on actual flags that matter
         
-        // If user has profile but no trip/role, check if they're a new user
-        if (!currentTripData || !currentTripData.tripId || currentUserData?.role === "noroleset") {
-          // Check if this is a new user (no profile data)
-          if (!currentUserData?.firstName || !currentUserData?.lastName) {
-            console.log("❌ New user with incomplete profile, showing ready button for /profilesetup");
-            setLoading(true); // Show ready button instead of auto-redirect
-            return;
-          } else {
-            console.log("❌ No tripId or role not set, showing ready button for /postprofileroleselect");
-            setLoading(true); // Show ready button instead of auto-redirect
-            return;
-          }
+        // Step 1: No trip data = need to create/join trip
+        if (!currentTripData || !currentTripData.tripId) {
+          console.log("❌ No trip data, showing button for role selection");
+          setLoading(true);
+          return;
         }
 
-        // Step 4: Check if trip is complete
-        console.log("🔍 DEBUG - currentTripData.tripComplete:", currentTripData.tripComplete);
+        // Step 2: Trip complete = go to completion page
         if (currentTripData.tripComplete === true) {
-          console.log("✅ Trip is complete, routing to /tripcomplete");
+          console.log("✅ Trip complete, routing to /tripcomplete");
           return navigate("/tripcomplete");
         }
 
-        // Step 5: Check if trip has started
-        console.log("🔍 DEBUG - currentTripData.startedTrip:", currentTripData.startedTrip);
-        console.log("🔍 DEBUG - Current pathname:", location.pathname);
+        // Step 3: Trip started = go to live trip
         if (currentTripData.startedTrip === true) {
-          // If trip has started, route to LiveDayReturner for "welcome back" flow
-          if (location.pathname.startsWith('/tripliveday') || location.pathname.startsWith('/tripliveblock')) {
-            console.log("✅ Trip has started and navigating to live day, allowing navigation");
-            console.log("✅ Pathname matches live day route, setting loading to false");
-            setLoading(false);
-            return;
-          } else {
-            console.log("✅ Trip has started, routing to /livedayreturner for welcome back flow");
-            return navigate("/livedayreturner");
-          }
+          console.log("✅ Trip started, routing to /livedayreturner");
+          return navigate("/livedayreturner");
         }
 
-        // Step 6: Check trip intent
+        // Step 4: No trip intent = go to intent page
         if (!tripIntentData || !tripIntentData.tripIntentId) {
-          console.log("❌ No tripIntentId found, routing to /tripintent");
+          console.log("❌ No trip intent, routing to /tripintent");
           return navigate("/tripintent");
         }
 
-        // Step 7: Check anchors (trust localStorage after hydration)
-        console.log("🔍 DEEP DEBUG - anchorLogic:", anchorLogic);
-        console.log("🔍 DEEP DEBUG - anchorLogic.anchors:", anchorLogic?.anchors);
-        console.log("🔍 DEEP DEBUG - anchorLogic.anchors?.length:", anchorLogic?.anchors?.length);
-        
-        // Handle both data structures: full objects vs just titles
-        const hasAnchors = anchorLogic && 
-          anchorLogic.anchors && 
-          anchorLogic.anchors.length > 0;
-        
+        // Step 5: No anchors = go to anchor selection
+        const hasAnchors = anchorLogic && anchorLogic.anchors && anchorLogic.anchors.length > 0;
         if (!hasAnchors) {
-          console.log("❌ No anchors in localStorage, routing to /anchorselect");
+          console.log("❌ No anchors, routing to /anchorselect");
           return navigate("/anchorselect");
         }
-        
-        // Log what we found for debugging
-        console.log("✅ Found anchors in localStorage:", {
-          count: anchorLogic.anchors.length,
-          firstAnchor: anchorLogic.anchors[0],
-          isTitleString: typeof anchorLogic.anchors[0] === 'string',
-          isObject: typeof anchorLogic.anchors[0] === 'object'
-        });
 
-        // Step 8: Check itinerary (trust localStorage after hydration)
-        console.log("🔍 DEBUG - itineraryData:", itineraryData);
-        console.log("🔍 DEBUG - itineraryData?.itineraryId:", itineraryData?.itineraryId);
-        console.log("🔍 DEBUG - currentTripData.startedTrip:", currentTripData?.startedTrip);
-        
+        // Step 6: No itinerary = go to itinerary build
         if (!itineraryData || !itineraryData.itineraryId) {
-          console.log("❌ No itinerary in localStorage, routing to /itinerarybuild");
+          console.log("❌ No itinerary, routing to /itinerarybuild");
           return navigate("/itinerarybuild");
         }
 
-        // Step 9: Route to PreTripHub if they have itinerary but haven't started trip
-        if (itineraryData && itineraryData.itineraryId && !currentTripData.startedTrip) {
-                  console.log("✅ Itinerary complete, routing to /pretriphub");
+        // Step 7: Itinerary built but trip not started = go to pre-trip hub
+        console.log("✅ Itinerary complete, routing to /pretriphub");
         return navigate("/pretriphub");
-        }
-
-        // All conditions met - let them continue to their intended route
-        console.log("✅ All conditions met, allowing navigation to:", location.pathname);
-        setLoading(false);
 
       } catch (error) {
         console.error("❌ UniversalRouter error:", error);
@@ -490,7 +443,7 @@ export default function LocalUniversalRouter() {
                   <span className="text-white">Well</span>
                 </h1>
                 <h2 className="text-2xl font-bold text-white mb-2 drop-shadow-lg">Welcome back!</h2>
-                <p className="text-lg text-sky-50 font-medium drop-shadow-md">🌍 We're getting things ready to keep you Trip-welling!</p>
+                <p className="text-lg text-sky-50 font-medium drop-shadow-md">🌍 Pick up where you left off!</p>
               </div>
             </div>
           </div>
@@ -500,25 +453,37 @@ export default function LocalUniversalRouter() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
           
-          {/* Ready button right below the text */}
-          {isReady && (
+          {/* Ready button right below the text - always show when loading */}
+          {loading && (
             <div className="pt-4">
               <button
                 onClick={() => {
-                  const currentUserData = JSON.parse(localStorage.getItem("userData") || "null");
+                  // Use the same routing logic as the main router
                   const currentTripData = JSON.parse(localStorage.getItem("tripData") || "null");
+                  const tripIntentData = JSON.parse(localStorage.getItem("tripIntentData") || "null");
+                  const anchorLogic = JSON.parse(localStorage.getItem("anchorLogic") || "null");
+                  const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
                   
-                  if (!currentUserData?.firstName || !currentUserData?.lastName) {
-                    navigate("/profilesetup");
-                  } else if (!currentTripData || !currentTripData.tripId || currentUserData?.role === "noroleset") {
+                  // Apply the same routing logic
+                  if (!currentTripData || !currentTripData.tripId) {
                     navigate("/postprofileroleselect");
+                  } else if (currentTripData.tripComplete === true) {
+                    navigate("/tripcomplete");
+                  } else if (currentTripData.startedTrip === true) {
+                    navigate("/livedayreturner");
+                  } else if (!tripIntentData || !tripIntentData.tripIntentId) {
+                    navigate("/tripintent");
+                  } else if (!anchorLogic || !anchorLogic.anchors || anchorLogic.anchors.length === 0) {
+                    navigate("/anchorselect");
+                  } else if (!itineraryData || !itineraryData.itineraryId) {
+                    navigate("/itinerarybuild");
                   } else {
-                    setLoading(false);
+                    navigate("/pretriphub");
                   }
                 }}
                 className="bg-white text-sky-600 px-8 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 hover:bg-sky-50"
               >
-                🚀 Ready to Go!
+                🚀 Pick up where you left off!
               </button>
             </div>
           )}
