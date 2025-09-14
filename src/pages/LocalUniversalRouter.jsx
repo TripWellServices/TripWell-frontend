@@ -75,6 +75,7 @@ export default function LocalUniversalRouter() {
   useEffect(() => {
     async function universalRouter() {
       try {
+        console.log("🚀 LocalUniversalRouter useEffect started");
         // Check if we're already on a live day route or debug route - if so, don't interfere
         const currentPath = location.pathname;
         console.log("🔍 LocalUniversalRouter checking path:", currentPath);
@@ -109,12 +110,14 @@ export default function LocalUniversalRouter() {
         console.log("🔍 LocalUniversalRouter - Starting universal routing check");
 
         // Get all localStorage data
+        console.log("🔍 Reading localStorage data...");
         const userData = JSON.parse(localStorage.getItem("userData") || "null");
         const profileComplete = localStorage.getItem("profileComplete") === "true";
         const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
         const tripIntentData = JSON.parse(localStorage.getItem("tripIntentData") || "null");
         let anchorLogic = JSON.parse(localStorage.getItem("anchorLogic") || "null");
         let itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
+        console.log("🔍 localStorage data read successfully");
         
         // 🔍 DEBUG: Log the exact localStorage data
         console.log("🔍 UniversalRouter - Raw anchorLogic from localStorage:", anchorLogic);
@@ -286,9 +289,11 @@ export default function LocalUniversalRouter() {
         // Step 1: No trip data = need to create/join trip
         if (!currentTripData || !currentTripData.tripId) {
           console.log("❌ No trip data, showing button for role selection");
-          setLoading(true);
+          setLoading(false); // Show the button, don't keep loading
           return;
         }
+
+        console.log("✅ Trip data found, continuing with routing logic");
 
         // Step 2: Trip complete = go to completion page
         if (currentTripData.tripComplete === true) {
@@ -305,6 +310,7 @@ export default function LocalUniversalRouter() {
         // Step 4: No trip intent = go to intent page
         if (!tripIntentData || !tripIntentData.tripIntentId) {
           console.log("❌ No trip intent, routing to /tripintent");
+          console.log("🔍 tripIntentData:", tripIntentData);
           return navigate("/tripintent");
         }
 

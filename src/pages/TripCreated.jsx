@@ -87,7 +87,7 @@ export default function TripCreated() {
         <p><strong>Destination:</strong> {trip.city}</p>
         <p><strong>Dates:</strong> {new Date(trip.startDate).toLocaleDateString()} – {new Date(trip.endDate).toLocaleDateString()}</p>
         <p><strong>Party Count:</strong> {trip.partyCount}</p>
-        <p><strong>With:</strong> {(trip.whoWith || []).join(", ") || "—"}</p>
+        <p><strong>With:</strong> {trip.whoWith || "—"}</p>
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
           <p className="text-sm font-medium text-blue-800 mb-1">🔑 Your Trip Join Code</p>
           <p className="font-mono text-lg font-bold text-blue-600">{trip.joinCode || trip.tripId}</p>
