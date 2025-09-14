@@ -23,13 +23,9 @@ export default function TripSetup() {
 
   const WHO_OPTIONS = [
     { label: "Spouse / Partner", value: "spouse" },
-    { label: "Son/Daughter", value: "son-daughter" },
     { label: "Spouse/Kids", value: "spouse-kids" },
-    { label: "Dad & Daughter", value: "dad-daughter" },
-    { label: "Mom & Son", value: "mom-son" },
+    { label: "Son/Daughter", value: "son-daughter" },
     { label: "Friends", value: "friends" },
-    { label: "Parents / Elders", value: "parents" },
-    { label: "Multigenerational Family", value: "multigen" },
     { label: "Solo Traveler", value: "solo" },
     { label: "Other", value: "other" },
   ];
