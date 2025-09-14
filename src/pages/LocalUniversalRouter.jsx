@@ -464,10 +464,61 @@ export default function LocalUniversalRouter() {
 
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto p-6 text-center space-y-4">
-        <div className="animate-pulse">
-          <h2 className="text-xl font-semibold text-gray-800">Loading your trip...</h2>
-          <p className="text-gray-600">Checking your progress and routing you to the right place</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-sky-100 to-indigo-100 flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 text-center border border-blue-200/50">
+          <div className="text-center space-y-6">
+            {/* Fun travel icon */}
+            <div className="flex justify-center">
+              <svg 
+                width="80" 
+                height="80" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+                className="text-blue-500 animate-pulse"
+              >
+                <path 
+                  d="M21 16V14L13 9V3.5C13 2.67 12.33 2 11.5 2S10 2.67 10 3.5V9L2 14V16L10 13.5V19L8 20.5V22L12 21L16 22V20.5L14 19V13.5L22 16Z" 
+                  fill="currentColor"
+                />
+              </svg>
+            </div>
+            
+            <div className="space-y-3">
+              <h2 className="text-2xl font-bold text-blue-800">Welcome back!</h2>
+              <p className="text-blue-600 text-lg">🌍 We're getting things ready to keep you Trip-welling!</p>
+            </div>
+            
+            {/* Fun loading dots */}
+            <div className="flex justify-center space-x-2">
+              <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce"></div>
+              <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+              <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+            </div>
+            
+            {/* Ready button right below */}
+            {isHydrated && (
+              <div className="pt-4">
+                <button
+                  onClick={() => {
+                    const currentUserData = JSON.parse(localStorage.getItem("userData") || "null");
+                    const currentTripData = JSON.parse(localStorage.getItem("tripData") || "null");
+                    
+                    if (!currentUserData?.firstName || !currentUserData?.lastName) {
+                      navigate("/profilesetup");
+                    } else if (!currentTripData || !currentTripData.tripId || currentUserData?.role === "noroleset") {
+                      navigate("/postprofileroleselect");
+                    } else {
+                      setLoading(false);
+                    }
+                  }}
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                >
+                  🚀 Ready to Go!
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );
