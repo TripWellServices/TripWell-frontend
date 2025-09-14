@@ -379,7 +379,7 @@ export default function LocalUniversalRouter() {
     }
 
     universalRouter();
-  }, [navigate, location.pathname, showInitialLoading, isHydrated]);
+  }, [navigate, location.pathname, showInitialLoading, isReady]);
 
   // Show initial loading screen (same design as Home)
   if (showInitialLoading) {
@@ -426,7 +426,7 @@ export default function LocalUniversalRouter() {
   }
 
   // Show "Ready to continue?" button after hydration
-  if (isHydrated && loading) {
+  if (isReady && loading) {
     const handleReadyClick = () => {
       // Re-run the routing logic to determine where to go
       const currentUserData = JSON.parse(localStorage.getItem("userData") || "null");
