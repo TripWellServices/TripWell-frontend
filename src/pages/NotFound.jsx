@@ -4,7 +4,7 @@ export default function NotFound() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-sky-400 via-sky-300 to-blue-200 flex items-center justify-center">
       <div className="max-w-2xl mx-auto p-8 bg-white rounded-3xl shadow-2xl text-center">
         <h1 className="text-4xl font-bold text-red-600 mb-4">⚠️ Page Not Found</h1>
         <p className="text-gray-600 mb-6">The page you're looking for doesn't exist.</p>

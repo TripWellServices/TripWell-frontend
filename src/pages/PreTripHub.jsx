@@ -59,7 +59,7 @@ export default function PreTripHub() {
   // If no trip data, show error
   if (!tripData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-sky-400 via-sky-300 to-blue-200 flex items-center justify-center">
         <div className="text-center space-y-4 max-w-md">
           <div className="text-red-500 text-4xl">⚠️</div>
           <h2 className="text-xl font-semibold text-red-700">No trip found</h2>
@@ -75,7 +75,7 @@ export default function PreTripHub() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-sky-400 via-sky-300 to-blue-200 flex items-center justify-center">
       <div className="max-w-2xl mx-auto p-8 bg-white rounded-3xl shadow-2xl">
         <div className="text-center space-y-8">
           {/* Trip Header */}

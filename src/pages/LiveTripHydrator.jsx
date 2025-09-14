@@ -99,7 +99,7 @@ export default function LiveTripHydrator() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-sky-400 via-sky-300 to-blue-200 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <h2 className="text-xl font-semibold text-gray-700">Loading your trip...</h2>
@@ -126,7 +126,7 @@ export default function LiveTripHydrator() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-sky-400 via-sky-300 to-blue-200 flex items-center justify-center">
       <div className="max-w-md mx-auto p-8 bg-white rounded-2xl shadow-lg">
         <div className="text-center space-y-6">
           {/* Header */}

@@ -240,7 +240,7 @@ export default function TripLiveDayBlock() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-sky-400 via-sky-300 to-blue-200 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="text-xl font-semibold text-gray-700">Loading your block...</p>
@@ -251,7 +251,7 @@ export default function TripLiveDayBlock() {
 
   if (!blockData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-sky-400 via-sky-300 to-blue-200 flex items-center justify-center">
         <div className="text-center space-y-4">
           <p className="text-xl font-semibold text-red-600">Block not found</p>
           <button
@@ -268,7 +268,7 @@ export default function TripLiveDayBlock() {
   const { currentBlockName } = getCurrentState();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-sky-400 via-sky-300 to-blue-200">
       <div className="max-w-4xl mx-auto p-8">
         {/* Header */}
         <div className="text-center mb-8">
