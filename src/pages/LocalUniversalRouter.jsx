@@ -318,6 +318,7 @@ export default function LocalUniversalRouter() {
         const hasAnchors = anchorLogic && anchorLogic.anchors && anchorLogic.anchors.length > 0;
         if (!hasAnchors) {
           console.log("❌ No anchors, routing to /anchorselect");
+          console.log("🔍 anchorLogic:", anchorLogic);
           return navigate("/anchorselect");
         }
 
