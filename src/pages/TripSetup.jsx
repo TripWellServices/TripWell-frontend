@@ -107,7 +107,7 @@ export default function TripSetup() {
         },
       });
       
-      const data = res.data.catch(() => ({}));
+      const data = res.data;
       console.log("create trip resp", res.status, data);
 
       if (res.status === 201 && data.tripId) {
