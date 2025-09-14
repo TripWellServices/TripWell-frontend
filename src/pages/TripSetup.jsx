@@ -140,9 +140,8 @@ export default function TripSetup() {
         localStorage.setItem("tripData", JSON.stringify(tripData));
         console.log("💾 Saved basic userData and tripData to localStorage");
 
-        // 2. Wait 1000ms as requested
-        console.log("⏳ Waiting 1000ms before TripExtra validation...");
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // 2. No delay needed - proceed immediately
+        console.log("🚀 Proceeding with TripExtra validation...");
 
         // 3. Call TripExtra validation and get complete localStorage data
         try {

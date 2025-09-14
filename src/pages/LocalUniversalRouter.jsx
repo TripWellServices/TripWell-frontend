@@ -343,7 +343,7 @@ export default function LocalUniversalRouter() {
     }
 
     universalRouter();
-  }, [navigate, location.pathname, showInitialLoading, isReady]);
+  }, [navigate, location.pathname, showInitialLoading]);
 
   // Show initial loading screen (same design as Home)
   if (showInitialLoading) {

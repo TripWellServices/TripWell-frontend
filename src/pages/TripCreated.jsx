@@ -76,7 +76,8 @@ export default function TripCreated() {
   };
 
   return (
-    <div className="max-w-xl mx-auto p-6 space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-sky-400 via-sky-300 to-blue-200 flex items-center justify-center p-6">
+      <div className="max-w-xl w-full space-y-6 bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-white/20">
       <h1 className="text-3xl font-bold text-center text-green-700">
         🎉 Your Trip Is Ready
       </h1>
@@ -121,12 +122,7 @@ export default function TripCreated() {
         >
           Yes! Let's Plan It
         </button>
-        <button
-          onClick={() => navigate("/")}
-          className="w-full bg-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-400 transition"
-        >
-          🏠 Head Home
-        </button>
+      </div>
       </div>
     </div>
   );
