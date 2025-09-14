@@ -413,10 +413,12 @@ export default function LocalUniversalRouter() {
             </div>
           </div>
 
-          {/* Loading spinner */}
-          <div className="flex justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
+          {/* Loading spinner - only show during hydration */}
+          {!isReady && (
+            <div className="flex justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          )}
           
           {/* Ready button right below the text - always show when loading */}
           {loading && (
