@@ -36,43 +36,37 @@ export default function TripIntentForm() {
     loadLocalData();
   }, []);
 
-  // Predefined options for better UX
+  // Simplified options for better UX (fewer choices, not fewer sections!)
   const priorityOptions = [
-    "Adventure & Outdoor Activities",
-    "Cultural Experiences & History",
-    "Food & Culinary Adventures",
+    "Adventure & Outdoor",
+    "Culture & History", 
+    "Food & Dining",
     "Relaxation & Wellness",
-    "Shopping & Local Markets",
-    "Nightlife & Entertainment",
-    "Nature & Scenic Views",
-    "Local Community & People"
+    "Shopping & Markets",
+    "Nightlife & Fun"
   ];
 
   const vibeOptions = [
-    "Adventurous & Energetic",
+    "Adventurous & Active",
     "Relaxed & Chill",
-    "Romantic & Intimate",
+    "Romantic & Intimate", 
     "Social & Fun",
     "Luxurious & Upscale",
-    "Authentic & Local",
-    "Creative & Artistic",
-    "Spiritual & Mindful"
+    "Authentic & Local"
   ];
 
   const mobilityOptions = [
-    "Fully Mobile - Love walking everywhere",
-    "Moderately Mobile - Mix of walking and transport",
-    "Limited Mobility - Prefer transport options",
-    "Wheelchair Accessible - Need accessible routes",
-    "Stroller Friendly - Traveling with young kids"
+    "Love walking everywhere",
+    "Mix of walking and transport",
+    "Prefer transport options",
+    "Need accessible routes"
   ];
 
   const travelPaceOptions = [
     "Fast Paced - Pack it all in",
-    "Moderate - Balanced activities and rest",
-    "Slow & Relaxed - Take time to soak it in",
-    "Flexible - Go with the flow",
-    "Structured - Like to have a plan"
+    "Moderate - Balanced activities",
+    "Slow & Relaxed - Take your time",
+    "Flexible - Go with the flow"
   ];
 
   const togglePriority = (priority) => {
@@ -98,6 +92,7 @@ export default function TripIntentForm() {
         : { ...prev, mobility: [...prev.mobility, mobilityOption] }
     );
   };
+
 
   const toggleTravelPace = (paceOption) => {
     setFormData(prev => 
@@ -157,13 +152,14 @@ export default function TripIntentForm() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-8">
-      <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">
-        🧠 What Kind of Trip is This?
+    <div className="min-h-screen bg-gradient-to-br from-sky-400 via-sky-300 to-blue-200 flex items-center justify-center p-6">
+      <div className="max-w-2xl w-full space-y-8 bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-white/20">
+      <h1 className="text-3xl font-bold text-center text-gray-800 mb-4">
+        🎯 Tell Angela Your Preferences
       </h1>
       
-      <div className="bg-blue-50 p-4 rounded-lg mb-6">
-        <p className="text-sm text-blue-800">
+      <div className="bg-white/20 backdrop-blur-sm p-4 rounded-xl mb-6 border border-white/30">
+        <p className="text-white text-center drop-shadow-md">
           Planning: <strong>{tripData.tripName}</strong> to <strong>{tripData.city}</strong>
         </p>
       </div>
@@ -173,10 +169,10 @@ export default function TripIntentForm() {
         {/* Priorities Section */}
         <div className="bg-white shadow rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4 text-gray-800">
-            🎯 What are your top priorities for this trip?
+            🎯 What interests you most?
           </h2>
           <p className="text-gray-600 mb-4">
-            Check all that apply to your trip goals
+            Angela will focus on these areas when planning your itinerary
           </p>
           <div className="grid grid-cols-1 gap-3">
             {priorityOptions.map((option) => (
@@ -199,10 +195,10 @@ export default function TripIntentForm() {
         {/* Vibes Section */}
         <div className="bg-white shadow rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4 text-gray-800">
-            🌟 What's the vibe you're going for?
+            🌟 What's your travel style?
           </h2>
           <p className="text-gray-600 mb-4">
-            Check all that match your desired trip energy
+            Angela will match your energy and preferences
           </p>
           <div className="grid grid-cols-1 gap-3">
             {vibeOptions.map((option) => (
@@ -225,10 +221,10 @@ export default function TripIntentForm() {
         {/* Mobility Section */}
         <div className="bg-white shadow rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4 text-gray-800">
-            🚶‍♂️ How mobile are you?
+            🚶‍♂️ How do you like to get around?
           </h2>
           <p className="text-gray-600 mb-4">
-            This helps us plan activities that work for your mobility needs
+            Angela will plan activities that match your mobility preferences
           </p>
           <div className="grid grid-cols-1 gap-3">
             {mobilityOptions.map((option) => (
@@ -300,10 +296,11 @@ export default function TripIntentForm() {
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
           }`}
         >
-          {loading ? "Saving..." : (hasInput ? 'Save Trip Intent' : 'Please fill in something first')}
+          {loading ? "Saving..." : (hasInput ? 'Tell Angela My Preferences' : 'Please fill in something first')}
         </button>
 
       </form>
+      </div>
     </div>
   );
 }
