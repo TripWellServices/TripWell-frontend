@@ -28,6 +28,10 @@ export default function TripIntentForm() {
         setTripData(trip);
         
         console.log("🔍 Loaded localStorage data:", { user, trip });
+        console.log("🔍 Trip data details:", {
+          city: trip?.city,
+          fullTripData: trip
+        });
       } catch (err) {
         console.error("❌ Error loading localStorage data:", err);
       }
@@ -160,7 +164,7 @@ export default function TripIntentForm() {
       
       <div className="bg-white/20 backdrop-blur-sm p-4 rounded-xl mb-6 border border-white/30">
         <p className="text-white text-center drop-shadow-md">
-          Planning: <strong>{tripData.tripName}</strong> to <strong>{tripData.city}</strong>
+          Planning to <strong>{tripData?.city || "Your Destination"}</strong>
         </p>
       </div>
       
