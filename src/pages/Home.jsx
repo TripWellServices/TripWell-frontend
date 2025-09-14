@@ -9,7 +9,7 @@ export default function Home() {
   const [hasRouted, setHasRouted] = useState(false);
 
   useEffect(() => {
-    console.log("🔍 Home.jsx starting...");
+    console.log("🔍 Home.jsx - Simple Firebase checker starting...");
 
     // 1400ms delay for better timing
     const timeoutId = setTimeout(() => {
@@ -20,8 +20,8 @@ export default function Home() {
           setHasRouted(true);
           
           if (firebaseUser) {
-            console.log("✅ User found, routing to access for profile check...");
-            navigate("/access");
+            console.log("✅ User found, routing to localrouter for routing logic...");
+            navigate("/localrouter");
           } else {
             console.log("❌ No user, routing to /access...");
             navigate("/access");

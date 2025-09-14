@@ -290,11 +290,13 @@ export default function LocalUniversalRouter() {
         if (!currentTripData || !currentTripData.tripId || currentUserData?.role === "noroleset") {
           // Check if this is a new user (no profile data)
           if (!currentUserData?.firstName || !currentUserData?.lastName) {
-            console.log("❌ New user with incomplete profile, routing to /profilesetup");
-            return navigate("/profilesetup");
+            console.log("❌ New user with incomplete profile, showing ready button for /profilesetup");
+            setLoading(true); // Show ready button instead of auto-redirect
+            return;
           } else {
-            console.log("❌ No tripId or role not set, routing to /postprofileroleselect");
-            return navigate("/postprofileroleselect");
+            console.log("❌ No tripId or role not set, showing ready button for /postprofileroleselect");
+            setLoading(true); // Show ready button instead of auto-redirect
+            return;
           }
         }
 
@@ -425,15 +427,31 @@ export default function LocalUniversalRouter() {
 
   // Show "Ready to continue?" button after hydration
   if (isHydrated && loading) {
+    const handleReadyClick = () => {
+      // Re-run the routing logic to determine where to go
+      const currentUserData = JSON.parse(localStorage.getItem("userData") || "null");
+      const currentTripData = JSON.parse(localStorage.getItem("tripData") || "null");
+      
+      // Check what route they should go to
+      if (!currentUserData?.firstName || !currentUserData?.lastName) {
+        navigate("/profilesetup");
+      } else if (!currentTripData || !currentTripData.tripId || currentUserData?.role === "noroleset") {
+        navigate("/postprofileroleselect");
+      } else {
+        // Let the normal routing logic handle it
+        setLoading(false);
+      }
+    };
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-6">
         <div className="max-w-md w-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 text-center border border-white/20">
           <div className="text-center space-y-6">
             <div className="text-3xl mb-3">✅</div>
-            <h3 className="font-semibold text-green-800 mb-2">Trip details complete!</h3>
-            <p className="text-green-600 text-sm mb-4">Looks like you've got some cool stuff done? Ready to keep going?</p>
+            <h3 className="font-semibold text-green-800 mb-2">Ready to continue?</h3>
+            <p className="text-green-600 text-sm mb-4">Your trip data is loaded. Ready to keep going?</p>
             <button
-              onClick={() => setLoading(false)}
+              onClick={handleReadyClick}
               className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
               🚀 Let's Go!

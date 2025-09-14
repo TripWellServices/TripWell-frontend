@@ -17,17 +17,20 @@ export default function TripSetup() {
   const [codeStatus, setCodeStatus] = useState(null);
   const [codeValid, setCodeValid] = useState(false);
   const [partyCount, setPartyCount] = useState("");
-  const [whoWith, setWhoWith] = useState([]);
+  const [whoWith, setWhoWith] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   const WHO_OPTIONS = [
     { label: "Spouse / Partner", value: "spouse" },
-    { label: "Kids", value: "kids" },
+    { label: "Son/Daughter", value: "son-daughter" },
+    { label: "Spouse/Kids", value: "spouse-kids" },
+    { label: "Dad & Daughter", value: "dad-daughter" },
+    { label: "Mom & Son", value: "mom-son" },
     { label: "Friends", value: "friends" },
     { label: "Parents / Elders", value: "parents" },
-    { label: "Multigenerational", value: "multigen" },
-    { label: "Solo", value: "solo" },
+    { label: "Multigenerational Family", value: "multigen" },
+    { label: "Solo Traveler", value: "solo" },
     { label: "Other", value: "other" },
   ];
 
@@ -93,7 +96,7 @@ export default function TripSetup() {
     try {
       const payload = {
         tripName, purpose, city, joinCode,
-        whoWith, // array
+        whoWith, // single string
         startDate, endDate,                 // "YYYY-MM-DD" strings
         partyCount: partyCount ? Number(partyCount) : null,
       };
@@ -357,17 +360,12 @@ export default function TripSetup() {
               {WHO_OPTIONS.map((opt) => (
                 <label key={opt.value} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-xl hover:bg-blue-50 hover:border-blue-300 transition-all cursor-pointer">
                   <input
-                    type="checkbox"
+                    type="radio"
+                    name="whoWith"
                     value={opt.value}
-                    checked={whoWith.includes(opt.value)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setWhoWith([...whoWith, opt.value]);
-                      } else {
-                        setWhoWith(whoWith.filter((w) => w !== opt.value));
-                      }
-                    }}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    checked={whoWith === opt.value}
+                    onChange={(e) => setWhoWith(e.target.value)}
+                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                   />
                   <span className="text-sm font-medium text-gray-700">{opt.label}</span>
                 </label>
