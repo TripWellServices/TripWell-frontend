@@ -12,6 +12,7 @@ export default function TripSetup() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [city, setCity] = useState("");
+  const [country, setCountry] = useState("");
   const [joinCode, setJoinCode] = useState("");
   const [codeStatus, setCodeStatus] = useState(null);
   const [codeValid, setCodeValid] = useState(false);
@@ -286,14 +287,15 @@ export default function TripSetup() {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Destination</label>
+            <label className="block text-sm font-medium text-gray-700">Where are you headed?</label>
             <input
               value={city}
               onChange={(e) => setCity(e.target.value)}
-              placeholder="e.g., Paris, France or Tokyo, Japan"
+              placeholder="e.g., Paris"
               className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               required
             />
+            <p className="text-sm text-gray-500">Put the city only (e.g., Paris, Tokyo, New York)</p>
           </div>
 
           <div className="space-y-2">
