@@ -278,16 +278,16 @@ export default function TripIntentForm() {
         {/* Budget Section */}
         <div className="bg-white shadow rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4 text-gray-800">
-            💰 What's your budget range?
+            💰 What's your daily budget range?
           </h2>
           <p className="text-gray-600 mb-4">
-            This helps us suggest experiences that fit your budget
+            This helps Angela suggest experiences that fit your daily budget
           </p>
           <input
             type="text"
             value={formData.budget}
             onChange={(e) => setFormData(prev => ({ ...prev, budget: e.target.value }))}
-            placeholder="e.g., $500-1000, Budget-friendly, Luxury"
+            placeholder="e.g., $100-200/day, Budget-friendly, Luxury"
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
