@@ -158,13 +158,14 @@ export default function TripIntentForm() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-400 via-sky-300 to-blue-200 flex items-center justify-center p-6">
       <div className="max-w-2xl w-full space-y-8 bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-white/20">
-      <h1 className="text-3xl font-bold text-center text-gray-800 mb-4">
-        🎯 Tell Angela Your Preferences
+      <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">
+        Trip Itinerary Building for <strong>{tripData?.city || "Your Destination"}</strong>
       </h1>
       
-      <div className="bg-white/20 backdrop-blur-sm p-4 rounded-xl mb-6 border border-white/30">
-        <p className="text-white text-center drop-shadow-md">
-          Planning to <strong>{tripData?.city || "Your Destination"}</strong>
+      <div className="bg-blue-50 p-6 rounded-xl mb-6 border border-blue-200">
+        <h2 className="text-lg font-semibold text-blue-800 mb-3">Baseline Factors</h2>
+        <p className="text-blue-700 leading-relaxed">
+          The below will be given to our Angela, the AI assistant. The answers below will help her determine the budget and distance between place and overall structure you want for your trip. You'll still be able to modify your choices even after this stage, so don't worry.
         </p>
       </div>
       
