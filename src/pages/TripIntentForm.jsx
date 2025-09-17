@@ -10,11 +10,9 @@ export default function TripIntentForm() {
   const [userData, setUserData] = useState(null);
   const [tripData, setTripData] = useState(null);
   const [formData, setFormData] = useState({
-    priorities: [],
-    vibes: [],
-    mobility: [],
-    travelPace: [],
-    budget: ""
+    primaryPersona: "", // art, foodie, adventure, history
+    budget: "", // low, moderate, high
+    whoWith: "" // solo, couple, family, friends
   });
 
   // Load data from localStorage on mount
@@ -40,70 +38,38 @@ export default function TripIntentForm() {
     loadLocalData();
   }, []);
 
-  // Simplified options for better UX (fewer choices, not fewer sections!)
-  const priorityOptions = [
-    "Adventure & Outdoor",
-    "Culture & History", 
-    "Food & Dining",
-    "Relaxation & Wellness",
-    "Shopping & Markets",
-    "Nightlife & Fun"
+  // Simple 3-question options
+  const personaOptions = [
+    { key: "art", label: "Art & Culture", emoji: "🎨" },
+    { key: "foodie", label: "Food & Dining", emoji: "🍽️" },
+    { key: "adventure", label: "Adventure & Outdoor", emoji: "🏔️" },
+    { key: "history", label: "History & Heritage", emoji: "🏛️" }
   ];
 
-  const vibeOptions = [
-    "Adventurous & Active",
-    "Relaxed & Chill",
-    "Romantic & Intimate", 
-    "Social & Fun",
-    "Luxurious & Upscale",
-    "Authentic & Local"
+  const budgetOptions = [
+    { key: "low", label: "Low Budget", description: "$50-100/day", emoji: "💰" },
+    { key: "moderate", label: "Moderate Budget", description: "$100-200/day", emoji: "💰" },
+    { key: "high", label: "High Budget", description: "$200+/day", emoji: "💰" }
   ];
 
-  const mobilityOptions = [
-    "Love walking everywhere",
-    "Mix of walking and transport",
-    "Prefer transport options",
-    "Need accessible routes"
+  const whoWithOptions = [
+    { key: "solo", label: "Solo Traveler", emoji: "👤" },
+    { key: "couple", label: "Couple/Romantic Partner", emoji: "💕" },
+    { key: "family", label: "Family with Kids", emoji: "👨‍👩‍👧‍👦" },
+    { key: "friends", label: "Friends Group", emoji: "👥" }
   ];
 
-  const travelPaceOptions = [
-    "Fast Paced - Pack it all in",
-    "Moderate - Balanced activities",
-    "Slow & Relaxed - Take your time",
-    "Flexible - Go with the flow"
-  ];
-
-  const togglePriority = (priority) => {
-    setFormData(prev => 
-      prev.priorities.includes(priority) 
-        ? { ...prev, priorities: prev.priorities.filter(p => p !== priority) }
-        : { ...prev, priorities: [...prev.priorities, priority] }
-    );
+  // Simple selection functions
+  const selectPrimaryPersona = (personaKey) => {
+    setFormData(prev => ({ ...prev, primaryPersona: personaKey }));
   };
 
-  const toggleVibe = (vibe) => {
-    setFormData(prev => 
-      prev.vibes.includes(vibe) 
-        ? { ...prev, vibes: prev.vibes.filter(v => v !== vibe) }
-        : { ...prev, vibes: [...prev.vibes, vibe] }
-    );
+  const selectBudget = (budgetKey) => {
+    setFormData(prev => ({ ...prev, budget: budgetKey }));
   };
 
-  const toggleMobility = (mobilityOption) => {
-    setFormData(prev => 
-      prev.mobility.includes(mobilityOption) 
-        ? { ...prev, mobility: prev.mobility.filter(m => m !== mobilityOption) }
-        : { ...prev, mobility: [...prev.mobility, mobilityOption] }
-    );
-  };
-
-
-  const toggleTravelPace = (paceOption) => {
-    setFormData(prev => 
-      prev.travelPace.includes(paceOption) 
-        ? { ...prev, travelPace: prev.travelPace.filter(p => p !== paceOption) }
-        : { ...prev, travelPace: [...prev.travelPace, paceOption] }
-    );
+  const selectWhoWith = (whoWithKey) => {
+    setFormData(prev => ({ ...prev, whoWith: whoWithKey }));
   };
 
   const handleSubmit = async (e) => {
@@ -122,8 +88,8 @@ export default function TripIntentForm() {
         localStorage.setItem("tripIntentData", JSON.stringify(formData));
         console.log("💾 Saved tripIntentData to localStorage:", formData);
         
-        // Navigate to next step
-        navigate("/anchorselect");
+        // Navigate to meta selection (new flow)
+        navigate("/meta-select");
       } else {
         console.error("❌ Submit failed:", res.status);
       }
@@ -134,8 +100,8 @@ export default function TripIntentForm() {
     }
   };
 
-  // Check if form has any input
-  const hasInput = formData.priorities.length > 0 || formData.vibes.length > 0 || formData.mobility.length > 0 || formData.travelPace.length > 0;
+  // Check if form has required input (all 3 questions answered)
+  const hasInput = formData.primaryPersona !== "" && formData.budget !== "" && formData.whoWith !== "";
 
   // If no localStorage data, show error
   if (!userData || !tripData) {
@@ -163,133 +129,94 @@ export default function TripIntentForm() {
       </h1>
       
       <div className="bg-blue-50 p-6 rounded-xl mb-6 border border-blue-200">
-        <h2 className="text-lg font-semibold text-blue-800 mb-3">Baseline Factors</h2>
+        <h2 className="text-lg font-semibold text-blue-800 mb-3">Hi! We just want to get a few details...</h2>
         <p className="text-blue-700 leading-relaxed">
-          The below will be given to our Angela, the AI assistant. The answers below will help her determine the budget and distance between place and overall structure you want for your trip. You'll still be able to modify your choices even after this stage, so don't worry.
+          These simple questions will help Angela plan the perfect itinerary for your trip to <strong>{tripData?.city || "your destination"}</strong>. Don't worry - you can always adjust your choices later!
         </p>
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-8">
         
-        {/* Priorities Section */}
+        {/* Primary Persona Section */}
         <div className="bg-white shadow rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4 text-gray-800">
             🎯 What interests you most?
           </h2>
           <p className="text-gray-600 mb-4">
-            Angela will focus on these areas when planning your itinerary
+            Angela will focus on this area when planning your itinerary
           </p>
           <div className="grid grid-cols-1 gap-3">
-            {priorityOptions.map((option) => (
-              <label key={option} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+            {personaOptions.map((option) => (
+              <label key={option.key} className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
                 <input
-                  type="checkbox"
-                  checked={formData.priorities.includes(option)}
-                  onChange={() => togglePriority(option)}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  type="radio"
+                  name="primaryPersona"
+                  checked={formData.primaryPersona === option.key}
+                  onChange={() => selectPrimaryPersona(option.key)}
+                  className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                 />
-                <span className="text-sm text-gray-700">{option}</span>
+                <span className="text-2xl">{option.emoji}</span>
+                <div>
+                  <div className="text-sm font-medium text-gray-700">{option.label}</div>
+                </div>
               </label>
             ))}
           </div>
-          {formData.priorities.length === 0 && (
-            <p className="text-sm text-gray-500 mt-2">Select at least one priority</p>
-          )}
-        </div>
-
-        {/* Vibes Section */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">
-            🌟 What's your travel style?
-          </h2>
-          <p className="text-gray-600 mb-4">
-            Angela will match your energy and preferences
-          </p>
-          <div className="grid grid-cols-1 gap-3">
-            {vibeOptions.map((option) => (
-              <label key={option} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
-                <input
-                  type="checkbox"
-                  checked={formData.vibes.includes(option)}
-                  onChange={() => toggleVibe(option)}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <span className="text-sm text-gray-700">{option}</span>
-              </label>
-            ))}
-          </div>
-          {formData.vibes.length === 0 && (
-            <p className="text-sm text-gray-500 mt-2">Select at least one vibe</p>
-          )}
-        </div>
-
-        {/* Mobility Section */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">
-            🚶‍♂️ How do you like to get around?
-          </h2>
-          <p className="text-gray-600 mb-4">
-            Angela will plan activities that match your mobility preferences
-          </p>
-          <div className="grid grid-cols-1 gap-3">
-            {mobilityOptions.map((option) => (
-              <label key={option} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
-                <input
-                  type="checkbox"
-                  checked={formData.mobility.includes(option)}
-                  onChange={() => toggleMobility(option)}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <span className="text-sm text-gray-700">{option}</span>
-              </label>
-            ))}
-          </div>
-          {formData.mobility.length === 0 && (
-            <p className="text-sm text-gray-500 mt-2">Select your mobility preference</p>
-          )}
-        </div>
-
-        {/* Travel Pace Section */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">
-            ⏱️ What's your travel pace?
-          </h2>
-          <p className="text-gray-600 mb-4">
-            How do you like to experience your trips?
-          </p>
-          <div className="grid grid-cols-1 gap-3">
-            {travelPaceOptions.map((option) => (
-              <label key={option} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
-                <input
-                  type="checkbox"
-                  checked={formData.travelPace.includes(option)}
-                  onChange={() => toggleTravelPace(option)}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <span className="text-sm text-gray-700">{option}</span>
-              </label>
-            ))}
-          </div>
-          {formData.travelPace.length === 0 && (
-            <p className="text-sm text-gray-500 mt-2">Select your travel pace</p>
-          )}
         </div>
 
         {/* Budget Section */}
         <div className="bg-white shadow rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4 text-gray-800">
-            💰 What's your daily budget range?
+            💰 What's your daily budget?
           </h2>
           <p className="text-gray-600 mb-4">
-            This helps Angela suggest experiences that fit your daily budget
+            This helps Angela suggest experiences that fit your budget
           </p>
-          <input
-            type="text"
-            value={formData.budget}
-            onChange={(e) => setFormData(prev => ({ ...prev, budget: e.target.value }))}
-            placeholder="e.g., $100-200/day, Budget-friendly, Luxury"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+          <div className="grid grid-cols-1 gap-3">
+            {budgetOptions.map((option) => (
+              <label key={option.key} className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                <input
+                  type="radio"
+                  name="budget"
+                  checked={formData.budget === option.key}
+                  onChange={() => selectBudget(option.key)}
+                  className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                />
+                <span className="text-2xl">{option.emoji}</span>
+                <div>
+                  <div className="text-sm font-medium text-gray-700">{option.label}</div>
+                  <div className="text-xs text-gray-500">{option.description}</div>
+                </div>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Who With Section */}
+        <div className="bg-white shadow rounded-lg p-6">
+          <h2 className="text-xl font-semibold mb-4 text-gray-800">
+            👥 Who are you traveling with?
+          </h2>
+          <p className="text-gray-600 mb-4">
+            This helps Angela tailor the experience to your group
+          </p>
+          <div className="grid grid-cols-1 gap-3">
+            {whoWithOptions.map((option) => (
+              <label key={option.key} className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                <input
+                  type="radio"
+                  name="whoWith"
+                  checked={formData.whoWith === option.key}
+                  onChange={() => selectWhoWith(option.key)}
+                  className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                />
+                <span className="text-2xl">{option.emoji}</span>
+                <div>
+                  <div className="text-sm font-medium text-gray-700">{option.label}</div>
+                </div>
+              </label>
+            ))}
+          </div>
         </div>
 
         <button
@@ -301,7 +228,7 @@ export default function TripIntentForm() {
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
           }`}
         >
-          {loading ? "Saving..." : (hasInput ? 'Tell Angela My Preferences' : 'Please fill in something first')}
+          {loading ? "Saving..." : (hasInput ? 'Tell Angela My Preferences' : 'Please answer all questions')}
         </button>
 
       </form>

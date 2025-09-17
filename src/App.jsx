@@ -43,6 +43,8 @@ import PreTripSetup from "./pages/PreTripSetup";
 import TripCreated from "./pages/TripCreated";
 import PrepBuild from "./pages/TripPreBuild";
 import TripIntentForm from "./pages/TripIntentForm";
+import TripMetaSelect from "./pages/TripMetaSelect";
+import SampleAttractions from "./pages/SampleAttractions";
 import AnchorSelectPage from "./pages/AnchorSelect";
 import TripItineraryBuild from "./pages/TripItineraryBuilder";
 import TripDayOverview from "./pages/TripDaysOverview";
@@ -141,6 +143,9 @@ export default function App() {
       <Route path="/localdebug" element={<LocalStateDebug />} />
 
       <Route path="/tripintent" element={<TripIntentForm />} />
+      <Route path="/meta-select" element={<TripMetaSelect />} />
+      <Route path="/persona-sample" element={<SampleAttractions />} />
+      <Route path="/build-itinerary" element={<TripItineraryBuild />} />
       <Route path="/anchorselect" element={<AnchorSelectPage />} />
       <Route path="/tripwell/itinerarybuild" element={<TripItineraryBuild />} />
       <Route path="/tripwell/itineraryupdate" element={<TripDayOverview />} />
