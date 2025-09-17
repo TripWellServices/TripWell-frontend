@@ -139,13 +139,13 @@ export default function Access() {
         }
       }
       
-      if (isNewUser || !hasCompleteProfile) {
-        // ❌ New user or incomplete profile - go to profile setup
-        console.log("👋 New user or incomplete profile, routing to /profilesetup");
+      if (isNewUser) {
+        // ❌ New user - go to profile setup
+        console.log("👋 New user, routing to /profilesetup");
         navigate("/profilesetup");
       } else {
-        // ✅ Existing user with complete profile - go to localrouter
-        console.log("✅ Existing user with complete profile, routing to /localrouter");
+        // ✅ Existing user - go to localrouter (let LocalRouter handle incomplete profiles)
+        console.log("✅ Existing user, routing to /localrouter");
         navigate("/localrouter");
       }
       
