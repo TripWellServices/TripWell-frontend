@@ -91,7 +91,7 @@ export default function TripSetup() {
 
     try {
       const payload = {
-        tripName, purpose, city, joinCode,
+        tripName, purpose, city, country, joinCode,
         whoWith, // single string
         startDate, endDate,                 // "YYYY-MM-DD" strings
         partyCount: partyCount ? Number(partyCount) : null,
@@ -284,16 +284,27 @@ export default function TripSetup() {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Where are you headed?</label>
-            <input
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="e.g., Paris"
-              className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              required
-            />
-            <p className="text-sm text-gray-500">Put the city only (e.g., Paris, Tokyo, New York)</p>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">City</label>
+              <input
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="e.g., Paris"
+                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">State/Country</label>
+              <input
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                placeholder="e.g., France"
+                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                required
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
