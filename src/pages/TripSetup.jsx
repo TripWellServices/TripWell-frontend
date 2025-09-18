@@ -244,8 +244,8 @@ export default function TripSetup() {
               <input
                 value={tripName}
                 onChange={(e) => setTripName(e.target.value)}
-                placeholder="e.g., Paris Adventure, Beach Getaway, Family Reunion"
-                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="Paris Adventure, Beach Getaway, Family Reunion"
+                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-gray-400"
                 required
               />
             </div>
@@ -254,8 +254,8 @@ export default function TripSetup() {
               <input
                 value={purpose}
                 onChange={(e) => setPurpose(e.target.value)}
-                placeholder="e.g., Anniversary, Birthday, Relaxation"
-                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="Anniversary, Birthday, Relaxation"
+                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-gray-400"
                 required
               />
             </div>
@@ -290,8 +290,8 @@ export default function TripSetup() {
               <input
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                placeholder="e.g., Paris"
-                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="Paris"
+                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-gray-400"
                 required
               />
             </div>
@@ -300,8 +300,8 @@ export default function TripSetup() {
               <input
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
-                placeholder="e.g., France"
-                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="France"
+                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-gray-400"
                 required
               />
             </div>
@@ -323,7 +323,7 @@ export default function TripSetup() {
                   setCodeValid(false);
                   setCodeStatus(null);
                 }}
-                placeholder="e.g., PARIS2025, BEACHWEEK, FAMILYTRIP"
+                placeholder="PARIS2025, BEACHWEEK, FAMILYTRIP"
                 className="flex-1 p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 required
               />

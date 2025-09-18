@@ -68,7 +68,7 @@ export default function TripCreated() {
     );
   }
 
-  const shareMessage = `Hey! Join me on TripWell to plan our ${trip.city} trip.\n\n🔑 Trip Join Code: ${trip.joinCode || trip.tripId}\n\nUse this code to join my trip planning! Download TripWell at: https://tripwell.app/download`;
+  const shareMessage = `Hey! Join me on TripWell to plan our ${trip.city} trip.\n\n🔑 Trip Join Code: ${trip.joinCode || trip.tripId}\n\nUse this code to join my trip planning! Go to: https://tripwell.app`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(shareMessage);
