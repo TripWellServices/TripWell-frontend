@@ -74,6 +74,8 @@ export default function Access() {
       
       const createData = await createRes.json();
       console.log("🔍 CreateOrFind response:", createData);
+      console.log("🔍 DEBUG - profileComplete from backend:", createData.profileComplete);
+      console.log("🔍 DEBUG - isNewUser from backend:", createData.isNewUser);
       console.log("🔍 DEBUG - Raw isNewUser from response:", createData.isNewUser);
       console.log("🔍 DEBUG - Type of isNewUser:", typeof createData.isNewUser);
 
