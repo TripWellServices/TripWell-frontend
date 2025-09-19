@@ -13,8 +13,9 @@ export default function TripItineraryBuilder() {
   // Get data from localStorage
   const userData = JSON.parse(localStorage.getItem("userData") || "null");
   const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
-  const tripIntentData = JSON.parse(localStorage.getItem("tripIntentData") || "null");
-  const anchorSelectData = JSON.parse(localStorage.getItem("anchorLogic") || "null");
+  const tripPersonaData = JSON.parse(localStorage.getItem("tripPersonaData") || "null");
+  const selectedMetas = JSON.parse(localStorage.getItem("selectedMetas") || "[]");
+  const selectedSamples = JSON.parse(localStorage.getItem("selectedSamples") || "[]");
 
   useEffect(() => {
     async function buildItinerary() {
@@ -22,14 +23,19 @@ export default function TripItineraryBuilder() {
         // ✅ FIX: Use standardized auth utility
         const authConfig = await getAuthConfig();
 
-        // Step 1: Build itinerary via Angela (GPT)
+        // Step 1: Build itinerary via Angela (GPT) with persona data
         const res = await fetch(`${BACKEND_URL}/tripwell/itinerary/build`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             ...authConfig.headers
           },
-          body: JSON.stringify({ tripId: tripData.tripId }),
+          body: JSON.stringify({ 
+            tripId: tripData.tripId,
+            userId: userData.firebaseId,
+            selectedMetas: selectedMetas,
+            selectedSamples: selectedSamples
+          }),
         });
         
         if (!res.ok) {

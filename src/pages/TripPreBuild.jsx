@@ -38,10 +38,10 @@ export default function TripPrebuild() {
         </button>
 
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/localrouter")}
           className="w-full bg-gray-300 text-gray-800 px-5 py-3 rounded-md hover:bg-gray-400 transition"
         >
-          🏠 Return Home
+          🏠 Return to Dashboard
         </button>
       </div>
     </div>

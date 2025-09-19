@@ -6,58 +6,16 @@ import { fetchJSON } from "../utils/fetchJSON";
 
 export default function TripCreated() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [trip, setTrip] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function hydrateTrip() {
-      try {
-        // Wait for Firebase auth to be ready
-        await new Promise(resolve => {
-          const unsubscribe = auth.onAuthStateChanged((user) => {
-            unsubscribe();
-            resolve(user);
-          });
-        });
-        
-        const firebaseUser = auth.currentUser;
-        if (!firebaseUser) {
-          console.error("❌ No Firebase user after waiting");
-          return;
-        }
-        
-        const token = await firebaseUser.getIdToken();
-
-        // Get user data from /whoami
-        const userData = await fetchJSON(`${BACKEND_URL}/tripwell/whoami`, {
-          headers: { Authorization: `Bearer ${token}` },
-          cache: "no-store"
-        });
-
-        console.log("🔍 User data:", userData);
-        setUser(userData.user);
-
-        // Call tripcreated route with tripId from user object
-        const tripData = await fetchJSON(`${BACKEND_URL}/tripwell/tripcreated/${userData.user.tripId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-          cache: "no-store"
-        });
-
-        console.log("🔍 Trip data:", tripData);
-        setTrip(tripData.trip);
-      } catch (err) {
-        console.error("❌ Trip hydration failed:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    hydrateTrip();
-  }, [navigate]);
-
-  if (loading) {
-    return <div className="p-6 text-center text-gray-600">Loading your trip...</div>;
+  
+  // Get trip data from localStorage (already saved during trip creation)
+  const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
+  const userData = JSON.parse(localStorage.getItem("userData") || "null");
+  
+  // If no cached data, redirect back to trip setup
+  if (!tripData || !userData) {
+    console.error("❌ No trip data found, redirecting to trip setup");
+    navigate("/tripsetup");
+    return null;
   }
 
   if (!trip) {
@@ -88,7 +46,7 @@ export default function TripCreated() {
         <p><strong>Destination:</strong> {trip.city}</p>
         <p><strong>Dates:</strong> {new Date(trip.startDate).toLocaleDateString()} – {new Date(trip.endDate).toLocaleDateString()}</p>
         <p><strong>Party Count:</strong> {trip.partyCount}</p>
-        <p><strong>With:</strong> {trip.whoWith || "—"}</p>
+        <p><strong>With:</strong> {trip.whoWith ? trip.whoWith.charAt(0).toUpperCase() + trip.whoWith.slice(1).replace('-', ' ') : "—"}</p>
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
           <p className="text-sm font-medium text-blue-800 mb-1">🔑 Your Trip Join Code</p>
           <p className="font-mono text-lg font-bold text-blue-600">{trip.joinCode || trip.tripId}</p>

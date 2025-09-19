@@ -44,8 +44,8 @@ import TripCreated from "./pages/TripCreated";
 import PrepBuild from "./pages/TripPreBuild";
 import TripIntentForm from "./pages/TripIntentForm";
 import TripMetaSelect from "./pages/TripMetaSelect";
-import SampleAttractions from "./pages/SampleAttractions";
-import AnchorSelectPage from "./pages/AnchorSelect";
+import TripSampleSelect from "./pages/TripSampleSelect";
+// import AnchorSelectPage from "./pages/AnchorSelect"; // DEPRECATED - replaced by TripMetaSelect
 import TripItineraryBuild from "./pages/TripItineraryBuilder";
 import TripDayOverview from "./pages/TripDaysOverview";
 import TripItineraryComplete from "./pages/TripItineraryComplete";
@@ -144,9 +144,9 @@ export default function App() {
 
       <Route path="/tripintent" element={<TripIntentForm />} />
       <Route path="/meta-select" element={<TripMetaSelect />} />
-      <Route path="/persona-sample" element={<SampleAttractions />} />
+      <Route path="/persona-sample" element={<TripSampleSelect />} />
       <Route path="/build-itinerary" element={<TripItineraryBuild />} />
-      <Route path="/anchorselect" element={<AnchorSelectPage />} />
+      {/* <Route path="/anchorselect" element={<AnchorSelectPage />} /> */} {/* DEPRECATED - replaced by /meta-select */}
       <Route path="/tripwell/itinerarybuild" element={<TripItineraryBuild />} />
       <Route path="/tripwell/itineraryupdate" element={<TripDayOverview />} />
       <Route path="/tripdaysoverview" element={<TripDayOverview />} />
