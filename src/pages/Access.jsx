@@ -1,237 +1,57 @@
 // src/pages/Access.jsx
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { auth } from "../firebase";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import BACKEND_URL from "../config";
-import { getAuthConfig } from "../utils/auth";
 
-// Create provider outside component to avoid recreation
 const googleProvider = new GoogleAuthProvider();
 
 export default function Access() {
-  console.log("🚀 Access component mounted");
   const navigate = useNavigate();
-  const [hasAttemptedSignIn, setHasAttemptedSignIn] = useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [isSigningIn, setIsSigningIn] = useState(false);
 
-  useEffect(() => {
-    // Check if we're on a debug route - if so, don't interfere
-    const currentPath = window.location.pathname;
-    if (currentPath === '/dayindextest') {
-      console.log("🚀 On debug route, not interfering:", currentPath);
-      setIsCheckingAuth(false);
-      return;
-    }
-
-    const unsub = auth.onAuthStateChanged(async (firebaseUser) => {
-      if (firebaseUser && !hasAttemptedSignIn) {
-        // User is already authenticated - route them to hydrate
-        console.log("🔐 User already authenticated on Access page, routing to hydrate...");
-        await checkUserAccess(firebaseUser);
-      } else if (firebaseUser && hasAttemptedSignIn) {
-        // User just signed in - handle the flow
-        console.log("🔐 User just signed in, starting localStorage flow...");
-        await handleAuthenticatedUser(firebaseUser);
-      } else {
-        // User is not authenticated - show sign-in options
-        console.log("🔐 User not authenticated, showing sign-in options");
-        setIsCheckingAuth(false);
-      }
-    });
-
-    return unsub;
-  }, [navigate, hasAttemptedSignIn]);
-
-  const checkUserAccess = async (firebaseUser) => {
+  const handleGoogle = async () => {
+    if (isSigningIn) return;
+    
     try {
-      // Use the same flow as handleAuthenticatedUser for consistency
-      console.log("🔐 User already authenticated, using consistent flow...");
-      await handleAuthenticatedUser(firebaseUser);
+      setIsSigningIn(true);
       
-    } catch (err) {
-      console.error("❌ Access check error:", err);
-      alert("Something went wrong. Please try again.");
-    }
-  };
-
-  const handleAuthenticatedUser = async (firebaseUser) => {
-    try {
-      // 1) Create or find the user on backend (unprotected)
-      const createRes = await fetch(`${BACKEND_URL}/tripwell/user/createOrFind`, {
+      // 1) Sign in with Firebase
+      const result = await signInWithPopup(auth, googleProvider);
+      console.log("🔐 User signed in:", result.user.email);
+      
+      // 2) Check MongoDB - create or find user
+      const res = await fetch(`${BACKEND_URL}/tripwell/user/createOrFind`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          firebaseId: firebaseUser.uid,
-          email: firebaseUser.email,
+          firebaseId: result.user.uid,
+          email: result.user.email,
         }),
       });
       
-      if (!createRes.ok) {
-        throw new Error(`CreateOrFind failed: ${createRes.status}`);
-      }
+      const userData = await res.json();
+      console.log("🔍 Backend response:", userData);
       
-      const createData = await createRes.json();
-      console.log("🔍 CreateOrFind response:", createData);
-      console.log("🔍 DEBUG - profileComplete from backend:", createData.profileComplete);
-      console.log("🔍 DEBUG - isNewUser from backend:", createData.isNewUser);
-      console.log("🔍 DEBUG - Raw isNewUser from response:", createData.isNewUser);
-      console.log("🔍 DEBUG - Type of isNewUser:", typeof createData.isNewUser);
-
-      // 2) SIMPLE FORK: New user vs existing user
-      const isNewUser = createData.isNewUser;
-      const hasCompleteProfile = createData.profileComplete && createData.firstName && createData.lastName;
-      
-      console.log("🔍 DEBUG - isNewUser (from backend):", isNewUser);
-      console.log("🔍 DEBUG - hasCompleteProfile:", hasCompleteProfile);
-      console.log("🔍 DEBUG - profileComplete:", createData.profileComplete);
-      console.log("🔍 DEBUG - firstName:", createData.firstName);
-      console.log("🔍 DEBUG - lastName:", createData.lastName);
-      
-      // Add small delay to prevent race conditions
-      await new Promise(r => setTimeout(r, 50));
-      
-      // 🎯 Call Python Main Service for new user signup (if new user)
-      if (isNewUser) {
-        try {
-          console.log(`🎯 Calling Python Main Service for new user: ${createData.email}`);
-          
-          const pythonResponse = await fetch(`${process.env.REACT_APP_TRIPWELL_AI_BRAIN || 'https://tripwell-ai.onrender.com'}/useactionendpoint`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              user_id: createData._id,
-              firebase_id: createData.firebaseId,
-              email: createData.email,
-              firstName: createData.firstName,
-              lastName: createData.lastName,
-              profileComplete: createData.profileComplete,
-              tripId: createData.tripId,
-              funnelStage: createData.funnelStage,
-              createdAt: createData.createdAt,
-              context: "new_user_signup",
-              // Send full user data for Python service
-              _id: createData._id,
-              firebaseId: createData.firebaseId,
-              journeyStage: createData.journeyStage,
-              userState: createData.userState
-            })
-          });
-
-          if (pythonResponse.ok) {
-            const pythonData = await pythonResponse.json();
-            console.log(`✅ Python Main Service analysis complete for ${createData.email}:`, {
-              actions_taken: pythonData.actions_taken?.length || 0,
-              user_state: pythonData.user_state
-            });
-            
-            if (pythonData.actions_taken) {
-              pythonData.actions_taken.forEach(action => {
-                console.log(`  📧 ${action.campaign}: ${action.status} - ${action.reason}`);
-              });
-            }
-          } else {
-            console.error(`❌ Python Main Service analysis failed for ${createData.email}`);
-          }
-        } catch (pythonError) {
-          console.error(`❌ Failed to call Python Main Service for ${createData.email}:`, pythonError.message);
-        }
-      }
-      
-      if (isNewUser) {
-        // ❌ New user - go to profile setup
-        console.log("👋 New user, routing to /profilesetup");
+      // 3) Route based on response
+      if (userData.userCreated) {
+        console.log("👋 User created → /profilesetup");
         navigate("/profilesetup");
       } else {
-        // ✅ Existing user - go to localrouter (let LocalRouter handle incomplete profiles)
-        console.log("✅ Existing user, routing to /localrouter");
+        console.log("✅ User found → /localrouter");
         navigate("/localrouter");
       }
       
     } catch (err) {
-      console.error("❌ Access flow error", err);
-      alert("Something went wrong. Please try again.");
-    }
-  };
-
-  const handleGoogle = async () => {
-    console.log("🔍 DEBUG: handleGoogle called");
-    console.log("🔍 DEBUG: isSigningIn =", isSigningIn);
-    console.log("🔍 DEBUG: hasAttemptedSignIn =", hasAttemptedSignIn);
-    console.log("🔍 DEBUG: auth.currentUser =", auth.currentUser?.email || "null");
-    
-    // Prevent multiple simultaneous sign-in attempts
-    if (isSigningIn) {
-      console.log("🔄 Sign-in already in progress, ignoring click");
-      return;
-    }
-
-    try {
-      console.log("🔍 DEBUG: Setting isSigningIn to true");
-      setIsSigningIn(true);
-      setHasAttemptedSignIn(true);
-      
-      console.log("🔐 Starting Google sign-in...");
-      console.log("🔍 DEBUG: Google provider config:", googleProvider);
-      
-      // Configure the Google provider
-      googleProvider.setCustomParameters({
-        prompt: 'select_account'
-      });
-      
-      console.log("🔍 DEBUG: About to call signInWithPopup");
-      const result = await signInWithPopup(auth, googleProvider);
-      console.log("✅ Google sign-in successful:", result.user.email);
-      console.log("🔍 DEBUG: Full result object:", result);
-      
-      // onAuthStateChanged will handle the rest
-    } catch (err) {
-      console.error("❌ Google sign-in failed", err);
-      console.log("🔍 DEBUG: Error code:", err.code);
-      console.log("🔍 DEBUG: Error message:", err.message);
-      console.log("🔍 DEBUG: Full error object:", err);
-      
-      // Handle specific error cases
-      if (err.code === 'auth/popup-closed-by-user') {
-        console.log("ℹ️ User closed the popup - no action needed");
-        // User closed the popup - that's fine, don't show error
-        return; // Don't show error for normal popup closure
-      } else if (err.code === 'auth/cancelled-popup-request') {
-        console.log("ℹ️ Popup request was cancelled - no action needed");
-        console.log("🔍 DEBUG: This usually means multiple popup attempts or browser blocking");
-        // Another popup was opened or cancelled - that's fine
-        return; // Don't show error for cancelled popup requests
-      } else if (err.code === 'auth/popup-blocked') {
-        console.log("⚠️ Popup was blocked by browser");
-        alert("Popup was blocked by your browser. Please allow popups for this site and try again.");
-      } else if (err.code === 'auth/network-request-failed') {
-        console.log("⚠️ Network error during sign-in");
-        alert("Network error. Please check your connection and try again.");
-      } else {
-        console.log("⚠️ Unexpected sign-in error:", err.message);
+      console.error("❌ Error:", err);
+      if (err.code !== 'auth/popup-closed-by-user') {
         alert("Authentication error — please try again.");
       }
     } finally {
-      console.log("🔍 DEBUG: Setting isSigningIn to false");
       setIsSigningIn(false);
-    }
   };
 
-  // Show loading while checking auth state
-  if (isCheckingAuth) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-sky-400 via-sky-300 to-blue-200 flex items-center justify-center p-4">
-        <div className="max-w-md mx-auto text-center space-y-6 bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-white/20">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <h1 className="text-2xl font-bold text-gray-800">Checking your access...</h1>
-          <p className="text-gray-600">Verifying your authentication status</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-400 via-sky-300 to-blue-200 flex items-center justify-center p-4">
