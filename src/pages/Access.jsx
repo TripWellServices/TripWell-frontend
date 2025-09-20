@@ -14,6 +14,8 @@ export default function Access() {
   const navigate = useNavigate();
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [hasProcessedAuth, setHasProcessedAuth] = useState(false);
+  const [isRouting, setIsRouting] = useState(false);
+  
 
 
 
@@ -39,14 +41,15 @@ export default function Access() {
         <div className="space-y-4">
           <button
             onClick={async () => {
-              if (isSigningIn || hasProcessedAuth) {
-                console.log("🚫 Already processing auth, ignoring click");
+              if (isSigningIn || hasProcessedAuth || isRouting) {
+                console.log("🚫 Already processing, ignoring click");
                 return;
               }
               
               try {
                 setIsSigningIn(true);
                 setHasProcessedAuth(true);
+                setIsRouting(true);
                 console.log("🚀 Starting auth process...");
                 
                 // 1) Sign in with Firebase
@@ -67,6 +70,9 @@ export default function Access() {
                 const userData = await res.json();
                 console.log("🔍 Backend response:", userData);
                 
+                // 🚨 CRITICAL: Set routing flag to prevent interference
+                console.log("🔒 Routing decision in progress...");
+                
                 // 🚨 CRITICAL ROUTING LOGIC - DO NOT CHANGE!
                 // 3) Route based on response
                 if (userData.userCreated) {
@@ -84,6 +90,7 @@ export default function Access() {
                 }
                 // Reset flags on error
                 setHasProcessedAuth(false);
+                setIsRouting(false);
               } finally {
                 setIsSigningIn(false);
               }
@@ -123,14 +130,15 @@ export default function Access() {
 
           <button
             onClick={async () => {
-              if (isSigningIn || hasProcessedAuth) {
-                console.log("🚫 Already processing auth, ignoring click");
+              if (isSigningIn || hasProcessedAuth || isRouting) {
+                console.log("🚫 Already processing, ignoring click");
                 return;
               }
               
               try {
                 setIsSigningIn(true);
                 setHasProcessedAuth(true);
+                setIsRouting(true);
                 console.log("🚀 Starting auth process...");
                 
                 // 1) Sign in with Firebase
@@ -151,6 +159,9 @@ export default function Access() {
                 const userData = await res.json();
                 console.log("🔍 Backend response:", userData);
                 
+                // 🚨 CRITICAL: Set routing flag to prevent interference
+                console.log("🔒 Routing decision in progress...");
+                
                 // 🚨 CRITICAL ROUTING LOGIC - DO NOT CHANGE!
                 // 3) Route based on response
                 if (userData.userCreated) {
@@ -168,6 +179,7 @@ export default function Access() {
                 }
                 // Reset flags on error
                 setHasProcessedAuth(false);
+                setIsRouting(false);
               } finally {
                 setIsSigningIn(false);
               }
