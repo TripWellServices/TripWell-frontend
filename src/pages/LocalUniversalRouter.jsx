@@ -286,7 +286,6 @@ export default function LocalUniversalRouter() {
 
         // Re-read localStorage after potential updates
         const currentUserData = JSON.parse(localStorage.getItem("userData") || "null");
-        const currentProfileComplete = localStorage.getItem("profileComplete") === "true";
         const currentTripData = JSON.parse(localStorage.getItem("tripData") || "null");
 
         // Step 2: Profile completion is handled by Access.jsx
