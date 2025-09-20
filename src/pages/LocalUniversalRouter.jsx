@@ -18,12 +18,13 @@ export default function LocalUniversalRouter() {
         return;
       }
       
-      // Check if user is being routed by Access.jsx (profile incomplete)
-      const currentProfileComplete = localStorage.getItem("profileComplete") === "true";
-      if (!currentProfileComplete) {
-        console.log("🔍 UniversalRouter - Profile incomplete, Access.jsx will handle routing, skipping...");
-        return;
-      }
+        // Check if user is being routed by Access.jsx (profile incomplete)
+        const currentProfileComplete = localStorage.getItem("profileComplete") === "true";
+        if (!currentProfileComplete) {
+          console.log("🔍 UniversalRouter - Profile incomplete, Access.jsx will handle routing, skipping...");
+          setLoading(false);
+          return;
+        }
       
       console.log("🔄 UniversalRouter - Starting hydration...");
       const authConfig = await getAuthConfig();
@@ -108,6 +109,14 @@ export default function LocalUniversalRouter() {
         }
         
         console.log("🔍 LocalUniversalRouter - Starting universal routing check");
+
+        // Check if profile is incomplete - if so, don't run any routing logic
+        const currentProfileComplete = localStorage.getItem("profileComplete") === "true";
+        if (!currentProfileComplete) {
+          console.log("🔍 LocalUniversalRouter - Profile incomplete, Access.jsx will handle routing, skipping...");
+          setLoading(false);
+          return;
+        }
 
         // Get all localStorage data
         console.log("🔍 Reading localStorage data...");

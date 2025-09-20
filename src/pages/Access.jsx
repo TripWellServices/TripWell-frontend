@@ -1,4 +1,7 @@
 // src/pages/Access.jsx
+// 🚨 CRITICAL: This file is for EXPLICIT /access route only!
+// 🚨 The REAL routing fix is in Home.jsx - this is just for when users go to /access directly!
+// 🚨 DO NOT CHANGE THE ROUTING LOGIC - IT'S THE 1000TH TIME WE'VE FIXED THIS!
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { auth } from "../firebase";
@@ -57,13 +60,14 @@ export default function Access() {
                 const userData = await res.json();
                 console.log("🔍 Backend response:", userData);
                 
+                // 🚨 CRITICAL ROUTING LOGIC - DO NOT CHANGE!
                 // 3) Route based on response
                 if (userData.userCreated) {
                   console.log("👋 User created → /profilesetup");
-                  navigate("/profilesetup");
+                  navigate("/profilesetup");  // NEW USER - skip localrouter entirely!
                 } else {
                   console.log("✅ User found → /localrouter");
-                  navigate("/localrouter");
+                  navigate("/localrouter");   // EXISTING USER - go to localrouter
                 }
                 
               } catch (err) {
@@ -132,13 +136,14 @@ export default function Access() {
                 const userData = await res.json();
                 console.log("🔍 Backend response:", userData);
                 
+                // 🚨 CRITICAL ROUTING LOGIC - DO NOT CHANGE!
                 // 3) Route based on response
                 if (userData.userCreated) {
                   console.log("👋 User created → /profilesetup");
-                  navigate("/profilesetup");
+                  navigate("/profilesetup");  // NEW USER - skip localrouter entirely!
                 } else {
                   console.log("✅ User found → /localrouter");
-                  navigate("/localrouter");
+                  navigate("/localrouter");   // EXISTING USER - go to localrouter
                 }
                 
               } catch (err) {
