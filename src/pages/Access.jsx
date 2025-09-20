@@ -13,6 +13,7 @@ const googleProvider = new GoogleAuthProvider();
 export default function Access() {
   const navigate = useNavigate();
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [hasProcessedAuth, setHasProcessedAuth] = useState(false);
 
 
 
@@ -38,16 +39,22 @@ export default function Access() {
         <div className="space-y-4">
           <button
             onClick={async () => {
-              if (isSigningIn) return;
+              if (isSigningIn || hasProcessedAuth) {
+                console.log("🚫 Already processing auth, ignoring click");
+                return;
+              }
               
               try {
                 setIsSigningIn(true);
+                setHasProcessedAuth(true);
+                console.log("🚀 Starting auth process...");
                 
                 // 1) Sign in with Firebase
                 const result = await signInWithPopup(auth, googleProvider);
                 console.log("🔐 User signed in:", result.user.email);
                 
-                // 2) Check MongoDB - create or find user
+                // 2) Check MongoDB - create or find user (ONLY ONCE!)
+                console.log("🔍 Calling createOrFind...");
                 const res = await fetch(`${BACKEND_URL}/tripwell/user/createOrFind`, {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
@@ -75,6 +82,8 @@ export default function Access() {
                 if (err.code !== 'auth/popup-closed-by-user') {
                   alert("Authentication error — please try again.");
                 }
+                // Reset flags on error
+                setHasProcessedAuth(false);
               } finally {
                 setIsSigningIn(false);
               }
@@ -114,16 +123,22 @@ export default function Access() {
 
           <button
             onClick={async () => {
-              if (isSigningIn) return;
+              if (isSigningIn || hasProcessedAuth) {
+                console.log("🚫 Already processing auth, ignoring click");
+                return;
+              }
               
               try {
                 setIsSigningIn(true);
+                setHasProcessedAuth(true);
+                console.log("🚀 Starting auth process...");
                 
                 // 1) Sign in with Firebase
                 const result = await signInWithPopup(auth, googleProvider);
                 console.log("🔐 User signed in:", result.user.email);
                 
-                // 2) Check MongoDB - create or find user
+                // 2) Check MongoDB - create or find user (ONLY ONCE!)
+                console.log("🔍 Calling createOrFind...");
                 const res = await fetch(`${BACKEND_URL}/tripwell/user/createOrFind`, {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
@@ -151,6 +166,8 @@ export default function Access() {
                 if (err.code !== 'auth/popup-closed-by-user') {
                   alert("Authentication error — please try again.");
                 }
+                // Reset flags on error
+                setHasProcessedAuth(false);
               } finally {
                 setIsSigningIn(false);
               }

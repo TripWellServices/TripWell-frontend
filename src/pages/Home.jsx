@@ -15,6 +15,7 @@ export default function Home() {
   useEffect(() => {
     console.log("🔍 Home.jsx - Simple Firebase checker starting...");
 
+
     // 1400ms delay for better timing
     const timeoutId = setTimeout(() => {
       const unsub = auth.onAuthStateChanged(async (firebaseUser) => {
@@ -24,41 +25,8 @@ export default function Home() {
           setHasRouted(true);
           
           if (firebaseUser) {
-            console.log("✅ User found, checking if new or existing...");
-            
-            // 🚨 CRITICAL: This is the 1000th time we've fixed this routing issue!
-            // 🚨 NEW USERS MUST GO TO /profilesetup - NEVER /localrouter!
-            // 🚨 EXISTING USERS GO TO /localrouter
-            // 🚨 DO NOT CHANGE THIS LOGIC - IT'S THE REAL FIX!
-            
-            // Check if user is new or existing by calling createOrFind
-            try {
-              const res = await fetch(`${BACKEND_URL}/tripwell/user/createOrFind`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  firebaseId: firebaseUser.uid,
-                  email: firebaseUser.email,
-                }),
-              });
-              
-              const userData = await res.json();
-              console.log("🔍 Backend response:", userData);
-              
-              // 🚨 CRITICAL ROUTING LOGIC - DO NOT CHANGE!
-              // Route based on response
-              if (userData.userCreated) {
-                console.log("👋 User created → /profilesetup");
-                navigate("/profilesetup");  // NEW USER - skip localrouter entirely!
-              } else {
-                console.log("✅ User found → /localrouter");
-                navigate("/localrouter");   // EXISTING USER - go to localrouter
-              }
-            } catch (err) {
-              console.error("❌ Error checking user:", err);
-              // Fallback to localrouter if backend fails
-              navigate("/localrouter");
-            }
+            console.log("✅ User found, routing to localrouter for routing logic...");
+            navigate("/localrouter");
           } else {
             console.log("❌ No user, routing to /access...");
             navigate("/access");
