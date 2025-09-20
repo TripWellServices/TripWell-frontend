@@ -11,46 +11,6 @@ export default function Access() {
   const navigate = useNavigate();
   const [isSigningIn, setIsSigningIn] = useState(false);
 
-  const handleGoogle = async () => {
-    if (isSigningIn) return;
-    
-    try {
-      setIsSigningIn(true);
-      
-      // 1) Sign in with Firebase
-      const result = await signInWithPopup(auth, googleProvider);
-      console.log("🔐 User signed in:", result.user.email);
-      
-      // 2) Check MongoDB - create or find user
-      const res = await fetch(`${BACKEND_URL}/tripwell/user/createOrFind`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firebaseId: result.user.uid,
-          email: result.user.email,
-        }),
-      });
-      
-      const userData = await res.json();
-      console.log("🔍 Backend response:", userData);
-      
-      // 3) Route based on response
-      if (userData.userCreated) {
-        console.log("👋 User created → /profilesetup");
-        navigate("/profilesetup");
-      } else {
-        console.log("✅ User found → /localrouter");
-        navigate("/localrouter");
-      }
-      
-    } catch (err) {
-      console.error("❌ Error:", err);
-      if (err.code !== 'auth/popup-closed-by-user') {
-        alert("Authentication error — please try again.");
-      }
-    } finally {
-      setIsSigningIn(false);
-  };
 
 
   return (
@@ -74,7 +34,47 @@ export default function Access() {
         {/* Sign In Section */}
         <div className="space-y-4">
           <button
-            onClick={handleGoogle}
+            onClick={async () => {
+              if (isSigningIn) return;
+              
+              try {
+                setIsSigningIn(true);
+                
+                // 1) Sign in with Firebase
+                const result = await signInWithPopup(auth, googleProvider);
+                console.log("🔐 User signed in:", result.user.email);
+                
+                // 2) Check MongoDB - create or find user
+                const res = await fetch(`${BACKEND_URL}/tripwell/user/createOrFind`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    firebaseId: result.user.uid,
+                    email: result.user.email,
+                  }),
+                });
+                
+                const userData = await res.json();
+                console.log("🔍 Backend response:", userData);
+                
+                // 3) Route based on response
+                if (userData.userCreated) {
+                  console.log("👋 User created → /profilesetup");
+                  navigate("/profilesetup");
+                } else {
+                  console.log("✅ User found → /localrouter");
+                  navigate("/localrouter");
+                }
+                
+              } catch (err) {
+                console.error("❌ Error:", err);
+                if (err.code !== 'auth/popup-closed-by-user') {
+                  alert("Authentication error — please try again.");
+                }
+              } finally {
+                setIsSigningIn(false);
+              }
+            }}
             disabled={isSigningIn}
             className={`w-full bg-white border-2 border-gray-200 text-gray-700 px-6 py-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-3 font-medium text-lg group ${
               isSigningIn 
@@ -109,7 +109,47 @@ export default function Access() {
           </p>
 
           <button
-            onClick={handleGoogle}
+            onClick={async () => {
+              if (isSigningIn) return;
+              
+              try {
+                setIsSigningIn(true);
+                
+                // 1) Sign in with Firebase
+                const result = await signInWithPopup(auth, googleProvider);
+                console.log("🔐 User signed in:", result.user.email);
+                
+                // 2) Check MongoDB - create or find user
+                const res = await fetch(`${BACKEND_URL}/tripwell/user/createOrFind`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    firebaseId: result.user.uid,
+                    email: result.user.email,
+                  }),
+                });
+                
+                const userData = await res.json();
+                console.log("🔍 Backend response:", userData);
+                
+                // 3) Route based on response
+                if (userData.userCreated) {
+                  console.log("👋 User created → /profilesetup");
+                  navigate("/profilesetup");
+                } else {
+                  console.log("✅ User found → /localrouter");
+                  navigate("/localrouter");
+                }
+                
+              } catch (err) {
+                console.error("❌ Error:", err);
+                if (err.code !== 'auth/popup-closed-by-user') {
+                  alert("Authentication error — please try again.");
+                }
+              } finally {
+                setIsSigningIn(false);
+              }
+            }}
             disabled={isSigningIn}
             className={`w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-4 rounded-xl transition-all duration-200 font-medium text-lg shadow-lg ${
               isSigningIn 
