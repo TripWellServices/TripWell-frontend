@@ -18,13 +18,7 @@ export default function LocalUniversalRouter() {
         return;
       }
       
-        // Check if user is being routed by Access.jsx (profile incomplete)
-        const currentProfileComplete = localStorage.getItem("profileComplete") === "true";
-        if (!currentProfileComplete) {
-          console.log("🔍 UniversalRouter - Profile incomplete, Access.jsx will handle routing, skipping...");
-          setLoading(false);
-          return;
-        }
+        // Profile completion check moved to after hydration
       
       console.log("🔄 UniversalRouter - Starting hydration...");
       const authConfig = await getAuthConfig();
@@ -76,14 +70,18 @@ export default function LocalUniversalRouter() {
   useEffect(() => {
     async function universalRouter() {
       try {
-        console.log("🚀 LocalUniversalRouter useEffect started");
-        
-        // 🚨 CRITICAL: Guard - disable UniversalRouter during Access/ProfileSetup
-        if (location.pathname === "/access" || location.pathname === "/profilesetup") {
-          console.log("⏸️ UniversalRouter disabled during Access/Profile flow");
-          setLoading(false);
-          return;
-        }
+      console.log("🚀 LocalUniversalRouter useEffect started");
+      console.log("🔍 DEBUG - Current pathname:", location.pathname);
+      console.log("🔍 DEBUG - Current user:", auth.currentUser?.email);
+      
+      // 🚨 CRITICAL: Guard - disable UniversalRouter during Access/ProfileSetup
+      if (location.pathname === "/access" || location.pathname === "/profilesetup") {
+        console.log("⏸️ UniversalRouter disabled during Access/Profile flow");
+        setLoading(false);
+        return;
+      }
+      
+      console.log("✅ UniversalRouter guard passed, continuing...");
         // Check if we're already on a live day route or debug route - if so, don't interfere
         const currentPath = location.pathname;
         console.log("🔍 LocalUniversalRouter checking path:", currentPath);
@@ -118,15 +116,11 @@ export default function LocalUniversalRouter() {
         console.log("🔍 LocalUniversalRouter - Starting universal routing check");
 
         // Check if profile is incomplete - if so, don't run any routing logic
-        const currentProfileComplete = localStorage.getItem("profileComplete") === "true";
-        if (!currentProfileComplete) {
-          console.log("🔍 LocalUniversalRouter - Profile incomplete, Access.jsx will handle routing, skipping...");
-          setLoading(false);
-          return;
-        }
+        // Profile completion check moved to after hydration
 
         // Get all localStorage data (NEW FLOW)
         console.log("🔍 Reading localStorage data...");
+        console.log("🔍 DEBUG - About to read localStorage...");
         const userData = JSON.parse(localStorage.getItem("userData") || "null");
         const profileComplete = localStorage.getItem("profileComplete") === "true";
         const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
@@ -298,8 +292,14 @@ export default function LocalUniversalRouter() {
         const currentTripData = JSON.parse(localStorage.getItem("tripData") || "null");
 
         // Step 2: Check if profile is complete
+        console.log("🔍 DEBUG - Checking profile completion...");
+        console.log("🔍 DEBUG - currentUserData:", currentUserData);
+        console.log("🔍 DEBUG - profileComplete value:", currentUserData?.profileComplete);
+        console.log("🔍 DEBUG - profileComplete type:", typeof currentUserData?.profileComplete);
+        
         if (!currentUserData?.profileComplete) {
           console.log("❌ Profile incomplete, redirecting to ProfileSetup");
+          console.log("🔍 DEBUG - About to navigate to /profilesetup");
           navigate("/profilesetup");
           return;
         }
