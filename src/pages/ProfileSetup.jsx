@@ -34,16 +34,15 @@ export default function ProfileSetup() {
   }, []);
 
   const planningVibeOptions = [
-    "Spontaneity",
-    "Rigid", 
-    "Like mix"
+    "Spontaneous",
+    "Balanced mix", 
+    "Detail oriented"
   ];
 
   const travelVibeOptions = [
-    "Go with flow",
-    "Spontaneity", 
-    "Stick to schedule",
-    "Want to just enjoy the moment"
+    "Spontaneous",
+    "Go with flow", 
+    "Stick to plan"
   ];
 
 

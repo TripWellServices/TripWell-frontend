@@ -15,7 +15,7 @@ export default function TripPersonaForm() {
     whoWith: "", // solo, couple, family, friends
     romanceLevel: 0.0, // 0.0 to 1.0
     caretakerRole: 0.0, // 0.0 to 1.0
-    flexibility: 0.7 // 0.7 free/spontaneous, 0.2 locked/rigid
+    flexibility: 0.5 // 0.5 balanced/go with flow, 0.0 rigid, 1.0 spontaneous
   });
 
   // Load data from localStorage on mount
