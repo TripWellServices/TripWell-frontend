@@ -78,9 +78,12 @@ export default function LocalUniversalRouter() {
       try {
         console.log("🚀 LocalUniversalRouter useEffect started");
         
-        // 🚨 CRITICAL: Add delay to let Access.jsx complete its routing decision!
-        console.log("⏳ Waiting for Access.jsx to complete routing...");
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // 🚨 CRITICAL: Guard - disable UniversalRouter during Access/ProfileSetup
+        if (location.pathname === "/access" || location.pathname === "/profilesetup") {
+          console.log("⏸️ UniversalRouter disabled during Access/Profile flow");
+          setLoading(false);
+          return;
+        }
         // Check if we're already on a live day route or debug route - if so, don't interfere
         const currentPath = location.pathname;
         console.log("🔍 LocalUniversalRouter checking path:", currentPath);
