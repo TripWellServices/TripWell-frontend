@@ -3,18 +3,24 @@
 // 🚨 NEW USERS MUST GO TO /profilesetup - NEVER /localrouter!
 // 🚨 EXISTING USERS GO TO /localrouter
 // 🚨 DO NOT CHANGE THE ROUTING LOGIC - IT'S THE 1000TH TIME WE'VE FIXED THIS!
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { auth } from "../firebase";
 import { useEffect, useState } from "react";
 import BACKEND_URL from "../config";
 
 export default function Home() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [hasRouted, setHasRouted] = useState(false);
 
   useEffect(() => {
-    console.log("🔍 Home.jsx - Simple Firebase checker starting...");
+    // 🚨 CRITICAL: Only run auth check when user is actually on home page!
+    if (location.pathname !== "/") {
+      console.log("🔍 Home.jsx - Not on home page, skipping auth check");
+      return;
+    }
 
+    console.log("🔍 Home.jsx - Simple Firebase checker starting...");
 
     // 1400ms delay for better timing
     const timeoutId = setTimeout(() => {
@@ -42,7 +48,7 @@ export default function Home() {
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [navigate, hasRouted]);
+  }, [navigate, hasRouted, location.pathname]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-400 via-sky-300 to-blue-200 flex flex-col items-center justify-center p-6">
