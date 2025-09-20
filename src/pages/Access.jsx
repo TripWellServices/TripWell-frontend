@@ -70,7 +70,10 @@ export default function Access() {
                 const userData = await res.json();
                 console.log("🔍 Backend response:", userData);
                 
-                // 🚨 CRITICAL: Set routing flag to prevent interference
+                // 🚨 CRITICAL: Wait for all states to finalize before routing
+                console.log("⏳ Waiting 500ms for all states to finalize...");
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
                 console.log("🔒 Routing decision in progress...");
                 
                 // 🚨 CRITICAL ROUTING LOGIC - DO NOT CHANGE!
@@ -159,7 +162,10 @@ export default function Access() {
                 const userData = await res.json();
                 console.log("🔍 Backend response:", userData);
                 
-                // 🚨 CRITICAL: Set routing flag to prevent interference
+                // 🚨 CRITICAL: Wait for all states to finalize before routing
+                console.log("⏳ Waiting 500ms for all states to finalize...");
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
                 console.log("🔒 Routing decision in progress...");
                 
                 // 🚨 CRITICAL ROUTING LOGIC - DO NOT CHANGE!

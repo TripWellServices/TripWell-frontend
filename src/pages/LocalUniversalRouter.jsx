@@ -297,9 +297,13 @@ export default function LocalUniversalRouter() {
         const currentUserData = JSON.parse(localStorage.getItem("userData") || "null");
         const currentTripData = JSON.parse(localStorage.getItem("tripData") || "null");
 
-        // Step 2: Profile completion is handled by Access.jsx
-        // LocalUniversalRouter assumes profile is complete since Access.jsx already filtered
-        console.log("✅ Profile completion check handled by Access.jsx, continuing with trip flow");
+        // Step 2: Check if profile is complete
+        if (!currentUserData?.profileComplete) {
+          console.log("❌ Profile incomplete, redirecting to ProfileSetup");
+          navigate("/profilesetup");
+          return;
+        }
+        console.log("✅ Profile complete, continuing with trip flow");
 
         // 🎯 SIMPLIFIED ROUTING LOGIC - Focus on actual flags that matter
         
