@@ -83,7 +83,7 @@ export default function Access() {
                   navigate("/profilesetup");  // NEW USER - skip localrouter entirely!
                 } else {
                   console.log("✅ User found → /localrouter");
-                  navigate("/localrouter");   // EXISTING USER - go to localrouter
+                  navigate("/localrouter");   // EXISTING USER - let LocalUniversalRouter handle profile check
                 }
                 
               } catch (err) {
@@ -175,7 +175,7 @@ export default function Access() {
                   navigate("/profilesetup");  // NEW USER - skip localrouter entirely!
                 } else {
                   console.log("✅ User found → /localrouter");
-                  navigate("/localrouter");   // EXISTING USER - go to localrouter
+                  navigate("/localrouter");   // EXISTING USER - let LocalUniversalRouter handle profile check
                 }
                 
               } catch (err) {
