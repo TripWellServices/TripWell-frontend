@@ -125,22 +125,24 @@ export default function LocalUniversalRouter() {
           return;
         }
 
-        // Get all localStorage data
+        // Get all localStorage data (NEW FLOW)
         console.log("🔍 Reading localStorage data...");
         const userData = JSON.parse(localStorage.getItem("userData") || "null");
         const profileComplete = localStorage.getItem("profileComplete") === "true";
         const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
-        const tripIntentData = JSON.parse(localStorage.getItem("tripIntentData") || "null");
-        let anchorLogic = JSON.parse(localStorage.getItem("anchorLogic") || "null");
+        const tripPersonaData = JSON.parse(localStorage.getItem("tripPersonaData") || "null");
+        const selectedMetas = JSON.parse(localStorage.getItem("selectedMetas") || "[]");
+        const selectedSamples = JSON.parse(localStorage.getItem("selectedSamples") || "[]");
         let itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
         console.log("🔍 localStorage data read successfully");
         
-        // 🔍 DEBUG: Log the exact localStorage data
-        console.log("🔍 UniversalRouter - Raw anchorLogic from localStorage:", anchorLogic);
-        console.log("🔍 UniversalRouter - anchorLogic type:", typeof anchorLogic);
-        console.log("🔍 UniversalRouter - anchorLogic.anchors:", anchorLogic?.anchors);
-        console.log("🔍 UniversalRouter - anchorLogic.anchors type:", typeof anchorLogic?.anchors);
-        console.log("🔍 UniversalRouter - anchorLogic.anchors length:", anchorLogic?.anchors?.length);
+        // 🔍 DEBUG: Log the exact localStorage data (NEW FLOW)
+        console.log("🔍 UniversalRouter - Raw tripPersonaData from localStorage:", tripPersonaData);
+        console.log("🔍 UniversalRouter - selectedMetas:", selectedMetas);
+        console.log("🔍 UniversalRouter - selectedSamples:", selectedSamples);
+        console.log("🔍 UniversalRouter - tripPersonaData type:", typeof tripPersonaData);
+        console.log("🔍 UniversalRouter - selectedMetas length:", selectedMetas?.length);
+        console.log("🔍 UniversalRouter - selectedSamples length:", selectedSamples?.length);
 
         console.log("🔍 Current localStorage state:", {
           userData: !!userData,
@@ -464,12 +466,14 @@ export default function LocalUniversalRouter() {
                     navigate("/tripcomplete");
                   } else if (currentTripData.startedTrip === true) {
                     navigate("/livedayreturner");
-                  } else if (!tripIntentData || !tripIntentData.tripIntentId) {
-                    navigate("/tripintent");
-                  } else if (!anchorLogic || !anchorLogic.anchors || anchorLogic.anchors.length === 0) {
-                    navigate("/anchorselect");
+                  } else if (!tripPersonaData || !tripPersonaData.primaryPersona) {
+                    navigate("/trip-persona");
+                  } else if (!selectedMetas || selectedMetas.length === 0) {
+                    navigate("/meta-select");
+                  } else if (!selectedSamples || selectedSamples.length === 0) {
+                    navigate("/persona-sample");
                   } else if (!itineraryData || !itineraryData.itineraryId) {
-                    navigate("/itinerarybuild");
+                    navigate("/tripwell/itinerarybuild");
                   } else {
                     navigate("/pretriphub");
                   }
@@ -535,12 +539,14 @@ export default function LocalUniversalRouter() {
                 navigate("/tripcomplete");
               } else if (currentTripData.startedTrip === true) {
                 navigate("/livedayreturner");
-              } else if (!tripIntentData || !tripIntentData.tripIntentId) {
-                navigate("/tripintent");
-              } else if (!anchorLogic || !anchorLogic.anchors || anchorLogic.anchors.length === 0) {
-                navigate("/anchorselect");
+              } else if (!tripPersonaData || !tripPersonaData.primaryPersona) {
+                navigate("/trip-persona");
+              } else if (!selectedMetas || selectedMetas.length === 0) {
+                navigate("/meta-select");
+              } else if (!selectedSamples || selectedSamples.length === 0) {
+                navigate("/persona-sample");
               } else if (!itineraryData || !itineraryData.itineraryId) {
-                navigate("/itinerarybuild");
+                navigate("/tripwell/itinerarybuild");
               } else {
                 navigate("/pretriphub");
               }

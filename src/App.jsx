@@ -42,7 +42,7 @@ import TripSetup from "./pages/TripSetup";
 import PreTripSetup from "./pages/PreTripSetup";
 import TripCreated from "./pages/TripCreated";
 import PrepBuild from "./pages/TripPreBuild";
-import TripIntentForm from "./pages/TripIntentForm";
+import TripPersonaForm from "./pages/TripPersonaForm";
 import TripMetaSelect from "./pages/TripMetaSelect";
 import TripSampleSelect from "./pages/TripSampleSelect";
 // import AnchorSelectPage from "./pages/AnchorSelect"; // DEPRECATED - replaced by TripMetaSelect
@@ -142,7 +142,7 @@ export default function App() {
 
       <Route path="/localdebug" element={<LocalStateDebug />} />
 
-      <Route path="/tripintent" element={<TripIntentForm />} />
+      <Route path="/trip-persona" element={<TripPersonaForm />} />
       <Route path="/meta-select" element={<TripMetaSelect />} />
       <Route path="/persona-sample" element={<TripSampleSelect />} />
       <Route path="/build-itinerary" element={<TripItineraryBuild />} />
