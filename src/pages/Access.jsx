@@ -7,6 +7,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { auth } from "../firebase";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import BACKEND_URL from "../config";
+// No utils needed - set status directly
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -51,6 +52,7 @@ export default function Access() {
                 setHasProcessedAuth(true);
                 setIsRouting(true);
                 console.log("🚀 Starting auth process...");
+                console.log("🔍 DEBUG - Button clicked, checking if new or returning user...");
                 
                 // 1) Sign in with Firebase
                 const result = await signInWithPopup(auth, googleProvider);
@@ -69,6 +71,9 @@ export default function Access() {
                 
                 const userData = await res.json();
                 console.log("🔍 Backend response:", userData);
+                console.log("🔍 DEBUG - userData.userCreated:", userData.userCreated);
+                console.log("🔍 DEBUG - userData.user.profileComplete:", userData.user?.profileComplete);
+                console.log("🔍 DEBUG - Full userData object:", JSON.stringify(userData, null, 2));
                 
                 // 🚨 CRITICAL: Wait for all states to finalize before routing
                 console.log("⏳ Waiting 500ms for all states to finalize...");
@@ -76,14 +81,28 @@ export default function Access() {
                 
                 console.log("🔒 Routing decision in progress...");
                 
-                // 🚨 CRITICAL ROUTING LOGIC - DO NOT CHANGE!
-                // 3) Route based on response
+                // 💾 BASIC HYDRATION: Save user data + set status for LocalUniversalRouter
+                if (userData.user) {
+                  // Set status based on user type
+                  if (userData.userCreated) {
+                    userData.user.userStatus = "new";
+                    userData.user.profileComplete = false;
+                  } else {
+                    userData.user.userStatus = "active";
+                    userData.user.profileComplete = true;
+                  }
+                  
+                  localStorage.setItem("userData", JSON.stringify(userData.user));
+                  console.log("💾 Saved userData to localStorage:", userData.user);
+                }
+                
+                // 🚨 CRITICAL ROUTING LOGIC - DEAD SIMPLE!
                 if (userData.userCreated) {
                   console.log("👋 User created → /profilesetup");
-                  navigate("/profilesetup");  // NEW USER - skip localrouter entirely!
+                  navigate("/profilesetup");  // NEW USER → ProfileSetup
                 } else {
-                  console.log("✅ User found → /localrouter");
-                  navigate("/localrouter");   // EXISTING USER - let LocalUniversalRouter handle profile check
+                  console.log("✅ Already user → /localrouter (LocalUniversalRouter will hydrate)");
+                  navigate("/localrouter");   // EXISTING USER → LocalUniversalRouter hydrates & routes
                 }
                 
               } catch (err) {
@@ -143,6 +162,7 @@ export default function Access() {
                 setHasProcessedAuth(true);
                 setIsRouting(true);
                 console.log("🚀 Starting auth process...");
+                console.log("🔍 DEBUG - Button clicked, checking if new or returning user...");
                 
                 // 1) Sign in with Firebase
                 const result = await signInWithPopup(auth, googleProvider);
@@ -161,6 +181,9 @@ export default function Access() {
                 
                 const userData = await res.json();
                 console.log("🔍 Backend response:", userData);
+                console.log("🔍 DEBUG - userData.userCreated:", userData.userCreated);
+                console.log("🔍 DEBUG - userData.user.profileComplete:", userData.user?.profileComplete);
+                console.log("🔍 DEBUG - Full userData object:", JSON.stringify(userData, null, 2));
                 
                 // 🚨 CRITICAL: Wait for all states to finalize before routing
                 console.log("⏳ Waiting 500ms for all states to finalize...");
@@ -168,14 +191,28 @@ export default function Access() {
                 
                 console.log("🔒 Routing decision in progress...");
                 
-                // 🚨 CRITICAL ROUTING LOGIC - DO NOT CHANGE!
-                // 3) Route based on response
+                // 💾 BASIC HYDRATION: Save user data + set status for LocalUniversalRouter
+                if (userData.user) {
+                  // Set status based on user type
+                  if (userData.userCreated) {
+                    userData.user.userStatus = "new";
+                    userData.user.profileComplete = false;
+                  } else {
+                    userData.user.userStatus = "active";
+                    userData.user.profileComplete = true;
+                  }
+                  
+                  localStorage.setItem("userData", JSON.stringify(userData.user));
+                  console.log("💾 Saved userData to localStorage:", userData.user);
+                }
+                
+                // 🚨 CRITICAL ROUTING LOGIC - DEAD SIMPLE!
                 if (userData.userCreated) {
                   console.log("👋 User created → /profilesetup");
-                  navigate("/profilesetup");  // NEW USER - skip localrouter entirely!
+                  navigate("/profilesetup");  // NEW USER → ProfileSetup
                 } else {
-                  console.log("✅ User found → /localrouter");
-                  navigate("/localrouter");   // EXISTING USER - let LocalUniversalRouter handle profile check
+                  console.log("✅ Already user → /localrouter (LocalUniversalRouter will hydrate)");
+                  navigate("/localrouter");   // EXISTING USER → LocalUniversalRouter hydrates & routes
                 }
                 
               } catch (err) {

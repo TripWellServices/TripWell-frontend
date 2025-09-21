@@ -41,15 +41,28 @@ export default function LocalUniversalRouter() {
       const freshData = await response.json();
       console.log("✅ UniversalRouter - Hydration complete");
       
-      // Save data to localStorage
+      // Save data to localStorage (preserve status flags set by Access.jsx)
       if (freshData.userData) {
-        localStorage.setItem("userData", JSON.stringify(freshData.userData));
+        // Get existing userData to preserve status flags
+        const existingUserData = JSON.parse(localStorage.getItem("userData") || "{}");
+        
+        // Merge fresh data with existing status flags
+        const mergedUserData = {
+          ...freshData.userData,
+          userStatus: existingUserData.userStatus || "new", // Preserve status flag
+          profileComplete: existingUserData.profileComplete !== undefined 
+            ? existingUserData.profileComplete 
+            : freshData.userData.profileComplete // Use existing flag or fallback to backend
+        };
+        
+        localStorage.setItem("userData", JSON.stringify(mergedUserData));
+        console.log("💾 Merged userData with status flags:", mergedUserData);
       }
       if (freshData.tripData) {
         localStorage.setItem("tripData", JSON.stringify(freshData.tripData));
       }
-      if (freshData.tripIntentData) {
-        localStorage.setItem("tripIntentData", JSON.stringify(freshData.tripIntentData));
+      if (freshData.tripPersonaData) {
+        localStorage.setItem("tripPersonaData", JSON.stringify(freshData.tripPersonaData));
       }
       if (freshData.anchorLogicData) {
         localStorage.setItem("anchorLogic", JSON.stringify(freshData.anchorLogicData));
@@ -127,8 +140,21 @@ export default function LocalUniversalRouter() {
         const tripPersonaData = JSON.parse(localStorage.getItem("tripPersonaData") || "null");
         const selectedMetas = JSON.parse(localStorage.getItem("selectedMetas") || "[]");
         const selectedSamples = JSON.parse(localStorage.getItem("selectedSamples") || "[]");
+        const anchorLogic = JSON.parse(localStorage.getItem("anchorLogic") || "null");
         let itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
         console.log("🔍 localStorage data read successfully");
+        
+        // 🔍 COMPREHENSIVE HYDRATION DEBUG
+        console.log("🔍 ===== HYDRATION DEBUG =====");
+        console.log("🔍 userData:", userData);
+        console.log("🔍 profileComplete (localStorage):", profileComplete);
+        console.log("🔍 tripData:", tripData);
+        console.log("🔍 tripPersonaData:", tripPersonaData);
+        console.log("🔍 selectedMetas:", selectedMetas);
+        console.log("🔍 selectedSamples:", selectedSamples);
+        console.log("🔍 anchorLogic:", anchorLogic);
+        console.log("🔍 itineraryData:", itineraryData);
+        console.log("🔍 ===== END HYDRATION DEBUG =====");
         
         // 🔍 DEBUG: Log the exact localStorage data (NEW FLOW)
         console.log("🔍 UniversalRouter - Raw tripPersonaData from localStorage:", tripPersonaData);
@@ -142,7 +168,7 @@ export default function LocalUniversalRouter() {
           userData: !!userData,
           profileComplete: profileComplete,
           tripData: !!tripData,
-          tripIntentData: !!tripIntentData,
+          tripPersonaData: !!tripPersonaData,
           anchorLogic: !!anchorLogic,
           itineraryData: !!itineraryData
         });
@@ -195,8 +221,8 @@ export default function LocalUniversalRouter() {
           if (localStorageData.tripData) {
             localStorage.setItem("tripData", JSON.stringify(localStorageData.tripData));
           }
-          if (localStorageData.tripIntentData) {
-            localStorage.setItem("tripIntentData", JSON.stringify(localStorageData.tripIntentData));
+          if (localStorageData.tripPersonaData) {
+            localStorage.setItem("tripPersonaData", JSON.stringify(localStorageData.tripPersonaData));
           }
           if (localStorageData.anchorLogicData) {
             localStorage.setItem("anchorLogic", JSON.stringify(localStorageData.anchorLogicData));
@@ -262,9 +288,9 @@ export default function LocalUniversalRouter() {
             console.log("💾 Saved tripData to localStorage:", localStorageData.tripData);
           }
 
-          if (localStorageData.tripIntentData) {
-            localStorage.setItem("tripIntentData", JSON.stringify(localStorageData.tripIntentData));
-            console.log("💾 Saved tripIntentData to localStorage:", localStorageData.tripIntentData);
+          if (localStorageData.tripPersonaData) {
+            localStorage.setItem("tripPersonaData", JSON.stringify(localStorageData.tripPersonaData));
+            console.log("💾 Saved tripPersonaData to localStorage:", localStorageData.tripPersonaData);
           }
 
           if (localStorageData.anchorLogicData) {
@@ -328,10 +354,10 @@ export default function LocalUniversalRouter() {
           return navigate("/livedayreturner");
         }
 
-        // Step 4: No trip intent = show button for trip intent
-        if (!tripIntentData || !tripIntentData.tripIntentId) {
-          console.log("❌ No trip intent, showing button for trip intent");
-          console.log("🔍 tripIntentData:", tripIntentData);
+        // Step 4: No trip persona = show button for trip persona
+        if (!tripPersonaData || !tripPersonaData.tripPersonaId) {
+          console.log("❌ No trip persona, showing button for trip persona");
+          console.log("🔍 tripPersonaData:", tripPersonaData);
           setLoading(false); // Show the button
           return;
         }
@@ -459,7 +485,7 @@ export default function LocalUniversalRouter() {
                 onClick={() => {
                   // Use the same routing logic as the main router
                   const currentTripData = JSON.parse(localStorage.getItem("tripData") || "null");
-                  const tripIntentData = JSON.parse(localStorage.getItem("tripIntentData") || "null");
+                  const tripPersonaData = JSON.parse(localStorage.getItem("tripPersonaData") || "null");
                   const anchorLogic = JSON.parse(localStorage.getItem("anchorLogic") || "null");
                   const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
                   
