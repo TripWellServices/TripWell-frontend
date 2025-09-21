@@ -11,8 +11,9 @@ export default function TripPersonaForm() {
   const [tripData, setTripData] = useState(null);
   const [formData, setFormData] = useState({
     primaryPersona: "", // art, foodie, adventure, history
-    budget: "", // low, moderate, high
+    budget: 0, // actual dollar amount per day
     whoWith: "", // solo, couple, family, friends
+    dailySpacing: "", // light, moderate, packed
     romanceLevel: 0.0, // 0.0 to 1.0
     caretakerRole: 0.0, // 0.0 to 1.0
     flexibility: 0.5 // 0.5 balanced/go with flow, 0.0 rigid, 1.0 spontaneous
@@ -49,12 +50,7 @@ export default function TripPersonaForm() {
     { key: "history", label: "History & Heritage", emoji: "🏛️", description: "Historical sites, cultural heritage, monuments" }
   ];
 
-  // Budget Options (from TripGPTPersonaMatch.md)
-  const budgetOptions = [
-    { key: "low", label: "Low", emoji: "💰", description: "$50-100/day", value: 0.3 },
-    { key: "moderate", label: "Moderate", emoji: "💳", description: "$100-200/day", value: 0.5 },
-    { key: "high", label: "High", emoji: "💎", description: "$200+/day", value: 1.0 }
-  ];
+  // Budget is now a number input - no options needed
 
   // Who With Options
   const whoWithOptions = [
@@ -64,17 +60,29 @@ export default function TripPersonaForm() {
     { key: "friends", label: "Friends", emoji: "👥", description: "Friends trip" }
   ];
 
+  // Daily Spacing Options
+  const spacingOptions = [
+    { key: "light", label: "Light", emoji: "🌅", description: "1-2 activities per day, lots of downtime", value: 0.2 },
+    { key: "moderate", label: "Moderate", emoji: "⚖️", description: "2-3 activities per day, balanced pace", value: 0.5 },
+    { key: "packed", label: "Pack it in!", emoji: "🚀", description: "3+ activities per day, maximize time", value: 0.8 }
+  ];
+
   // Selection functions
   const selectPrimaryPersona = (personaKey) => {
     setFormData(prev => ({ ...prev, primaryPersona: personaKey }));
   };
 
-  const selectBudget = (budgetKey) => {
-    setFormData(prev => ({ ...prev, budget: budgetKey }));
+  const handleBudgetChange = (e) => {
+    setFormData(prev => ({ ...prev, budget: parseInt(e.target.value) || 0 }));
   };
 
   const selectWhoWith = (whoWithKey) => {
     setFormData(prev => ({ ...prev, whoWith: whoWithKey }));
+  };
+
+  const selectDailySpacing = (spacingKey) => {
+    const spacingOption = spacingOptions.find(opt => opt.key === spacingKey);
+    setFormData(prev => ({ ...prev, dailySpacing: spacingOption?.value || 0.5 }));
   };
 
   const handleSubmit = async (e) => {
@@ -89,6 +97,7 @@ export default function TripPersonaForm() {
         primaryPersona: formData.primaryPersona,
         budget: formData.budget,
         whoWith: formData.whoWith,
+        dailySpacing: formData.dailySpacing,
         romanceLevel: formData.romanceLevel,
         caretakerRole: formData.caretakerRole,
         flexibility: formData.flexibility
@@ -183,25 +192,24 @@ export default function TripPersonaForm() {
               💰 What's your daily budget?
             </h2>
             <p className="text-gray-600 mb-4">
-              This helps Angela suggest experiences that fit your budget
+              Enter your daily spending budget in dollars (food, activities, transport)
             </p>
-            <div className="grid grid-cols-1 gap-3">
-              {budgetOptions.map((option) => (
-                <label key={option.key} className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
-                  <input
-                    type="radio"
-                    name="budget"
-                    checked={formData.budget === option.key}
-                    onChange={() => selectBudget(option.key)}
-                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                  />
-                  <span className="text-2xl">{option.emoji}</span>
-                  <div>
-                    <div className="text-sm font-medium text-gray-700">{option.label}</div>
-                    <div className="text-xs text-gray-500">{option.description}</div>
-                  </div>
-                </label>
-              ))}
+            <div className="max-w-md">
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-lg">$</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="10"
+                  value={formData.budget}
+                  onChange={handleBudgetChange}
+                  placeholder="150"
+                  className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg"
+                />
+              </div>
+              <p className="text-sm text-gray-500 mt-2">
+                Typical range: $100-400 per day
+              </p>
             </div>
           </div>
 

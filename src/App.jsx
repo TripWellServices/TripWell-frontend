@@ -43,8 +43,10 @@ import PreTripSetup from "./pages/PreTripSetup";
 import TripCreated from "./pages/TripCreated";
 import PrepBuild from "./pages/TripPreBuild";
 import TripPersonaForm from "./pages/TripPersonaForm";
+import EditProfile from "./pages/EditProfile";
 import TripMetaSelect from "./pages/TripMetaSelect";
 import TripSampleSelect from "./pages/TripSampleSelect";
+import TripReviewEdit from "./pages/TripReviewEdit";
 // import AnchorSelectPage from "./pages/AnchorSelect"; // DEPRECATED - replaced by TripMetaSelect
 import TripItineraryBuild from "./pages/TripItineraryBuilder";
 import TripDayOverview from "./pages/TripDaysOverview";
@@ -127,6 +129,9 @@ export default function App() {
       {/* ✅ PrepBuild + alias */}
       <Route path="/prepbuild" element={<PrepBuild />} />
       <Route path="/tripprebuild" element={<PrepBuild />} /> {/* legacy alias */}
+      
+      {/* ✅ Profile Management */}
+      <Route path="/edit-profile" element={<EditProfile />} />
 
       {/* ✅ Test routes */}
       <Route path="/tripidtest" element={<TripIDTest />} />
@@ -145,6 +150,7 @@ export default function App() {
       <Route path="/trip-persona" element={<TripPersonaForm />} />
       <Route path="/meta-select" element={<TripMetaSelect />} />
       <Route path="/persona-sample" element={<TripSampleSelect />} />
+      <Route path="/trip-review-edit" element={<TripReviewEdit />} />
       <Route path="/build-itinerary" element={<TripItineraryBuild />} />
       {/* <Route path="/anchorselect" element={<AnchorSelectPage />} /> */} {/* DEPRECATED - replaced by /meta-select */}
       <Route path="/tripwell/itinerarybuild" element={<TripItineraryBuild />} />

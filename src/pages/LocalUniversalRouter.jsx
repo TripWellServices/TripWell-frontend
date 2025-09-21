@@ -503,7 +503,7 @@ export default function LocalUniversalRouter() {
                   } else if (!selectedSamples || selectedSamples.length === 0) {
                     navigate("/persona-sample");
                   } else if (!itineraryData || !itineraryData.itineraryId) {
-                    navigate("/tripwell/itinerarybuild");
+                    navigate("/trip-review-edit");
                   } else {
                     navigate("/pretriphub");
                   }
@@ -576,7 +576,7 @@ export default function LocalUniversalRouter() {
               } else if (!selectedSamples || selectedSamples.length === 0) {
                 navigate("/persona-sample");
               } else if (!itineraryData || !itineraryData.itineraryId) {
-                navigate("/tripwell/itinerarybuild");
+                navigate("/trip-review-edit");
               } else {
                 navigate("/pretriphub");
               }
@@ -585,6 +585,7 @@ export default function LocalUniversalRouter() {
           >
             🚀 Pick up where you left off!
           </button>
+          
         </div>
       </div>
     </div>
