@@ -92,7 +92,7 @@ export default function TripSetup() {
     try {
       const payload = {
         tripName, purpose, city, country, joinCode,
-        whoWith, // single string
+        whoWith, // single string - weights calculated on backend
         startDate, endDate,                 // "YYYY-MM-DD" strings
         partyCount: partyCount ? Number(partyCount) : null,
       };
@@ -338,6 +338,7 @@ export default function TripSetup() {
               ))}
             </div>
           </div>
+
 
           <button
             type="submit"
