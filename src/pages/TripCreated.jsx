@@ -18,7 +18,7 @@ export default function TripCreated() {
     return null;
   }
 
-  if (!trip) {
+  if (!tripData) {
     return (
       <div className="p-6 text-center text-red-600 font-semibold">
         🚫 Could not load trip.
@@ -26,7 +26,7 @@ export default function TripCreated() {
     );
   }
 
-  const shareMessage = `Hey! Join me on TripWell to plan our ${trip.city} trip.\n\n🔑 Trip Join Code: ${trip.joinCode || trip.tripId}\n\nUse this code to join my trip planning! Go to: https://tripwell.app`;
+  const shareMessage = `Hey! Join me on TripWell to plan our ${tripData.city} trip.\n\n🔑 Trip Join Code: ${tripData.joinCode || tripData.tripId}\n\nUse this code to join my trip planning! Go to: https://tripwell.app`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(shareMessage);
@@ -41,15 +41,15 @@ export default function TripCreated() {
       </h1>
 
       <div className="bg-white shadow rounded-lg p-4 space-y-2 border text-sm">
-        <p><strong>Trip Name:</strong> {trip.tripName}</p>
-        <p><strong>Purpose:</strong> {trip.purpose || "—"}</p>
-        <p><strong>Destination:</strong> {trip.city}</p>
-        <p><strong>Dates:</strong> {new Date(trip.startDate).toLocaleDateString()} – {new Date(trip.endDate).toLocaleDateString()}</p>
-        <p><strong>Party Count:</strong> {trip.partyCount}</p>
-        <p><strong>With:</strong> {trip.whoWith ? trip.whoWith.charAt(0).toUpperCase() + trip.whoWith.slice(1).replace('-', ' ') : "—"}</p>
+        <p><strong>Trip Name:</strong> {tripData.tripName}</p>
+        <p><strong>Purpose:</strong> {tripData.purpose || "—"}</p>
+        <p><strong>Destination:</strong> {tripData.city}</p>
+        <p><strong>Dates:</strong> {new Date(tripData.startDate).toLocaleDateString()} – {new Date(tripData.endDate).toLocaleDateString()}</p>
+        <p><strong>Party Count:</strong> {tripData.partyCount}</p>
+        <p><strong>With:</strong> {tripData.whoWith ? tripData.whoWith.charAt(0).toUpperCase() + tripData.whoWith.slice(1).replace('-', ' ') : "—"}</p>
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
           <p className="text-sm font-medium text-blue-800 mb-1">🔑 Your Trip Join Code</p>
-          <p className="font-mono text-lg font-bold text-blue-600">{trip.joinCode || trip.tripId}</p>
+          <p className="font-mono text-lg font-bold text-blue-600">{tripData.joinCode || tripData.tripId}</p>
           <p className="text-xs text-blue-700 mt-1">Share this code with your travel companions so they can join your trip!</p>
         </div>
       </div>

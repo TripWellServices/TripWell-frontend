@@ -140,48 +140,8 @@ export default function TripSetup() {
         localStorage.setItem("tripData", JSON.stringify(tripData));
         console.log("💾 Saved basic userData and tripData to localStorage");
 
-        // 2. No delay needed - proceed immediately
-        console.log("🚀 Proceeding with TripExtra validation...");
-
-        // 3. Call TripExtra validation and get complete localStorage data
-        try {
-          console.log("🔍 Calling TripExtra validation...");
-          const hydrateRes = await axios.get(`${BACKEND_URL}/tripwell/hydrate`, {
-            headers: authConfig.headers,
-            cache: "no-store"
-          });
-          
-          if (hydrateRes.status === 200) {
-            const hydrateData = hydrateRes.data;
-            console.log("✅ TripExtra validation complete:", hydrateData.validation?.summary);
-            
-            // 4. Update localStorage with validated data
-            if (hydrateData.userData) {
-              localStorage.setItem("userData", JSON.stringify(hydrateData.userData));
-            }
-            if (hydrateData.tripData) {
-              localStorage.setItem("tripData", JSON.stringify(hydrateData.tripData));
-            }
-            if (hydrateData.tripIntentData) {
-              localStorage.setItem("tripIntentData", JSON.stringify(hydrateData.tripIntentData));
-            }
-                    if (hydrateData.anchorLogicData) {
-          localStorage.setItem("anchorLogic", JSON.stringify(hydrateData.anchorLogicData));
-            }
-            if (hydrateData.itineraryData) {
-              localStorage.setItem("itineraryData", JSON.stringify(hydrateData.itineraryData));
-            }
-            
-            console.log("💾 Updated localStorage with TripExtra validated data");
-          } else {
-            console.warn("⚠️ TripExtra validation failed, continuing with basic data");
-          }
-        } catch (err) {
-          console.warn("⚠️ TripExtra validation error:", err.message);
-          // Continue anyway - basic data is already saved
-        }
-        
-        // 5. Navigate to trip created page
+        // 2. Navigate to trip created page (dual save complete)
+        // LocalUniversalRouter will handle hydration when needed
         console.log("🚀 Navigating to /tripcreated");
         navigate(`/tripcreated`);
       } else if (res.status === 409) {
