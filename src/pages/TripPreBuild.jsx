@@ -13,9 +13,10 @@ export default function TripPrebuild() {
       </p>
 
       <div className="bg-gray-100 p-4 rounded-md text-left space-y-2 text-sm">
-        <p>🧭 Step 1: Set your travel intent — vibes, priorities, pace.</p>
-        <p>📍 Step 2: Choose 3 anchor experiences. Angela will help you pick.</p>
-        <p>🛠️ Step 3: Angela builds your personalized itinerary, day by day.</p>
+        <p>🎭 Step 1: Set your trip persona — what type of experiences you enjoy.</p>
+        <p>🚫 Step 2: Choose attractions to avoid — obvious tourist traps.</p>
+        <p>✨ Step 3: Pick sample experiences that match your style.</p>
+        <p>🛠️ Step 4: Angela builds your personalized itinerary, day by day.</p>
       </div>
 
       <p className="text-sm text-gray-600">
@@ -24,7 +25,7 @@ export default function TripPrebuild() {
 
       <div className="space-y-4">
         <button
-          onClick={() => navigate("/tripintent")}
+          onClick={() => navigate("/trip-persona")}
           className="w-full bg-blue-600 text-white px-5 py-3 rounded-md hover:bg-blue-700 transition"
         >
           🚀 I'm Ready to Plan My Trip
