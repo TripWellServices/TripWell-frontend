@@ -12,7 +12,6 @@ export default function TripPersonaForm() {
   const [formData, setFormData] = useState({
     primaryPersona: "", // art, foodie, adventure, history
     budget: 0, // actual dollar amount per day
-    whoWith: "", // solo, couple, family, friends
     dailySpacing: "", // light, moderate, packed
     romanceLevel: 0.0, // 0.0 to 1.0
     caretakerRole: 0.0, // 0.0 to 1.0
@@ -52,13 +51,7 @@ export default function TripPersonaForm() {
 
   // Budget is now a number input - no options needed
 
-  // Who With Options
-  const whoWithOptions = [
-    { key: "solo", label: "Solo", emoji: "🧳", description: "Traveling alone" },
-    { key: "couple", label: "Couple", emoji: "💕", description: "Romantic getaway" },
-    { key: "family", label: "Family", emoji: "👨‍👩‍👧‍👦", description: "Family trip" },
-    { key: "friends", label: "Friends", emoji: "👥", description: "Friends trip" }
-  ];
+  // whoWith is captured in trip setup - not needed here
 
   // Daily Spacing Options
   const spacingOptions = [
@@ -96,7 +89,6 @@ export default function TripPersonaForm() {
         userId: userData.firebaseId,
         primaryPersona: formData.primaryPersona,
         budget: formData.budget,
-        whoWith: formData.whoWith,
         dailySpacing: formData.dailySpacing,
         romanceLevel: formData.romanceLevel,
         caretakerRole: formData.caretakerRole,
@@ -146,13 +138,13 @@ export default function TripPersonaForm() {
     <div className="min-h-screen bg-gradient-to-br from-sky-400 via-sky-300 to-blue-200 flex items-center justify-center p-6">
       <div className="max-w-2xl w-full space-y-8 bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-white/20">
         <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">
-          Build Your Travel Persona for <strong>{tripData?.city || "Your Destination"}</strong>
+          Let's Personalize Your Trip to <strong>{tripData?.city || "Your Destination"}</strong>
         </h1>
         
         <div className="bg-blue-50 p-6 rounded-xl mb-6 border border-blue-200">
-          <h2 className="text-lg font-semibold text-blue-800 mb-3">Hi! Let's build your travel persona...</h2>
+          <h2 className="text-lg font-semibold text-blue-800 mb-3">🎯 Let's personalize your trip!</h2>
           <p className="text-blue-700 leading-relaxed">
-            These simple questions will help Angela understand your travel style and create the perfect personalized itinerary for your trip to <strong>{tripData?.city || "your destination"}</strong>.
+            These quick questions help Angela understand your travel style and create the perfect personalized itinerary for your trip to <strong>{tripData?.city || "your destination"}</strong>.
           </p>
         </div>
         
@@ -213,22 +205,22 @@ export default function TripPersonaForm() {
             </div>
           </div>
 
-          {/* Who With Section */}
+          {/* Daily Spacing Section */}
           <div className="bg-white shadow rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-4 text-gray-800">
-              👥 Who are you traveling with?
+              ⏰ How do you like to pace your days?
             </h2>
             <p className="text-gray-600 mb-4">
-              This helps Angela tailor the experience to your group
+              This helps Angela plan the right amount of activities for your style
             </p>
             <div className="grid grid-cols-1 gap-3">
-              {whoWithOptions.map((option) => (
+              {spacingOptions.map((option) => (
                 <label key={option.key} className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
                   <input
                     type="radio"
-                    name="whoWith"
-                    checked={formData.whoWith === option.key}
-                    onChange={() => selectWhoWith(option.key)}
+                    name="dailySpacing"
+                    checked={formData.dailySpacing === option.value}
+                    onChange={() => selectDailySpacing(option.key)}
                     className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                   />
                   <span className="text-2xl">{option.emoji}</span>
