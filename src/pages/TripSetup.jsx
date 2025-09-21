@@ -110,7 +110,7 @@ export default function TripSetup() {
       console.log("create trip resp", res.status, data);
 
       if (res.status === 201 && data.tripId) {
-        console.log("✅ Trip created successfully, starting TripExtra flow...");
+        console.log("✅ Trip created successfully, saving to localStorage...");
         
         // 1. Save basic data to localStorage immediately
         const userData = {
