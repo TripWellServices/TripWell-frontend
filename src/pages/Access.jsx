@@ -71,7 +71,7 @@ export default function Access() {
                 
                 const userData = await res.json();
                 console.log("🔍 Backend response:", userData);
-                console.log("🔍 DEBUG - userData.user?.userStatus === "new":", userData.user?.userStatus === "new");
+                console.log("🔍 DEBUG - userData.user?.userStatus === 'signup':", userData.user?.userStatus === "signup");
                 console.log("🔍 DEBUG - userData.user.profileComplete:", userData.user?.profileComplete);
                 console.log("🔍 DEBUG - Full userData object:", JSON.stringify(userData, null, 2));
                 
@@ -172,7 +172,7 @@ export default function Access() {
                 
                 const userData = await res.json();
                 console.log("🔍 Backend response:", userData);
-                console.log("🔍 DEBUG - userData.user?.userStatus === "new":", userData.user?.userStatus === "new");
+                console.log("🔍 DEBUG - userData.user?.userStatus === 'signup':", userData.user?.userStatus === "signup");
                 console.log("🔍 DEBUG - userData.user.profileComplete:", userData.user?.profileComplete);
                 console.log("🔍 DEBUG - Full userData object:", JSON.stringify(userData, null, 2));
                 
