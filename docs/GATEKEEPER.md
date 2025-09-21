@@ -34,7 +34,7 @@ if (user) {
 
 ```js
 // ACCESS.JSX - DEAD SIMPLE
-if (userData.userCreated) {
+if (userData.user?.userStatus === "new") {
   userData.user.userStatus = "new";
   userData.user.profileComplete = false;
 } else {
@@ -43,7 +43,7 @@ if (userData.userCreated) {
 }
 localStorage.setItem("userData", JSON.stringify(userData.user));
 
-if (userData.userCreated) {
+if (userData.user?.userStatus === "new") {
   navigate("/profilesetup");
 } else {
   navigate("/localrouter");

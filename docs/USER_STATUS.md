@@ -61,7 +61,7 @@ const setProfileStatus = (profileComplete) => {
 #### **Access.jsx**
 ```js
 // After successful sign in
-if (userData.userCreated) {
+if (userData.user?.userStatus === "new") {
   setUserStatus("new_user");
   setProfileStatus(false);
   navigate("/profilesetup");

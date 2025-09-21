@@ -71,7 +71,7 @@ export default function Access() {
                 
                 const userData = await res.json();
                 console.log("🔍 Backend response:", userData);
-                console.log("🔍 DEBUG - userData.userCreated:", userData.userCreated);
+                console.log("🔍 DEBUG - userData.user?.userStatus === "new":", userData.user?.userStatus === "new");
                 console.log("🔍 DEBUG - userData.user.profileComplete:", userData.user?.profileComplete);
                 console.log("🔍 DEBUG - Full userData object:", JSON.stringify(userData, null, 2));
                 
@@ -81,27 +81,18 @@ export default function Access() {
                 
                 console.log("🔒 Routing decision in progress...");
                 
-                // 💾 BASIC HYDRATION: Save user data + set status for LocalUniversalRouter
+                // 💾 BASIC HYDRATION: Save user data (backend already set userStatus)
                 if (userData.user) {
-                  // Set status based on user type
-                  if (userData.userCreated) {
-                    userData.user.userStatus = "new";
-                    userData.user.profileComplete = false;
-                  } else {
-                    userData.user.userStatus = "active";
-                    userData.user.profileComplete = true;
-                  }
-                  
                   localStorage.setItem("userData", JSON.stringify(userData.user));
                   console.log("💾 Saved userData to localStorage:", userData.user);
                 }
                 
                 // 🚨 CRITICAL ROUTING LOGIC - DEAD SIMPLE!
-                if (userData.userCreated) {
-                  console.log("👋 User created → /profilesetup");
+                if (userData.user?.userStatus === "signup") {
+                  console.log("👋 Signup user → /profilesetup");
                   navigate("/profilesetup");  // NEW USER → ProfileSetup
                 } else {
-                  console.log("✅ Already user → /localrouter (LocalUniversalRouter will hydrate)");
+                  console.log("✅ Active user → /localrouter (LocalUniversalRouter will hydrate)");
                   navigate("/localrouter");   // EXISTING USER → LocalUniversalRouter hydrates & routes
                 }
                 
@@ -181,7 +172,7 @@ export default function Access() {
                 
                 const userData = await res.json();
                 console.log("🔍 Backend response:", userData);
-                console.log("🔍 DEBUG - userData.userCreated:", userData.userCreated);
+                console.log("🔍 DEBUG - userData.user?.userStatus === "new":", userData.user?.userStatus === "new");
                 console.log("🔍 DEBUG - userData.user.profileComplete:", userData.user?.profileComplete);
                 console.log("🔍 DEBUG - Full userData object:", JSON.stringify(userData, null, 2));
                 
@@ -191,27 +182,18 @@ export default function Access() {
                 
                 console.log("🔒 Routing decision in progress...");
                 
-                // 💾 BASIC HYDRATION: Save user data + set status for LocalUniversalRouter
+                // 💾 BASIC HYDRATION: Save user data (backend already set userStatus)
                 if (userData.user) {
-                  // Set status based on user type
-                  if (userData.userCreated) {
-                    userData.user.userStatus = "new";
-                    userData.user.profileComplete = false;
-                  } else {
-                    userData.user.userStatus = "active";
-                    userData.user.profileComplete = true;
-                  }
-                  
                   localStorage.setItem("userData", JSON.stringify(userData.user));
                   console.log("💾 Saved userData to localStorage:", userData.user);
                 }
                 
                 // 🚨 CRITICAL ROUTING LOGIC - DEAD SIMPLE!
-                if (userData.userCreated) {
-                  console.log("👋 User created → /profilesetup");
+                if (userData.user?.userStatus === "signup") {
+                  console.log("👋 Signup user → /profilesetup");
                   navigate("/profilesetup");  // NEW USER → ProfileSetup
                 } else {
-                  console.log("✅ Already user → /localrouter (LocalUniversalRouter will hydrate)");
+                  console.log("✅ Active user → /localrouter (LocalUniversalRouter will hydrate)");
                   navigate("/localrouter");   // EXISTING USER → LocalUniversalRouter hydrates & routes
                 }
                 

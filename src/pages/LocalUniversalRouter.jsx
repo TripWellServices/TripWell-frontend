@@ -49,7 +49,7 @@ export default function LocalUniversalRouter() {
         // Merge fresh data with existing status flags
         const mergedUserData = {
           ...freshData.userData,
-          userStatus: existingUserData.userStatus || "new", // Preserve status flag
+          userStatus: existingUserData.userStatus || "signup", // Preserve status flag
           profileComplete: existingUserData.profileComplete !== undefined 
             ? existingUserData.profileComplete 
             : freshData.userData.profileComplete // Use existing flag or fallback to backend
