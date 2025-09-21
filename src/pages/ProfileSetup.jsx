@@ -11,8 +11,8 @@ export default function ProfileSetup() {
   const [email, setEmail] = useState("");
   const [hometownCity, setHometownCity] = useState("");
   const [state, setState] = useState("");
-  const [planningVibe, setPlanningVibe] = useState("");
-  const [travelVibe, setTravelVibe] = useState("");
+  const [persona, setPersona] = useState("");
+  const [planningStyle, setPlanningStyle] = useState("");
   const [dreamDestination, setDreamDestination] = useState("");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -33,16 +33,17 @@ export default function ProfileSetup() {
     setLoading(false);
   }, []);
 
-  const planningVibeOptions = [
-    "Spontaneous",
-    "Balanced mix", 
-    "Detail oriented"
+  const personaOptions = [
+    "Art",
+    "Food", 
+    "History",
+    "Adventure"
   ];
 
-  const travelVibeOptions = [
-    "Spontaneous",
-    "Go with flow", 
-    "Stick to plan"
+  const planningStyleOptions = [
+    "Spontaneity",
+    "Flow", 
+    "Rigid"
   ];
 
 
@@ -63,8 +64,8 @@ export default function ProfileSetup() {
           email,
           hometownCity,
           state,
-          planningVibe,
-          travelVibe,
+          persona,
+          planningStyle,
           dreamDestination
         })
       });
@@ -178,40 +179,40 @@ export default function ProfileSetup() {
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-800">Planning Vibes</h3>
-          <p className="text-gray-600 text-sm">How do you like to plan your trips?</p>
+          <h3 className="text-lg font-semibold text-gray-800">How do you best describe your trip desires?</h3>
+          <p className="text-gray-600 text-sm">What type of experiences do you enjoy most?</p>
           <div className="space-y-3">
-            {planningVibeOptions.map((vibe) => (
-              <label key={vibe} className="flex items-center space-x-3 cursor-pointer p-4 border border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition-all">
+            {personaOptions.map((option) => (
+              <label key={option} className="flex items-center space-x-3 cursor-pointer p-4 border border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition-all">
                 <input
                   type="radio"
-                  name="planningVibe"
-                  value={vibe}
-                  checked={planningVibe === vibe}
-                  onChange={(e) => setPlanningVibe(e.target.value)}
+                  name="persona"
+                  value={option}
+                  checked={persona === option}
+                  onChange={(e) => setPersona(e.target.value)}
                   className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                 />
-                <span className="text-gray-700 font-medium">{vibe}</span>
+                <span className="text-gray-700 font-medium">{option}</span>
               </label>
             ))}
           </div>
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-800">Travel Vibes</h3>
-          <p className="text-gray-600 text-sm">What's your travel style?</p>
+          <h3 className="text-lg font-semibold text-gray-800">How do you plan/live out your trips?</h3>
+          <p className="text-gray-600 text-sm">What's your planning and travel style?</p>
           <div className="space-y-3">
-            {travelVibeOptions.map((vibe) => (
-              <label key={vibe} className="flex items-center space-x-3 cursor-pointer p-4 border border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition-all">
+            {planningStyleOptions.map((style) => (
+              <label key={style} className="flex items-center space-x-3 cursor-pointer p-4 border border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition-all">
                 <input
                   type="radio"
-                  name="travelVibe"
-                  value={vibe}
-                  checked={travelVibe === vibe}
-                  onChange={(e) => setTravelVibe(e.target.value)}
+                  name="planningStyle"
+                  value={style}
+                  checked={planningStyle === style}
+                  onChange={(e) => setPlanningStyle(e.target.value)}
                   className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                 />
-                <span className="text-gray-700 font-medium">{vibe}</span>
+                <span className="text-gray-700 font-medium">{style}</span>
               </label>
             ))}
           </div>
