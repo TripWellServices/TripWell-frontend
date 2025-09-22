@@ -9,6 +9,7 @@ export default function TripMetaSelect() {
   const [loading, setLoading] = useState(false);
   const [metaAttractions, setMetaAttractions] = useState([]);
   const [selectedMetas, setSelectedMetas] = useState([]);
+  const [groupedAttractions, setGroupedAttractions] = useState({});
   const [tripData, setTripData] = useState(null);
   const [userData, setUserData] = useState(null);
 
@@ -50,8 +51,22 @@ export default function TripMetaSelect() {
       const res = await axios.get(`${BACKEND_URL}/tripwell/meta-attractions/${cityId}/${season}`);
 
       if (res.status === 200) {
-        setMetaAttractions(res.data.metaAttractions || []);
-        console.log("✅ Meta attractions loaded:", res.data.metaAttractions);
+        const attractions = res.data.metaAttractions || [];
+        setMetaAttractions(attractions);
+        
+        // Group attractions by type with user-friendly labels
+        const grouped = attractions.reduce((acc, attraction) => {
+          const type = attraction.type || 'Other';
+          const friendlyType = type.charAt(0).toUpperCase() + type.slice(1) + 's';
+          if (!acc[friendlyType]) {
+            acc[friendlyType] = [];
+          }
+          acc[friendlyType].push(attraction);
+          return acc;
+        }, {});
+        
+        setGroupedAttractions(grouped);
+        console.log("✅ Meta attractions loaded and grouped:", grouped);
       }
     } catch (err) {
       console.error("❌ Error fetching meta attractions:", err);
@@ -66,6 +81,22 @@ export default function TripMetaSelect() {
         ? prev.filter(name => name !== metaName)
         : [...prev, metaName]
     );
+  };
+
+  const toggleGroupSelection = (type) => {
+    const groupAttractions = groupedAttractions[type] || [];
+    const groupNames = groupAttractions.map(attraction => attraction.name);
+    
+    // Check if all items in group are selected
+    const allSelected = groupNames.every(name => selectedMetas.includes(name));
+    
+    if (allSelected) {
+      // Deselect all items in group
+      setSelectedMetas(prev => prev.filter(name => !groupNames.includes(name)));
+    } else {
+      // Select all items in group
+      setSelectedMetas(prev => [...new Set([...prev, ...groupNames])]);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -133,21 +164,41 @@ export default function TripMetaSelect() {
                 Choose the obvious tourist attractions you actually want to visit
               </p>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {metaAttractions.map((attraction, index) => (
-                  <label key={index} className="flex items-start space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={selectedMetas.includes(attraction.name)}
-                      onChange={() => toggleMetaSelection(attraction.name)}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1"
-                    />
-                    <div className="flex-1">
-                      <div className="text-sm font-medium text-gray-700">{attraction.name}</div>
-                      <div className="text-xs text-gray-500 mt-1">{attraction.type}</div>
-                      <div className="text-xs text-gray-400 mt-1">{attraction.reason}</div>
+              <div className="space-y-6">
+                {Object.entries(groupedAttractions).map(([type, attractions]) => (
+                  <div key={type} className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-lg font-semibold text-gray-800">{type}</h3>
+                      <button
+                        type="button"
+                        onClick={() => toggleGroupSelection(attractions[0].type)}
+                        className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                      >
+                        {attractions.every(attraction => selectedMetas.includes(attraction.name)) 
+                          ? 'Deselect All' 
+                          : 'Select All'
+                        }
+                      </button>
                     </div>
-                  </label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {attractions.map((attraction, index) => (
+                        <label key={index} className="flex items-start space-x-3 p-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                          <input
+                            type="checkbox"
+                            checked={selectedMetas.includes(attraction.name)}
+                            onChange={() => toggleMetaSelection(attraction.name)}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1"
+                          />
+                          <div className="flex-1">
+                            <div className="text-sm font-medium text-gray-700">{attraction.name}</div>
+                            {attraction.reason && (
+                              <div className="text-xs text-gray-500 mt-1">{attraction.reason}</div>
+                            )}
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
               

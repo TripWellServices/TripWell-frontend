@@ -127,11 +127,11 @@ export default function TripPersonaSample() {
     <div className="min-h-screen bg-gradient-to-br from-sky-400 via-sky-300 to-blue-200 flex items-center justify-center p-6">
       <div className="max-w-4xl w-full space-y-8 bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-white/20">
         <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">
-          Hey bro - we got ya, here's some other things you may like
+          Here are some personalized recommendations for you
         </h1>
         
         <div className="bg-blue-50 p-6 rounded-xl mb-6 border border-blue-200">
-          <h2 className="text-lg font-semibold text-blue-800 mb-3">Give us your feedback before we go build the final boss</h2>
+          <h2 className="text-lg font-semibold text-blue-800 mb-3">Help us personalize your experience</h2>
           <p className="text-blue-700 leading-relaxed">
             Based on your preferences, we've curated some samples. Select the ones that appeal to you, and we'll use this feedback to fine-tune your personalized recommendations.
           </p>
@@ -161,9 +161,7 @@ export default function TripPersonaSample() {
                     />
                     <div className="flex-1">
                       <div className="text-sm font-medium text-gray-700">{attraction.name}</div>
-                      <div className="text-xs text-gray-500 mt-1">{attraction.type}</div>
-                      <div className="text-xs text-gray-400 mt-1">{attraction.description}</div>
-                      <div className="text-xs text-blue-600 mt-1">Tagged: {attraction.personaTags?.join(", ")}</div>
+                      <div className="text-xs text-gray-500 mt-1">{attraction.description}</div>
                     </div>
                   </label>
                 ))}
@@ -186,9 +184,7 @@ export default function TripPersonaSample() {
                     />
                     <div className="flex-1">
                       <div className="text-sm font-medium text-gray-700">{restaurant.name}</div>
-                      <div className="text-xs text-gray-500 mt-1">{restaurant.cuisine}</div>
-                      <div className="text-xs text-gray-400 mt-1">{restaurant.description}</div>
-                      <div className="text-xs text-blue-600 mt-1">Tagged: {restaurant.personaTags?.join(", ")}</div>
+                      <div className="text-xs text-gray-500 mt-1">{restaurant.description}</div>
                     </div>
                   </label>
                 ))}
@@ -211,9 +207,7 @@ export default function TripPersonaSample() {
                     />
                     <div className="flex-1">
                       <div className="text-sm font-medium text-gray-700">{thing.name}</div>
-                      <div className="text-xs text-gray-500 mt-1">{thing.type}</div>
-                      <div className="text-xs text-gray-400 mt-1">{thing.description}</div>
-                      <div className="text-xs text-blue-600 mt-1">Tagged: {thing.personaTags?.join(", ")}</div>
+                      <div className="text-xs text-gray-500 mt-1">{thing.description}</div>
                     </div>
                   </label>
                 ))}
