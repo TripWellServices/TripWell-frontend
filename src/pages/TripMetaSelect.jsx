@@ -41,11 +41,13 @@ export default function TripMetaSelect() {
   const fetchMetaAttractions = async () => {
     setLoading(true);
     try {
-      const res = await axios.post(`${BACKEND_URL}/tripwell/meta-attractions`, {
-        placeSlug: `${tripData.city}-${tripData.budget}-${tripData.whoWith}`,
-        city: tripData.city,
-        season: tripData.season || "any"
-      });
+      // Fast lookup using cityId and season
+      const cityId = tripData.cityId || tripData.tripId; // Use cityId if available, fallback to tripId
+      const season = tripData.season || "any";
+      
+      console.log("🎯 Fast meta lookup for:", { cityId, season });
+      
+      const res = await axios.get(`${BACKEND_URL}/tripwell/meta-attractions/${cityId}/${season}`);
 
       if (res.status === 200) {
         setMetaAttractions(res.data.metaAttractions || []);
