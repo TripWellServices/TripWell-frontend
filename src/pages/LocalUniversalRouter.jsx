@@ -150,6 +150,8 @@ export default function LocalUniversalRouter() {
         console.log("🔍 profileComplete (localStorage):", profileComplete);
         console.log("🔍 tripData:", tripData);
         console.log("🔍 tripPersonaData:", tripPersonaData);
+        console.log("🔍 tripPersonaData type:", typeof tripPersonaData);
+        console.log("🔍 tripPersonaData keys:", tripPersonaData ? Object.keys(tripPersonaData) : "null");
         console.log("🔍 selectedMetas:", selectedMetas);
         console.log("🔍 selectedSamples:", selectedSamples);
         console.log("🔍 anchorLogic:", anchorLogic);
@@ -331,6 +333,15 @@ export default function LocalUniversalRouter() {
         // Allow users to continue trip planning even with incomplete profile
         const hasBasicInfo = currentUserData?.firstName && currentUserData?.lastName;
         
+        console.log("🔍 DEBUG - Profile completion check:", {
+          profileCompleteFlag,
+          userProfileComplete,
+          hasBasicInfo,
+          firstName: currentUserData?.firstName,
+          lastName: currentUserData?.lastName,
+          willRedirect: !profileCompleteFlag && !userProfileComplete && !hasBasicInfo
+        });
+        
         if (!profileCompleteFlag && !userProfileComplete && !hasBasicInfo) {
           console.log("❌ New user with no basic info, redirecting to ProfileSetup");
           console.log("🔍 DEBUG - About to navigate to /profilesetup");
@@ -368,7 +379,14 @@ export default function LocalUniversalRouter() {
         }
 
         // Step 4: No trip persona = show button for trip persona
-        if (!tripPersonaData || !tripPersonaData.tripPersonaId) {
+        console.log("🔍 DEBUG - Checking tripPersonaData:", {
+          tripPersonaData,
+          hasTripPersonaId: !!tripPersonaData?.tripPersonaId,
+          hasPrimaryPersona: !!tripPersonaData?.primaryPersona,
+          primaryPersona: tripPersonaData?.primaryPersona
+        });
+        
+        if (!tripPersonaData || (!tripPersonaData.tripPersonaId && !tripPersonaData.primaryPersona)) {
           console.log("❌ No trip persona, showing button for trip persona");
           console.log("🔍 tripPersonaData:", tripPersonaData);
           setLoading(false); // Show the button
