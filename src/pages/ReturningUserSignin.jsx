@@ -1,5 +1,5 @@
-// src/pages/Access.jsx
-// 🎯 SIMPLE: Sign Up → Auth → ProfileSetup, Sign In → ReturningUserSignin
+// src/pages/ReturningUserSignin.jsx
+// 🎯 RETURNING USER SIGN IN - Handle Firebase auth and route to ProfileSetup
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
@@ -8,20 +8,20 @@ import BACKEND_URL from "../config";
 
 const googleProvider = new GoogleAuthProvider();
 
-export default function Access() {
+export default function ReturningUserSignin() {
   const navigate = useNavigate();
-  const [isSigningUp, setIsSigningUp] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
-  const handleSignUp = async () => {
-    if (isSigningUp) return;
+  const handleSignIn = async () => {
+    if (isSigningIn) return;
     
-    setIsSigningUp(true);
+    setIsSigningIn(true);
     try {
-      console.log("🚀 Starting sign up process...");
+      console.log("🚀 Starting auth process...");
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
       
-      console.log("🔐 User signed up:", user.email);
+      console.log("🔐 User signed in:", user.email);
       
       // Create or find user in backend
       console.log("🔍 Calling createOrFind...");
@@ -44,14 +44,14 @@ export default function Access() {
         console.log("💾 Saved user data to localStorage");
       }
       
-      // Route to ProfileSetup (new user)
-      console.log("✅ Sign up success → ProfileSetup");
-      navigate("/profilesetup");
+      // Route to LocalRouter (existing user)
+      console.log("✅ Auth success → LocalRouter");
+      navigate("/localrouter");
       
     } catch (error) {
-      console.error("❌ Sign up failed:", error);
+      console.error("❌ Sign in failed:", error);
     } finally {
-      setIsSigningUp(false);
+      setIsSigningIn(false);
     }
   };
 
@@ -66,36 +66,27 @@ export default function Access() {
             </svg>
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            Welcome to TripWell! 🌍
+            Welcome Back! 👋
           </h1>
           <p className="text-gray-600 text-lg leading-relaxed">
-            Sign up to start planning your next adventure!
+            Sign in to continue planning your adventures
           </p>
         </div>
 
-        {/* Sign Up Button */}
+        {/* Sign In Button */}
         <div className="space-y-4">
           <button
-            onClick={handleSignUp}
-            disabled={isSigningUp}
-            className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleSignIn}
+            disabled={isSigningIn}
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSigningUp ? "Signing up..." : "✨ Sign Up with Google"}
-          </button>
-          
-          {/* Sign In Option */}
-          <button
-            onClick={() => navigate("/returning-user-signin")}
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-6 rounded-xl font-semibold text-base hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-          >
-            🔐 Already have an account? Sign In
+            {isSigningIn ? "Signing in..." : "🔐 Sign In with Google"}
           </button>
         </div>
 
         {/* Help Text */}
-        <div className="text-sm text-gray-500 space-y-2">
-          <p><strong>New to TripWell?</strong> Sign up to start planning your adventures!</p>
-          <p><strong>Returning user?</strong> Click "Sign In" above</p>
+        <div className="text-sm text-gray-500">
+          <p>Sign in to access your personalized trip planning experience</p>
         </div>
       </div>
     </div>

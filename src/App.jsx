@@ -31,6 +31,7 @@ import Home from "./pages/Home";
 import HomeArchive from "./pages/HomeArchive";
 import Explainer from "./pages/Explainer";
 import Access from "./pages/Access";
+import ReturningUserSignin from "./pages/ReturningUserSignin";
 import JoinAccess from "./pages/JoinAccess";
 import PreJoinTrip from "./pages/PreJoinTrip";
 import TripJoin from "./pages/TripJoin";
@@ -98,6 +99,7 @@ export default function App() {
       {/* ✅ Public Routes */}
       <Route path="/" element={<Home />} />
       <Route path="/access" element={<Access />} />
+      <Route path="/returning-user-signin" element={<ReturningUserSignin />} />
       <Route path="/homearchive" element={<HomeArchive />} />
       <Route path="/explainer" element={<Explainer />} />
       <Route path="/joinaccess" element={<JoinAccess />} />

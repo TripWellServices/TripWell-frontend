@@ -35,6 +35,12 @@ export default function LocalUniversalRouter() {
           navigate("/access");
           return;
         }
+        if (response.status === 404) {
+          console.log("❌ User not found (deleted), clearing cache and routing to /access");
+          localStorage.clear();
+          navigate("/access");
+          return;
+        }
         throw new Error(`Server error: ${response.status}`);
       }
 
@@ -322,38 +328,31 @@ export default function LocalUniversalRouter() {
         // Step 2: Check if profile is complete
         console.log("🔍 DEBUG - Checking profile completion...");
         console.log("🔍 DEBUG - currentUserData:", currentUserData);
-        console.log("🔍 DEBUG - profileComplete value:", currentUserData?.profileComplete);
-        console.log("🔍 DEBUG - profileComplete type:", typeof currentUserData?.profileComplete);
         
-        // Check both userData.profileComplete and localStorage flag
-        const profileCompleteFlag = localStorage.getItem("profileComplete") === "true";
-        const userProfileComplete = currentUserData?.profileComplete;
+        // 🚨 CRITICAL: If no user data, redirect to access
+        if (!currentUserData || currentUserData === null) {
+          console.log("❌ No user data found, redirecting to /access");
+          navigate("/access");
+          return;
+        }
         
         // 🎯 HAPPY VIBES: Only redirect to ProfileSetup if user is truly new (no firstName/lastName)
         // Allow users to continue trip planning even with incomplete profile
         const hasBasicInfo = currentUserData?.firstName && currentUserData?.lastName;
         
-        console.log("🔍 DEBUG - Profile completion check:", {
-          profileCompleteFlag,
-          userProfileComplete,
-          hasBasicInfo,
-          firstName: currentUserData?.firstName,
-          lastName: currentUserData?.lastName,
-          willRedirect: !profileCompleteFlag && !userProfileComplete && !hasBasicInfo
-        });
-        
-        if (!profileCompleteFlag && !userProfileComplete && !hasBasicInfo) {
+        // If user has basic info, let them continue with trip flow (happy vibes!)
+        if (hasBasicInfo) {
+          console.log("✅ User has basic info, allowing trip flow to continue (happy vibes!)");
+        } else {
           console.log("❌ New user with no basic info, redirecting to ProfileSetup");
-          console.log("🔍 DEBUG - About to navigate to /profilesetup");
           navigate("/profilesetup");
           return;
         }
+        console.log("🔍 DEBUG - profileComplete value:", currentUserData?.profileComplete);
+        console.log("🔍 DEBUG - profileComplete type:", typeof currentUserData?.profileComplete);
         
-        // If user has basic info but incomplete profile, let them continue with trip flow
-        if (!profileCompleteFlag && !userProfileComplete && hasBasicInfo) {
-          console.log("✅ User has basic info, allowing trip flow to continue (happy vibes!)");
-        }
-        console.log("✅ Profile complete, continuing with trip flow");
+        // Profile completion check is now handled above with happy vibes!
+        console.log("✅ Profile check complete, continuing with trip flow");
 
         // 🎯 SIMPLIFIED ROUTING LOGIC - Focus on actual flags that matter
         
