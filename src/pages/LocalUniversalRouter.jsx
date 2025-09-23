@@ -323,11 +323,24 @@ export default function LocalUniversalRouter() {
         console.log("🔍 DEBUG - profileComplete value:", currentUserData?.profileComplete);
         console.log("🔍 DEBUG - profileComplete type:", typeof currentUserData?.profileComplete);
         
-        if (!currentUserData?.profileComplete) {
-          console.log("❌ Profile incomplete, redirecting to ProfileSetup");
+        // Check both userData.profileComplete and localStorage flag
+        const profileCompleteFlag = localStorage.getItem("profileComplete") === "true";
+        const userProfileComplete = currentUserData?.profileComplete;
+        
+        // 🎯 HAPPY VIBES: Only redirect to ProfileSetup if user is truly new (no firstName/lastName)
+        // Allow users to continue trip planning even with incomplete profile
+        const hasBasicInfo = currentUserData?.firstName && currentUserData?.lastName;
+        
+        if (!profileCompleteFlag && !userProfileComplete && !hasBasicInfo) {
+          console.log("❌ New user with no basic info, redirecting to ProfileSetup");
           console.log("🔍 DEBUG - About to navigate to /profilesetup");
           navigate("/profilesetup");
           return;
+        }
+        
+        // If user has basic info but incomplete profile, let them continue with trip flow
+        if (!profileCompleteFlag && !userProfileComplete && hasBasicInfo) {
+          console.log("✅ User has basic info, allowing trip flow to continue (happy vibes!)");
         }
         console.log("✅ Profile complete, continuing with trip flow");
 
@@ -482,32 +495,34 @@ export default function LocalUniversalRouter() {
           {loading && (
             <div className="pt-4">
               <button
-                onClick={() => {
-                  // Use the same routing logic as the main router
-                  const currentTripData = JSON.parse(localStorage.getItem("tripData") || "null");
-                  const tripPersonaData = JSON.parse(localStorage.getItem("tripPersonaData") || "null");
-                  const anchorLogic = JSON.parse(localStorage.getItem("anchorLogic") || "null");
-                  const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
-                  
-                  // Apply the same routing logic
-                  if (!currentTripData || !currentTripData.tripId) {
-                    navigate("/postprofileroleselect");
-                  } else if (currentTripData.tripComplete === true) {
-                    navigate("/tripcomplete");
-                  } else if (currentTripData.startedTrip === true) {
-                    navigate("/livedayreturner");
-                  } else if (!tripPersonaData || !tripPersonaData.primaryPersona) {
-                    navigate("/trip-persona");
-                  } else if (!selectedMetas || selectedMetas.length === 0) {
-                    navigate("/meta-select");
-                  } else if (!selectedSamples || selectedSamples.length === 0) {
-                    navigate("/persona-sample");
-                  } else if (!itineraryData || !itineraryData.itineraryId) {
-                    navigate("/trip-review-edit");
-                  } else {
-                    navigate("/pretriphub");
-                  }
-                }}
+            onClick={() => {
+              // Use the same routing logic as the main router
+              const currentTripData = JSON.parse(localStorage.getItem("tripData") || "null");
+              const tripPersonaData = JSON.parse(localStorage.getItem("tripPersonaData") || "null");
+              const anchorLogic = JSON.parse(localStorage.getItem("anchorLogic") || "null");
+              const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
+              const selectedMetas = JSON.parse(localStorage.getItem("selectedMetas") || "[]");
+              const selectedSamples = JSON.parse(localStorage.getItem("selectedSamples") || "[]");
+              
+              // Apply the same routing logic
+              if (!currentTripData || !currentTripData.tripId) {
+                navigate("/postprofileroleselect");
+              } else if (currentTripData.tripComplete === true) {
+                navigate("/tripcomplete");
+              } else if (currentTripData.startedTrip === true) {
+                navigate("/livedayreturner");
+              } else if (!tripPersonaData || !tripPersonaData.primaryPersona) {
+                navigate("/trip-persona");
+              } else if (!selectedMetas || selectedMetas.length === 0) {
+                navigate("/meta-select");
+              } else if (!selectedSamples || selectedSamples.length === 0) {
+                navigate("/persona-sample");
+              } else if (!itineraryData || !itineraryData.itineraryId) {
+                navigate("/trip-review-edit");
+              } else {
+                navigate("/pretriphub");
+              }
+            }}
                 className="bg-white text-sky-600 px-8 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 hover:bg-sky-50"
               >
                 🚀 Pick up where you left off!
@@ -558,9 +573,11 @@ export default function LocalUniversalRouter() {
             onClick={() => {
               // Use the same routing logic as the main router
               const currentTripData = JSON.parse(localStorage.getItem("tripData") || "null");
-              const tripIntentData = JSON.parse(localStorage.getItem("tripIntentData") || "null");
+              const tripPersonaData = JSON.parse(localStorage.getItem("tripPersonaData") || "null");
               const anchorLogic = JSON.parse(localStorage.getItem("anchorLogic") || "null");
               const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
+              const selectedMetas = JSON.parse(localStorage.getItem("selectedMetas") || "[]");
+              const selectedSamples = JSON.parse(localStorage.getItem("selectedSamples") || "[]");
               
               // Apply the same routing logic
               if (!currentTripData || !currentTripData.tripId) {

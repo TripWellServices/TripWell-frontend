@@ -41,9 +41,9 @@ export default function ProfileSetup() {
   ];
 
   const planningStyleOptions = [
-    "Spontaneity",
-    "Flow", 
-    "Rigid"
+    "Spontaneous",
+    "Mix of spontaneous and planned", 
+    "Set a plan and stick to it!"
   ];
 
 
@@ -78,8 +78,6 @@ export default function ProfileSetup() {
         email: email,
         firstName: firstName,
         lastName: lastName,
-        hometownCity: hometownCity,
-        state: state,
         profileComplete: true
       };
       localStorage.setItem("userData", JSON.stringify(updatedUserData));
@@ -119,10 +117,10 @@ export default function ProfileSetup() {
             </svg>
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            Let's Get to Know You! 👋
+            Welcome to TripWell! 🌍
           </h1>
           <p className="text-gray-600 text-lg leading-relaxed">
-            Tell us a bit about yourself so we can personalize your trip planning experience and suggest destinations you'll love.
+            Just tell us your name and we'll get you started on your next adventure!
           </p>
         </div>
 
@@ -191,6 +189,7 @@ export default function ProfileSetup() {
                   checked={persona === option}
                   onChange={(e) => setPersona(e.target.value)}
                   className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                  required
                 />
                 <span className="text-gray-700 font-medium">{option}</span>
               </label>
@@ -211,6 +210,7 @@ export default function ProfileSetup() {
                   checked={planningStyle === style}
                   onChange={(e) => setPlanningStyle(e.target.value)}
                   className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                  required
                 />
                 <span className="text-gray-700 font-medium">{style}</span>
               </label>
@@ -226,6 +226,7 @@ export default function ProfileSetup() {
             onChange={(e) => setDreamDestination(e.target.value)}
             placeholder="Paris, Tokyo, Bali, New York, anywhere your heart desires..."
             className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-lg"
+            required
           />
         </div>
 
