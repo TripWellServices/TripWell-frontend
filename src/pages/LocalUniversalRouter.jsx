@@ -1,42 +1,50 @@
+// src/pages/LocalUniversalRouter.jsx
+// 🎯 MINIMAL ROUTER - Hydrate data and route based on trip state
 import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
-import { getAuthConfig } from "../utils/auth";
 import BACKEND_URL from "../config";
+
+// Router state: "splash" | "hydrating" | "ready"
 
 export default function LocalUniversalRouter() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [loading, setLoading] = useState(true);
-  const [showInitialLoading, setShowInitialLoading] = useState(true);
-  const [isReady, setIsReady] = useState(false);
+  const [state, setState] = useState("splash");
 
-  const hydrateData = async () => {
-    try {
-      if (isReady) {
-        console.log("🔍 UniversalRouter - Already ready, skipping...");
-        return;
+  // Get auth config for API calls
+  const getAuthConfig = async () => {
+    const user = auth.currentUser;
+    if (!user) throw new Error("No user found");
+    
+    const token = await user.getIdToken();
+    return {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
       }
+    };
+  };
+
+  // Hydrate data from backend
+  const hydrate = async () => {
+    try {
+      setState("hydrating");
+      console.log("🔄 Hydrating data...");
       
-        // Profile completion check moved to after hydration
-      
-      console.log("🔄 UniversalRouter - Starting hydration...");
       const authConfig = await getAuthConfig();
-      
       const response = await fetch(`${BACKEND_URL}/tripwell/hydrate`, {
         headers: authConfig.headers,
         cache: "no-store"
       });
 
       if (!response.ok) {
-        console.log("❌ /hydrate failed:", response.status);
         if (response.status === 401) {
-          console.log("❌ Authentication error, routing to /access");
+          console.log("❌ Auth error, routing to /access");
           navigate("/access");
           return;
         }
         if (response.status === 404) {
-          console.log("❌ User not found (deleted), clearing cache and routing to /access");
+          console.log("❌ User not found, clearing cache and routing to /access");
           localStorage.clear();
           navigate("/access");
           return;
@@ -44,584 +52,187 @@ export default function LocalUniversalRouter() {
         throw new Error(`Server error: ${response.status}`);
       }
 
-      const freshData = await response.json();
-      console.log("✅ UniversalRouter - Hydration complete");
-      
-      // Save data to localStorage (preserve status flags set by Access.jsx)
-      if (freshData.userData) {
-        // Get existing userData to preserve status flags
-        const existingUserData = JSON.parse(localStorage.getItem("userData") || "{}");
-        
-        // Merge fresh data with existing status flags
-        const mergedUserData = {
-          ...freshData.userData,
-          userStatus: existingUserData.userStatus || "signup", // Preserve status flag
-          profileComplete: existingUserData.profileComplete !== undefined 
-            ? existingUserData.profileComplete 
-            : freshData.userData.profileComplete // Use existing flag or fallback to backend
-        };
-        
-        localStorage.setItem("userData", JSON.stringify(mergedUserData));
-        console.log("💾 Merged userData with status flags:", mergedUserData);
+      const data = await response.json();
+      console.log("✅ Hydration complete:", data);
+
+      // Save data to localStorage
+      if (data.userData) {
+        localStorage.setItem("userData", JSON.stringify(data.userData));
       }
-      if (freshData.tripData) {
-        localStorage.setItem("tripData", JSON.stringify(freshData.tripData));
+      if (data.tripData) {
+        localStorage.setItem("tripData", JSON.stringify(data.tripData));
       }
-      if (freshData.tripPersonaData) {
-        localStorage.setItem("tripPersonaData", JSON.stringify(freshData.tripPersonaData));
+      if (data.tripPersonaData) {
+        localStorage.setItem("tripPersonaData", JSON.stringify(data.tripPersonaData));
       }
-      if (freshData.anchorLogicData) {
-        localStorage.setItem("anchorLogic", JSON.stringify(freshData.anchorLogicData));
+      if (data.itineraryData) {
+        localStorage.setItem("itineraryData", JSON.stringify(data.itineraryData));
       }
-      if (freshData.itineraryData) {
-        localStorage.setItem("itineraryData", JSON.stringify(freshData.itineraryData));
+      if (data.selectedMetas) {
+        localStorage.setItem("selectedMetas", JSON.stringify(data.selectedMetas));
+      }
+      if (data.selectedSamples) {
+        localStorage.setItem("selectedSamples", JSON.stringify(data.selectedSamples));
       }
 
-      setIsReady(true);
-      console.log("✅ UniversalRouter - Data saved, ready to show button");
-
-    } catch (err) {
-      console.error("❌ UniversalRouter hydration error:", err);
+      setState("ready");
+    } catch (error) {
+      console.error("❌ Hydration failed:", error);
       navigate("/access");
     }
   };
 
-  useEffect(() => {
-    async function universalRouter() {
-      try {
-      console.log("🚀 LocalUniversalRouter useEffect started");
-      console.log("🔍 DEBUG - Current pathname:", location.pathname);
-      console.log("🔍 DEBUG - Current user:", auth.currentUser?.email);
-      
-      // 🚨 CRITICAL: Guard - disable UniversalRouter during Access/ProfileSetup
-      if (location.pathname === "/access" || location.pathname === "/profilesetup") {
-        console.log("⏸️ UniversalRouter disabled during Access/Profile flow");
-        setLoading(false);
-        return;
-      }
-      
-      console.log("✅ UniversalRouter guard passed, continuing...");
-        // Check if we're already on a live day route or debug route - if so, don't interfere
-        const currentPath = location.pathname;
-        console.log("🔍 LocalUniversalRouter checking path:", currentPath);
-        
-        const bypassPaths = [
-          '/tripliveday',
-          '/tripliveblock', 
-          '/dayindextest',
-          '/livedayreturner',
-          '/tripdaylookback',
-          '/postprofileroleselect'
-        ];
-        
-        const shouldBypass = bypassPaths.some(path => currentPath.startsWith(path) || currentPath === path);
-        
-        if (shouldBypass) {
-          console.log("🚀 LocalUniversalRouter - Already on live day route, not interfering:", currentPath);
-          setLoading(false);
-          return;
-        }
-        
-        // Show initial loading for 800ms, then hydrate
-        if (showInitialLoading) {
-          console.log("⏳ Showing initial loading screen...");
-          setTimeout(() => {
-            setShowInitialLoading(false);
-            hydrateData();
-          }, 800);
-          return;
-        }
-        
-        console.log("🔍 LocalUniversalRouter - Starting universal routing check");
+  // Route based on trip state - use hydrated data
+  const decideRoute = () => {
+    // Get data from localStorage (already hydrated)
+    const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
+    const tripPersonaData = JSON.parse(localStorage.getItem("tripPersonaData") || "null");
+    const selectedMetas = JSON.parse(localStorage.getItem("selectedMetas") || "[]");
+    const selectedSamples = JSON.parse(localStorage.getItem("selectedSamples") || "[]");
+    const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
 
-        // Check if profile is incomplete - if so, don't run any routing logic
-        // Profile completion check moved to after hydration
+    console.log("🔍 Routing decision tree:", {
+      hasTripData: !!tripData,
+      hasTripPersona: !!tripPersonaData,
+      hasSelectedMetas: selectedMetas.length > 0,
+      hasSelectedSamples: selectedSamples.length > 0,
+      hasItinerary: !!itineraryData
+    });
 
-        // Get all localStorage data (NEW FLOW)
-        console.log("🔍 Reading localStorage data...");
-        console.log("🔍 DEBUG - About to read localStorage...");
-        const userData = JSON.parse(localStorage.getItem("userData") || "null");
-        const profileComplete = localStorage.getItem("profileComplete") === "true";
-        const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
-        const tripPersonaData = JSON.parse(localStorage.getItem("tripPersonaData") || "null");
-        const selectedMetas = JSON.parse(localStorage.getItem("selectedMetas") || "[]");
-        const selectedSamples = JSON.parse(localStorage.getItem("selectedSamples") || "[]");
-        const anchorLogic = JSON.parse(localStorage.getItem("anchorLogic") || "null");
-        let itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
-        console.log("🔍 localStorage data read successfully");
-        
-        // 🔍 COMPREHENSIVE HYDRATION DEBUG
-        console.log("🔍 ===== HYDRATION DEBUG =====");
-        console.log("🔍 userData:", userData);
-        console.log("🔍 profileComplete (localStorage):", profileComplete);
-        console.log("🔍 tripData:", tripData);
-        console.log("🔍 tripPersonaData:", tripPersonaData);
-        console.log("🔍 tripPersonaData type:", typeof tripPersonaData);
-        console.log("🔍 tripPersonaData keys:", tripPersonaData ? Object.keys(tripPersonaData) : "null");
-        console.log("🔍 selectedMetas:", selectedMetas);
-        console.log("🔍 selectedSamples:", selectedSamples);
-        console.log("🔍 anchorLogic:", anchorLogic);
-        console.log("🔍 itineraryData:", itineraryData);
-        console.log("🔍 ===== END HYDRATION DEBUG =====");
-        
-        // 🔍 DEBUG: Log the exact localStorage data (NEW FLOW)
-        console.log("🔍 UniversalRouter - Raw tripPersonaData from localStorage:", tripPersonaData);
-        console.log("🔍 UniversalRouter - selectedMetas:", selectedMetas);
-        console.log("🔍 UniversalRouter - selectedSamples:", selectedSamples);
-        console.log("🔍 UniversalRouter - tripPersonaData type:", typeof tripPersonaData);
-        console.log("🔍 UniversalRouter - selectedMetas length:", selectedMetas?.length);
-        console.log("🔍 UniversalRouter - selectedSamples length:", selectedSamples?.length);
-
-        console.log("🔍 Current localStorage state:", {
-          userData: !!userData,
-          profileComplete: profileComplete,
-          tripData: !!tripData,
-          tripPersonaData: !!tripPersonaData,
-          anchorLogic: !!anchorLogic,
-          itineraryData: !!itineraryData
-        });
-
-        // Helper to refresh localStorage from server
-        async function refreshFromServer() {
-          // Wait for Firebase auth
-          await new Promise(resolve => {
-            const unsubscribe = auth.onAuthStateChanged(user => {
-              unsubscribe();
-              resolve(user);
-            });
-          });
-
-          const firebaseUser = auth.currentUser;
-          if (!firebaseUser) {
-            console.log("❌ No Firebase user, routing to /access");
-            return navigate("/access");
-          }
-
-          // ✅ FIX: Use standardized auth utility
-          const authConfig = await getAuthConfig();
-          const flushRes = await fetch(`${BACKEND_URL}/tripwell/hydrate`, {
-            headers: authConfig.headers,
-            cache: "no-store"
-          });
-
-          if (!flushRes.ok) {
-            console.log("❌ /hydrate failed while refreshing");
-            // ✅ FIX: Add proper error handling
-            if (flushRes.status === 401) {
-              console.log("❌ Authentication error, routing to /access");
-              return navigate("/access");
-            }
-            if (flushRes.status === 404) {
-              console.log("❌ User not found (deleted), clearing cache and routing to /access");
-              // Clear all localStorage data for deleted user
-              localStorage.clear();
-              return navigate("/access");
-            }
-            return;
-          }
-
-          const localStorageData = await flushRes.json();
-          console.log("🔄 Refreshed from /hydrate:", localStorageData);
-
-          if (localStorageData.userData) {
-            localStorage.setItem("userData", JSON.stringify(localStorageData.userData));
-          }
-          if (localStorageData.tripData) {
-            localStorage.setItem("tripData", JSON.stringify(localStorageData.tripData));
-          }
-          if (localStorageData.tripPersonaData) {
-            localStorage.setItem("tripPersonaData", JSON.stringify(localStorageData.tripPersonaData));
-          }
-          if (localStorageData.anchorLogicData) {
-            localStorage.setItem("anchorLogic", JSON.stringify(localStorageData.anchorLogicData));
-            console.log("💾 Saved anchorLogicData to localStorage as anchorLogic:", localStorageData.anchorLogicData);
-          }
-          if (localStorageData.itineraryData) {
-            localStorage.setItem("itineraryData", JSON.stringify(localStorageData.itineraryData));
-          }
-        }
-
-        // Step 1: Check if we have user data, if not hydrate from backend
-        if (!userData) {
-          console.log("❌ No userData in localStorage, calling /localflush");
-
-          // Wait for Firebase auth
-          await new Promise(resolve => {
-            const unsubscribe = auth.onAuthStateChanged(user => {
-              unsubscribe();
-              resolve(user);
-            });
-          });
-
-          const firebaseUser = auth.currentUser;
-          if (!firebaseUser) {
-            console.log("❌ No Firebase user, routing to /access");
-            return navigate("/access");
-          }
-
-          // ✅ FIX: Use standardized auth utility
-          const authConfig = await getAuthConfig();
-          const flushRes = await fetch(`${BACKEND_URL}/tripwell/hydrate`, {
-            headers: authConfig.headers,
-            cache: "no-store"
-          });
-
-          if (!flushRes.ok) {
-            console.log("❌ /hydrate failed, routing to /access");
-            // ✅ FIX: Add proper error handling
-            if (flushRes.status === 401) {
-              console.log("❌ Authentication error, routing to /access");
-              return navigate("/access");
-            }
-            if (flushRes.status === 404) {
-              console.log("❌ User not found (deleted), clearing cache and routing to /access");
-              // Clear all localStorage data for deleted user
-              localStorage.clear();
-              return navigate("/access");
-            }
-            return navigate("/access");
-          }
-
-          const localStorageData = await flushRes.json();
-          console.log("🔍 /hydrate response:", localStorageData);
-
-          // Save all data to localStorage
-          if (localStorageData.userData) {
-            localStorage.setItem("userData", JSON.stringify(localStorageData.userData));
-            console.log("💾 Saved userData to localStorage:", localStorageData.userData);
-          }
-
-          if (localStorageData.tripData) {
-            localStorage.setItem("tripData", JSON.stringify(localStorageData.tripData));
-            console.log("💾 Saved tripData to localStorage:", localStorageData.tripData);
-          }
-
-          if (localStorageData.tripPersonaData) {
-            localStorage.setItem("tripPersonaData", JSON.stringify(localStorageData.tripPersonaData));
-            console.log("💾 Saved tripPersonaData to localStorage:", localStorageData.tripPersonaData);
-          }
-
-          if (localStorageData.anchorLogicData) {
-            localStorage.setItem("anchorLogic", JSON.stringify(localStorageData.anchorLogicData));
-            console.log("💾 Saved anchorLogicData to localStorage as anchorLogic:", localStorageData.anchorLogicData);
-          }
-
-          if (localStorageData.itineraryData) {
-            localStorage.setItem("itineraryData", JSON.stringify(localStorageData.itineraryData));
-            console.log("💾 Saved itineraryData to localStorage:", localStorageData.itineraryData);
-          }
-
-          // Set profileComplete flag based on backend data
-          if (localStorageData.userData?.profileComplete) {
-            localStorage.setItem("profileComplete", "true");
-            console.log("💾 Set profileComplete to true");
-          } else {
-            localStorage.setItem("profileComplete", "false");
-            console.log("💾 Set profileComplete to false");
-          }
-        }
-
-        // Re-read localStorage after potential updates
-        const currentUserData = JSON.parse(localStorage.getItem("userData") || "null");
-        const currentTripData = JSON.parse(localStorage.getItem("tripData") || "null");
-
-        // Step 2: Check if profile is complete
-        console.log("🔍 DEBUG - Checking profile completion...");
-        console.log("🔍 DEBUG - currentUserData:", currentUserData);
-        
-        // 🚨 CRITICAL: If no user data, redirect to access
-        if (!currentUserData || currentUserData === null) {
-          console.log("❌ No user data found, redirecting to /access");
-          navigate("/access");
-          return;
-        }
-        
-        // 🎯 HAPPY VIBES: Only redirect to ProfileSetup if user is truly new (no firstName/lastName)
-        // Allow users to continue trip planning even with incomplete profile
-        const hasBasicInfo = currentUserData?.firstName && currentUserData?.lastName;
-        
-        // If user has basic info, let them continue with trip flow (happy vibes!)
-        if (hasBasicInfo) {
-          console.log("✅ User has basic info, allowing trip flow to continue (happy vibes!)");
-        } else {
-          console.log("❌ New user with no basic info, redirecting to ProfileSetup");
-          navigate("/profilesetup");
-          return;
-        }
-        console.log("🔍 DEBUG - profileComplete value:", currentUserData?.profileComplete);
-        console.log("🔍 DEBUG - profileComplete type:", typeof currentUserData?.profileComplete);
-        
-        // Profile completion check is now handled above with happy vibes!
-        console.log("✅ Profile check complete, continuing with trip flow");
-
-        // 🎯 SIMPLIFIED ROUTING LOGIC - Focus on actual flags that matter
-        
-        // Step 1: No trip data = need to create/join trip
-        if (!currentTripData || !currentTripData.tripId) {
-          console.log("❌ No trip data, showing button for role selection");
-          setLoading(false); // Show the button, don't keep loading
-          return;
-        }
-
-        console.log("✅ Trip data found, continuing with routing logic");
-
-        // Step 2: Trip complete = go to completion page
-        if (currentTripData.tripComplete === true) {
-          console.log("✅ Trip complete, routing to /tripcomplete");
-          return navigate("/tripcomplete");
-        }
-
-        // Step 3: Trip started = go to live trip
-        if (currentTripData.startedTrip === true) {
-          console.log("✅ Trip started, routing to /livedayreturner");
-          return navigate("/livedayreturner");
-        }
-
-        // Step 4: No trip persona = show button for trip persona
-        console.log("🔍 DEBUG - Checking tripPersonaData:", {
-          tripPersonaData,
-          hasTripPersonaId: !!tripPersonaData?.tripPersonaId,
-          hasPrimaryPersona: !!tripPersonaData?.primaryPersona,
-          primaryPersona: tripPersonaData?.primaryPersona
-        });
-        
-        if (!tripPersonaData || (!tripPersonaData.tripPersonaId && !tripPersonaData.primaryPersona)) {
-          console.log("❌ No trip persona, showing button for trip persona");
-          console.log("🔍 tripPersonaData:", tripPersonaData);
-          setLoading(false); // Show the button
-          return;
-        }
-
-        // Step 5: No anchors = show button for anchor selection
-        const hasAnchors = anchorLogic && anchorLogic.anchors && anchorLogic.anchors.length > 0;
-        if (!hasAnchors) {
-          console.log("❌ No anchors, showing button for anchor selection");
-          console.log("🔍 anchorLogic:", anchorLogic);
-          setLoading(false); // Show the button
-          return;
-        }
-
-        // Step 6: No itinerary = show button for itinerary build
-        if (!itineraryData || !itineraryData.itineraryId) {
-          console.log("❌ No itinerary, showing button for itinerary build");
-          setLoading(false); // Show the button
-          return;
-        }
-
-        // Step 7: Itinerary built but trip not started = show button for pre-trip hub
-        console.log("✅ Itinerary complete, showing button for pre-trip hub");
-        setLoading(false); // Show the button
-        return;
-
-      } catch (error) {
-        console.error("❌ UniversalRouter error:", error);
-        navigate("/access");
-      }
+    // No trip data = need to create/join trip
+    if (!tripData) {
+      console.log("❌ No trip data → /postprofileroleselect");
+      navigate("/postprofileroleselect");
+      return;
     }
 
-    universalRouter();
-  }, [navigate, location.pathname, showInitialLoading]);
+    // Trip is complete
+    if (tripData.tripComplete === true) {
+      console.log("✅ Trip complete → /tripcomplete");
+      navigate("/tripcomplete");
+      return;
+    }
 
-  // Show initial loading screen (same design as Home)
-  if (showInitialLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-sky-400 via-sky-300 to-blue-200 flex flex-col items-center justify-center p-6">
-        <div className="max-w-2xl w-full text-center space-y-8">
-          <div className="space-y-6">
-            {/* TripWell Logo */}
-            <div className="flex flex-col items-center space-y-4">
-              <svg 
-                width="140" 
-                height="140" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                xmlns="http://www.w3.org/2000/svg"
-                className="drop-shadow-lg"
-              >
-                <path 
-                  d="M21 16V14L13 9V3.5C13 2.67 12.33 2 11.5 2S10 2.67 10 3.5V9L2 14V16L10 13.5V19L8 20.5V22L12 21L16 22V20.5L14 19V13.5L22 16Z" 
-                  fill="#0ea5e9"
-                />
-              </svg>
-              
-              {/* TripWell Text */}
-              <div className="text-center">
-                <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">
-                  <span className="text-sky-100">Trip</span>
-                  <span className="text-white">Well</span>
-                </h1>
-                <p className="text-lg text-sky-50 font-medium drop-shadow-md">
-                  Loading Your Adventure
-                </p>
-              </div>
-            </div>
-          </div>
+    // Trip has started
+    if (tripData.startedTrip === true) {
+      console.log("🚀 Trip started → /livedayreturner");
+      navigate("/livedayreturner");
+      return;
+    }
 
-          {/* Loading spinner */}
-          <div className="flex justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+    // No trip persona data
+    if (!tripPersonaData) {
+      console.log("❌ No trip persona → /trip-persona");
+      navigate("/trip-persona");
+      return;
+    }
 
-  // No separate "Ready to continue?" screen - always show main loading screen with button below icon
+    // No meta selections
+    if (selectedMetas.length === 0) {
+      console.log("❌ No meta selections → /meta-select");
+      navigate("/meta-select");
+      return;
+    }
 
-  if (loading) {
+    // No sample selections
+    if (selectedSamples.length === 0) {
+      console.log("❌ No sample selections → /sample-select");
+      navigate("/sample-select");
+      return;
+    }
+
+    // No itinerary data
+    if (!itineraryData) {
+      console.log("❌ No itinerary → /itinerarybuild");
+      navigate("/itinerarybuild");
+      return;
+    }
+
+    // Default: go to pre-trip hub
+    console.log("✅ All data present → /pretriphub");
+    navigate("/pretriphub");
+  };
+
+  // Initial hydration
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      hydrate();
+    }, 800);
+
+    return () => clearTimeout(timeoutId);
+  }, []);
+
+  // Splash screen
+  if (state === "splash") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-sky-400 via-sky-300 to-blue-200 flex items-center justify-center p-6">
         <div className="max-w-2xl w-full text-center space-y-8">
           <div className="space-y-6">
-            {/* Custom TripWell Logo */}
+            {/* TripWell Logo */}
             <div className="flex flex-col items-center space-y-4">
-              <svg 
-                width="140" 
-                height="140" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                xmlns="http://www.w3.org/2000/svg"
-                className="drop-shadow-lg"
-              >
-                <path 
-                  d="M21 16V14L13 9V3.5C13 2.67 12.33 2 11.5 2S10 2.67 10 3.5V9L2 14V16L10 13.5V19L8 20.5V22L12 21L16 22V20.5L14 19V13.5L22 16Z" 
-                  fill="#0ea5e9"
-                />
-              </svg>
-              
-              {/* TripWell Text */}
-              <div className="text-center">
-                <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">
-                  <span className="text-sky-100">Trip</span>
-                  <span className="text-white">Well</span>
-                </h1>
-                <h2 className="text-2xl font-bold text-white mb-2 drop-shadow-lg">Welcome back!</h2>
-                <p className="text-lg text-sky-50 font-medium drop-shadow-md">🌍 Pick up where you left off!</p>
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-3xl flex items-center justify-center shadow-2xl">
+                <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                </svg>
               </div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                TripWell
+              </h1>
             </div>
-          </div>
-
-          {/* Loading spinner - only show during hydration */}
-          {!isReady && (
+            
+            {/* Loading Spinner */}
             <div className="flex justify-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
-          )}
-          
-          {/* Ready button right below the text - always show when loading */}
-          {loading && (
-            <div className="pt-4">
-              <button
-            onClick={() => {
-              // Use the same routing logic as the main router
-              const currentTripData = JSON.parse(localStorage.getItem("tripData") || "null");
-              const tripPersonaData = JSON.parse(localStorage.getItem("tripPersonaData") || "null");
-              const anchorLogic = JSON.parse(localStorage.getItem("anchorLogic") || "null");
-              const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
-              const selectedMetas = JSON.parse(localStorage.getItem("selectedMetas") || "[]");
-              const selectedSamples = JSON.parse(localStorage.getItem("selectedSamples") || "[]");
-              
-              // Apply the same routing logic
-              if (!currentTripData || !currentTripData.tripId) {
-                navigate("/postprofileroleselect");
-              } else if (currentTripData.tripComplete === true) {
-                navigate("/tripcomplete");
-              } else if (currentTripData.startedTrip === true) {
-                navigate("/livedayreturner");
-              } else if (!tripPersonaData || !tripPersonaData.primaryPersona) {
-                navigate("/trip-persona");
-              } else if (!selectedMetas || selectedMetas.length === 0) {
-                navigate("/meta-select");
-              } else if (!selectedSamples || selectedSamples.length === 0) {
-                navigate("/persona-sample");
-              } else if (!itineraryData || !itineraryData.itineraryId) {
-                navigate("/trip-review-edit");
-              } else {
-                navigate("/pretriphub");
-              }
-            }}
-                className="bg-white text-sky-600 px-8 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 hover:bg-sky-50"
-              >
-                🚀 Pick up where you left off!
-              </button>
-            </div>
-          )}
+          </div>
         </div>
       </div>
     );
   }
 
-  // ALWAYS show the button - no fallbacks, no complex logic
+  // Hydrating state
+  if (state === "hydrating") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-sky-400 via-sky-300 to-blue-200 flex items-center justify-center p-6">
+        <div className="max-w-2xl w-full text-center space-y-8">
+          <div className="space-y-6">
+            <div className="flex justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+            <p className="text-gray-600 text-lg">Loading your trip data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Ready state - show button
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-400 via-sky-300 to-blue-200 flex items-center justify-center p-6">
       <div className="max-w-2xl w-full text-center space-y-8">
         <div className="space-y-6">
-          {/* Custom TripWell Logo */}
+          {/* TripWell Logo */}
           <div className="flex flex-col items-center space-y-4">
-            <svg 
-              width="140" 
-              height="140" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              xmlns="http://www.w3.org/2000/svg"
-              className="drop-shadow-lg"
-            >
-              <path 
-                d="M21 16V14L13 9V3.5C13 2.67 12.33 2 11.5 2S10 2.67 10 3.5V9L2 14V16L10 13.5V19L8 20.5V22L12 21L16 22V20.5L14 19V13.5L22 16Z" 
-                fill="#0ea5e9"
-              />
-            </svg>
-            
-            {/* TripWell Text */}
-            <div className="text-center">
-              <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">
-                <span className="text-sky-100">Trip</span>
-                <span className="text-white">Well</span>
-              </h1>
-              <h2 className="text-2xl font-bold text-white mb-2 drop-shadow-lg">Welcome back!</h2>
-              <p className="text-lg text-sky-50 font-medium drop-shadow-md">🌍 Pick up where you left off!</p>
+            <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-3xl flex items-center justify-center shadow-2xl">
+              <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+              </svg>
             </div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              TripWell
+            </h1>
+            <p className="text-gray-600 text-lg">Ready to continue your adventure!</p>
           </div>
-        </div>
-
-        {/* THE BUTTON - ALWAYS SHOW */}
-        <div className="pt-4">
+          
+          {/* Continue Button */}
           <button
-            onClick={() => {
-              // Use the same routing logic as the main router
-              const currentTripData = JSON.parse(localStorage.getItem("tripData") || "null");
-              const tripPersonaData = JSON.parse(localStorage.getItem("tripPersonaData") || "null");
-              const anchorLogic = JSON.parse(localStorage.getItem("anchorLogic") || "null");
-              const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
-              const selectedMetas = JSON.parse(localStorage.getItem("selectedMetas") || "[]");
-              const selectedSamples = JSON.parse(localStorage.getItem("selectedSamples") || "[]");
-              
-              // Apply the same routing logic
-              if (!currentTripData || !currentTripData.tripId) {
-                navigate("/postprofileroleselect");
-              } else if (currentTripData.tripComplete === true) {
-                navigate("/tripcomplete");
-              } else if (currentTripData.startedTrip === true) {
-                navigate("/livedayreturner");
-              } else if (!tripPersonaData || !tripPersonaData.primaryPersona) {
-                navigate("/trip-persona");
-              } else if (!selectedMetas || selectedMetas.length === 0) {
-                navigate("/meta-select");
-              } else if (!selectedSamples || selectedSamples.length === 0) {
-                navigate("/persona-sample");
-              } else if (!itineraryData || !itineraryData.itineraryId) {
-                navigate("/trip-review-edit");
-              } else {
-                navigate("/pretriphub");
-              }
-            }}
-            className="bg-white text-sky-600 px-8 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 hover:bg-sky-50"
+            onClick={decideRoute}
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-8 rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
           >
             🚀 Pick up where you left off!
           </button>
-          
         </div>
       </div>
     </div>
-  ); 
+  );
 }
