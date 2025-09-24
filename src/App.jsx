@@ -30,7 +30,7 @@ axios.interceptors.request.use(
 import Home from "./pages/Home";
 import HomeArchive from "./pages/HomeArchive";
 import Explainer from "./pages/Explainer";
-import Access from "./pages/Access";
+import Signup from "./pages/Signup";
 import ReturningUserSignin from "./pages/ReturningUserSignin";
 import JoinAccess from "./pages/JoinAccess";
 import PreJoinTrip from "./pages/PreJoinTrip";
@@ -98,7 +98,7 @@ export default function App() {
     <Routes>
       {/* ✅ Public Routes */}
       <Route path="/" element={<Home />} />
-      <Route path="/access" element={<Access />} />
+          <Route path="/signup" element={<Signup />} />
       <Route path="/returning-user-signin" element={<ReturningUserSignin />} />
       <Route path="/homearchive" element={<HomeArchive />} />
       <Route path="/explainer" element={<Explainer />} />

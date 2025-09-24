@@ -40,7 +40,6 @@ export default function ReturningUserSignin() {
       // Save user data to localStorage
       if (userData.user) {
         localStorage.setItem("userData", JSON.stringify(userData.user));
-        localStorage.setItem("profileComplete", "false");
         console.log("💾 Saved user data to localStorage");
       }
       

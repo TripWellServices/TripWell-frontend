@@ -27,10 +27,54 @@ export default function ProfileSetup() {
   ];
 
   useEffect(() => {
-    // No hydration needed - we know this is a new/incomplete user
-    console.log("🔍 ProfileSetup: Setting up form for new/incomplete user");
-    setEmail(auth.currentUser?.email || "");
-    setLoading(false);
+    // 🚨 HYDRATION CHECK: In case user accidentally hit signup when they already have account
+    const checkExistingProfile = async () => {
+      try {
+        const authToken = await getAuthToken();
+        if (!authToken) {
+          setEmail(auth.currentUser?.email || "");
+          setLoading(false);
+          return;
+        }
+
+        // Check if user already has profile data
+        const response = await fetch(`${BACKEND_URL}/tripwell/hydrate`, {
+          headers: getAuthConfig().headers
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          
+          // If user already has profile data, prepopulate it
+          if (data.userData && data.userData.firstName && data.userData.lastName) {
+            console.log("🤦‍♂️ User already has profile - prepopulating for escape route");
+            
+            setFirstName(data.userData.firstName || "");
+            setLastName(data.userData.lastName || "");
+            setEmail(data.userData.email || "");
+            setHometownCity(data.userData.hometownCity || "");
+            setState(data.userData.homeState || "");
+            setDreamDestination(data.userData.dreamDestination || "");
+            
+            // Show escape route message
+            alert("Hey! You already have a profile. We've prepopulated it for you. You can:\n1. Hit 'Save Profile' to continue\n2. Or go back to home if you meant to sign in instead");
+          } else {
+            // New user - just set email
+            setEmail(auth.currentUser?.email || "");
+          }
+        } else {
+          // New user - just set email
+          setEmail(auth.currentUser?.email || "");
+        }
+      } catch (error) {
+        console.log("No existing profile found - continuing with new user flow");
+        setEmail(auth.currentUser?.email || "");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkExistingProfile();
   }, []);
 
   const personaOptions = [
@@ -78,10 +122,8 @@ export default function ProfileSetup() {
         email: email,
         firstName: firstName,
         lastName: lastName,
-        profileComplete: true
       };
       localStorage.setItem("userData", JSON.stringify(updatedUserData));
-      localStorage.setItem("profileComplete", "true");
       console.log("💾 Updated userData and set profileComplete to true:", updatedUserData);
 
       // ✅ Route to post profile complete after saving profile

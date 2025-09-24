@@ -34,8 +34,8 @@ export default function Home() {
             console.log("✅ User found, routing to localrouter for routing logic...");
             navigate("/localrouter");
           } else {
-            console.log("❌ No user, routing to /access...");
-            navigate("/access");
+      console.log("❌ No user, routing to /signup...");
+      navigate("/signup");
           }
         }
       });

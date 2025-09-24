@@ -1,5 +1,5 @@
-// src/pages/Access.jsx
-// 🎯 SIMPLE: Sign Up → Auth → ProfileSetup, Sign In → ReturningUserSignin
+// src/pages/Signup.jsx
+// 🎯 SIMPLE: New user signup only - no universal auth wrappers!
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
@@ -8,7 +8,7 @@ import BACKEND_URL from "../config";
 
 const googleProvider = new GoogleAuthProvider();
 
-export default function Access() {
+export default function Signup() {
   const navigate = useNavigate();
   const [isSigningUp, setIsSigningUp] = useState(false);
 
@@ -17,14 +17,14 @@ export default function Access() {
     
     setIsSigningUp(true);
     try {
-      console.log("🚀 Starting sign up process...");
+      console.log("🚀 Starting signup process...");
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
       
       console.log("🔐 User signed up:", user.email);
       
-      // Create or find user in backend
-      console.log("🔍 Calling createOrFind...");
+      // Create Firebase-only user in backend
+      console.log("🔍 Creating Firebase user...");
       const res = await fetch(`${BACKEND_URL}/tripwell/user/createOrFind`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -37,19 +37,22 @@ export default function Access() {
       const userData = await res.json();
       console.log("🔍 Backend response:", userData);
       
-      // Save user data to localStorage
-      if (userData.user) {
-        localStorage.setItem("userData", JSON.stringify(userData.user));
-        localStorage.setItem("profileComplete", "false");
-        console.log("💾 Saved user data to localStorage");
-      }
+      // Save minimal user data to localStorage (new user)
+      localStorage.setItem("userData", JSON.stringify({
+        firebaseId: user.uid,
+        email: user.email,
+        firstName: null,
+        lastName: null,
+        hometownCity: null
+      }));
+      console.log("💾 Saved Firebase user data to localStorage");
       
-      // Route to ProfileSetup (new user)
-      console.log("✅ Sign up success → ProfileSetup");
+      // Route to ProfileSetup (new user - no backend checks needed!)
+      console.log("✅ Signup success → ProfileSetup");
       navigate("/profilesetup");
       
     } catch (error) {
-      console.error("❌ Sign up failed:", error);
+      console.error("❌ Signup failed:", error);
     } finally {
       setIsSigningUp(false);
     }
@@ -66,7 +69,7 @@ export default function Access() {
             </svg>
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            Welcome to TripWell! 🌍
+            Join TripWell! 🌍
           </h1>
           <p className="text-gray-600 text-lg leading-relaxed">
             Sign up to start planning your next adventure!
@@ -80,7 +83,7 @@ export default function Access() {
             disabled={isSigningUp}
             className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSigningUp ? "Signing up..." : "✨ Sign Up with Google"}
+            {isSigningUp ? "Creating account..." : "✨ Sign Up with Google"}
           </button>
           
           {/* Sign In Option */}

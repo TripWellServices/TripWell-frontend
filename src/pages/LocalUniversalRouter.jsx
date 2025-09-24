@@ -85,6 +85,7 @@ export default function LocalUniversalRouter() {
   // Route based on trip state - use hydrated data
   const decideRoute = () => {
     // Get data from localStorage (already hydrated)
+    const userData = JSON.parse(localStorage.getItem("userData") || "null");
     const tripData = JSON.parse(localStorage.getItem("tripData") || "null");
     const tripPersonaData = JSON.parse(localStorage.getItem("tripPersonaData") || "null");
     const selectedMetas = JSON.parse(localStorage.getItem("selectedMetas") || "[]");
@@ -92,6 +93,8 @@ export default function LocalUniversalRouter() {
     const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
 
     console.log("🔍 Routing decision tree:", {
+      hasUserData: !!userData,
+      profileComplete: userData?.profileComplete,
       hasTripData: !!tripData,
       hasTripPersona: !!tripPersonaData,
       hasSelectedMetas: selectedMetas.length > 0,
@@ -99,56 +102,70 @@ export default function LocalUniversalRouter() {
       hasItinerary: !!itineraryData
     });
 
-    // No trip data = need to create/join trip
-    if (!tripData) {
-      console.log("❌ No trip data → /postprofileroleselect");
+    // Step 1: Check if user has profile data (TripWellUser exists with profile fields)
+    if (!userData || !userData.firstName || !userData.lastName || !userData.hometownCity) {
+      console.log("❌ Profile data missing → /profilesetup");
+      navigate("/profilesetup");
+      return;
+    }
+
+    // Step 2: Check if user has selected role (post-profile)
+    if (!userData.role || userData.role === "") {
+      console.log("❌ No role selected → /postprofileroleselect");
       navigate("/postprofileroleselect");
       return;
     }
 
-    // Trip is complete
-    if (tripData.tripComplete === true) {
-      console.log("✅ Trip complete → /tripcomplete");
-      navigate("/tripcomplete");
+    // Step 3: Check if trip is created
+    if (!tripData) {
+      console.log("❌ No trip data → /tripsetup");
+      navigate("/tripsetup");
       return;
     }
 
-    // Trip has started
-    if (tripData.startedTrip === true) {
+    // Step 4: Check if trip has started (check TripCurrentDays.tripStartedAt)
+    if (tripData.tripStartedByOriginator === true || tripData.tripStartedByParticipant === true) {
       console.log("🚀 Trip started → /livedayreturner");
       navigate("/livedayreturner");
       return;
     }
 
-    // No trip persona data
+    // Step 5: Check if trip persona is created
     if (!tripPersonaData) {
       console.log("❌ No trip persona → /trip-persona");
       navigate("/trip-persona");
       return;
     }
 
-    // No meta selections
+    // Step 6: Check if meta attractions are selected
     if (selectedMetas.length === 0) {
       console.log("❌ No meta selections → /meta-select");
       navigate("/meta-select");
       return;
     }
 
-    // No sample selections
+    // Step 7: Check if persona samples are selected
     if (selectedSamples.length === 0) {
-      console.log("❌ No sample selections → /sample-select");
-      navigate("/sample-select");
+      console.log("❌ No sample selections → /persona-sample");
+      navigate("/persona-sample");
       return;
     }
 
-    // No itinerary data
+    // Step 8: Check if itinerary is built
     if (!itineraryData) {
-      console.log("❌ No itinerary → /itinerarybuild");
-      navigate("/itinerarybuild");
+      console.log("❌ No itinerary → /build-itinerary");
+      navigate("/build-itinerary");
       return;
     }
 
-    // Default: go to pre-trip hub
+    // Step 9: Check if trip is complete (very last step)
+    if (tripData.tripComplete === true) {
+      console.log("✅ Trip complete → /tripcomplete");
+      navigate("/tripcomplete");
+      return;
+    }
+
+    // Step 10: All planning complete - go to pre-trip hub
     console.log("✅ All data present → /pretriphub");
     navigate("/pretriphub");
   };
@@ -235,4 +252,5 @@ export default function LocalUniversalRouter() {
       </div>
     </div>
   );
+}
 }

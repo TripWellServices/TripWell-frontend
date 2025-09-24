@@ -11,7 +11,6 @@ export function AppDataProvider({ children }) {
     tripIntentData: null,
     anchorSelectData: null,
     itineraryData: null,
-    profileComplete: false,
     validation: null,
     loading: false,
     error: null,
@@ -25,8 +24,7 @@ export function AppDataProvider({ children }) {
       const tripIntentData = JSON.parse(localStorage.getItem("tripIntentData") || "null");
       const anchorSelectData = JSON.parse(localStorage.getItem("anchorLogic") || "null");
       const itineraryData = JSON.parse(localStorage.getItem("itineraryData") || "null");
-      const profileComplete = localStorage.getItem("profileComplete") === "true";
-      setState((s) => ({ ...s, userData, tripData, tripIntentData, anchorSelectData, itineraryData, profileComplete }));
+      setState((s) => ({ ...s, userData, tripData, tripIntentData, anchorSelectData, itineraryData }));
     } catch (e) {
       console.warn("Failed to load initial localStorage state", e);
     }
