@@ -123,9 +123,9 @@ export default function LocalUniversalRouter() {
       return;
     }
 
-    // Step 4: Check if trip has started (check TripCurrentDays.tripStartedAt)
-    if (tripData.tripStartedByOriginator === true || tripData.tripStartedByParticipant === true) {
-      console.log("🚀 Trip started → /livedayreturner");
+    // Step 4: Check if trip has started (existence of TripCurrentDays = trip started!)
+    if (tripData.tripCurrentDays) {
+      console.log("🚀 Trip started (TripCurrentDays exists) → /livedayreturner");
       navigate("/livedayreturner");
       return;
     }
@@ -159,7 +159,8 @@ export default function LocalUniversalRouter() {
     }
 
     // Step 9: Check if trip is complete (very last step)
-    if (tripData.tripComplete === true) {
+    // Check if TripComplete exists for this user (trip was archived)
+    if (tripData.tripCompletedAt) {
       console.log("✅ Trip complete → /tripcomplete");
       navigate("/tripcomplete");
       return;

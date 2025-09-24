@@ -22,7 +22,7 @@ export default function Home() {
 
     console.log("🔍 Home.jsx - Simple Firebase checker starting...");
 
-    // 1400ms delay for better timing
+    // 750ms delay for better timing
     const timeoutId = setTimeout(() => {
       const unsub = auth.onAuthStateChanged(async (firebaseUser) => {
         console.log("🔥 Firebase auth state changed:", firebaseUser ? "User found" : "No user");
@@ -83,10 +83,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Loading spinner */}
-        <div className="flex justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </div>
       </div>
     </div>
   );
