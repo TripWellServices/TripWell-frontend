@@ -107,7 +107,7 @@ export default function ProfileSetup() {
           lastName,
           email,
           hometownCity,
-          state,
+          homeState: state,
           persona,
           planningStyle,
           dreamDestination
