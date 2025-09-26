@@ -80,18 +80,12 @@ export default function PostProfileRoleSelect() {
           <p className="text-gray-600 text-sm">
             Not sure which to choose? 
           </p>
-          <div className="flex justify-center space-x-6 text-sm">
+          <div className="flex justify-center">
             <button 
               onClick={() => navigate("/explainer")}
               className="text-blue-600 hover:text-blue-700 font-medium underline decoration-2 underline-offset-2 transition-colors"
             >
               Learn More About TripWell
-            </button>
-            <button 
-              onClick={() => navigate("/bestthings")}
-              className="text-green-600 hover:text-green-700 font-medium underline decoration-2 underline-offset-2 transition-colors"
-            >
-              Try Demo Features
             </button>
           </div>
         </div>
