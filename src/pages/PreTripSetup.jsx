@@ -16,8 +16,8 @@ export default function PreTripSetup() {
       return;
     }
     
-    if (!userData?.profileComplete) {
-      console.log("❌ Profile not complete, navigating to /profilesetup");
+    if (!userData?.firstName || !userData?.lastName) {
+      console.log("❌ Profile data missing, navigating to /profilesetup");
       navigate("/profilesetup");
       return;
     }

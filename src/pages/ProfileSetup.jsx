@@ -121,10 +121,10 @@ export default function ProfileSetup() {
         firebaseId: auth.currentUser.uid,
         email: email,
         firstName: firstName,
-        lastName: lastName,
+        lastName: lastName
       };
       localStorage.setItem("userData", JSON.stringify(updatedUserData));
-      console.log("💾 Updated userData and set profileComplete to true:", updatedUserData);
+      console.log("💾 Updated userData with profile information:", updatedUserData);
 
       // ✅ Route to post profile complete after saving profile
       navigate("/postprofileroleselect");

@@ -5,7 +5,7 @@ export default function PostProfileRoleSelect() {
 
   const handleStartTrip = () => {
     console.log("🚀 User chose to start a trip");
-    navigate("/pretripsetup");
+    navigate("/tripsetup");
   };
 
   const handleJoinTrip = () => {
