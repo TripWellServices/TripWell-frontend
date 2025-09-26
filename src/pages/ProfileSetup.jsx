@@ -133,7 +133,7 @@ export default function ProfileSetup() {
       // ✅ FIX: Add proper error handling
       if (err.message.includes("401") || err.message.includes("Unauthorized")) {
         alert("Authentication error. Please sign in again.");
-        navigate("/access");
+        navigate("/signup");
       } else {
         alert("Failed to save profile. Please try again.");
       }

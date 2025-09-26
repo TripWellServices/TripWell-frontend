@@ -22,7 +22,7 @@ export default function Home() {
 
     console.log("🔍 Home.jsx - Simple Firebase checker starting...");
 
-    // 750ms delay for better timing
+    // 1100ms delay for better timing
     const timeoutId = setTimeout(() => {
       const unsub = auth.onAuthStateChanged(async (firebaseUser) => {
         console.log("🔥 Firebase auth state changed:", firebaseUser ? "User found" : "No user");
@@ -43,7 +43,7 @@ export default function Home() {
       return () => {
         unsub();
       };
-    }, 1400);
+    }, 1100);
 
     return () => {
       clearTimeout(timeoutId);
